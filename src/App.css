@@ -37,14 +37,14 @@ body, html {
 /* Logo Styles */
 .logo-container {
   display: flex;
-  width: 100%;
   align-items: center;
   gap: 0.5rem;
 }
 
 .app-logo {
-  height: 40px;
-  width: auto;
+  height: 500px;
+  width: 500px;
+  align-items: center;
   object-fit: contain;
 }
 
