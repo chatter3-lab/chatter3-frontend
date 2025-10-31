@@ -8,6 +8,7 @@ const API_URL = 'https://api.chatter3.com';
 function LoginForm({ onLogin, onSwitchToRegister }) {
   const [formData, setFormData] = useState({
     email: '',
+    password: ''
   });
 
   const handleSubmit = (e) => {
@@ -23,7 +24,18 @@ function LoginForm({ onLogin, onSwitchToRegister }) {
           type="email"
           value={formData.email}
           onChange={(e) => setFormData({...formData, email: e.target.value})}
-          placeholder="Enter your registered email"
+          placeholder="Enter your email"
+          required
+        />
+      </div>
+      
+      <div className="form-group">
+        <label>Password:</label>
+        <input
+          type="password"
+          value={formData.password}
+          onChange={(e) => setFormData({...formData, password: e.target.value})}
+          placeholder="Enter your password"
           required
         />
       </div>
@@ -41,11 +53,27 @@ function EmailRegisterForm({ onSubmit, onBack, onSwitchToLogin }) {
   const [formData, setFormData] = useState({
     email: '',
     username: '',
+    password: '',
+    confirmPassword: '',
     english_level: 'beginner'
   });
 
+  const [passwordError, setPasswordError] = useState('');
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    if (formData.password !== formData.confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+    
+    if (formData.password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      return;
+    }
+    
+    setPasswordError('');
     onSubmit(formData);
   };
 
@@ -71,6 +99,27 @@ function EmailRegisterForm({ onSubmit, onBack, onSwitchToLogin }) {
           onChange={(e) => setFormData({...formData, username: e.target.value})}
           required
         />
+      </div>
+      
+      <div className="form-group">
+        <label>Password:</label>
+        <input
+          type="password"
+          value={formData.password}
+          onChange={(e) => setFormData({...formData, password: e.target.value})}
+          required
+        />
+      </div>
+      
+      <div className="form-group">
+        <label>Confirm Password:</label>
+        <input
+          type="password"
+          value={formData.confirmPassword}
+          onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+          required
+        />
+        {passwordError && <div className="password-error">{passwordError}</div>}
       </div>
       
       <div className="form-group">
@@ -145,16 +194,14 @@ function App() {
 
   const handleEmailLogin = async (formData) => {
     try {
-      // For MVP, we'll simulate login by creating a session
-      // In a real app, you'd have proper password authentication
-      const response = await fetch(`${API_URL}/api/auth/google`, {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           email: formData.email,
-          name: formData.email.split('@')[0] // Generate name from email
+          password: formData.password
         }),
       });
       
@@ -165,7 +212,7 @@ function App() {
         setUser(data.user);
         setAuthError('');
       } else {
-        setAuthError(data.error || 'Login failed. Please check your email or sign up.');
+        setAuthError(data.error || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -180,7 +227,12 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          email: formData.email,
+          username: formData.username,
+          password: formData.password,
+          english_level: formData.english_level
+        }),
       });
       
       const data = await response.json();
@@ -208,7 +260,15 @@ function App() {
       <GoogleOAuthProvider clientId="935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com">
         <div className="auth-container">
           <div className="auth-box">
-            <h1>💬 Welcome to Chatter3</h1>
+            {/* Chatter3 Logo */}
+            <div className="logo-container">
+              <img 
+                src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" 
+                alt="Chatter3 Logo" 
+                className="app-logo"
+              />
+            </div>
+            <h1>Welcome to Chatter3</h1>
             <p>Practice English with native speakers</p>
             
             {authError && <div className="error-message">{authError}</div>}
@@ -254,7 +314,14 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <div className="app-header-content">
-          <h1>💬 Chatter3</h1>
+          <div className="header-logo">
+            <img 
+              src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" 
+              alt="Chatter3 Logo" 
+              className="header-logo-img"
+            />
+            <h1>Chatter3</h1>
+          </div>
           <div className="user-info">
             <span>Welcome, {user.username}!</span>
             <span>Points: {user.points}</span>
