@@ -320,7 +320,7 @@ function App() {
               alt="Chatter3 Logo" 
               className="header-logo-img"
             />
-            <h1>Chatter3</h1>
+            
           </div>
           <div className="user-info">
             <span>Welcome, {user.username}!</span>
