@@ -145,18 +145,255 @@ function EmailRegisterForm({ onSubmit, onBack, onSwitchToLogin }) {
   );
 }
 
+// Matching Screen Component
+function MatchingScreen({ user, onMatchFound, onCancel }) {
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchStatus, setSearchStatus] = useState('');
+
+  const startMatching = async () => {
+    setIsSearching(true);
+    setSearchStatus('Finding a conversation partner...');
+    
+    try {
+      const response = await fetch(`${API_URL}/api/matching/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          english_level: user.english_level
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        if (data.matched) {
+          setSearchStatus('Partner found! Connecting...');
+          // Wait a moment to show the success message
+          setTimeout(() => {
+            onMatchFound(data);
+          }, 2000);
+        } else {
+          setSearchStatus('Searching for a partner...');
+          // Continue polling for a match
+          pollForMatch(user.id);
+        }
+      } else {
+        setSearchStatus('Failed to start matching. Please try again.');
+        setIsSearching(false);
+      }
+    } catch (error) {
+      console.error('Matching error:', error);
+      setSearchStatus('Connection error. Please try again.');
+      setIsSearching(false);
+    }
+  };
+
+  const pollForMatch = async (userId) => {
+    const checkMatch = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/matching/session/${userId}`);
+        const data = await response.json();
+        
+        if (data.active_session) {
+          setSearchStatus('Partner found! Connecting...');
+          setTimeout(() => {
+            onMatchFound({
+              session_id: data.session.id,
+              partner: data.session.partner,
+              room_name: data.session.room_name
+            });
+          }, 2000);
+        } else {
+          // Continue polling every 3 seconds
+          setTimeout(() => checkMatch(), 3000);
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+        setTimeout(() => checkMatch(), 3000);
+      }
+    };
+    
+    checkMatch();
+  };
+
+  const cancelMatching = async () => {
+    setIsSearching(false);
+    setSearchStatus('');
+    
+    try {
+      await fetch(`${API_URL}/api/matching/leave`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id
+        }),
+      });
+    } catch (error) {
+      console.error('Leave matching error:', error);
+    }
+    
+    onCancel();
+  };
+
+  return (
+    <div className="matching-screen">
+      <div className="matching-container">
+        <h2>Find a Conversation Partner</h2>
+        <p>Practice English with native speakers through video calls</p>
+        
+        {!isSearching ? (
+          <div className="matching-start">
+            <div className="user-level-info">
+              <p>Your English Level: <strong>{user.english_level}</strong></p>
+              <p>Call Duration: <strong>
+                {user.english_level === 'beginner' ? '5 minutes' : 
+                 user.english_level === 'intermediate' ? '10 minutes' : '10 minutes'}
+              </strong></p>
+            </div>
+            <button onClick={startMatching} className="start-matching-btn">
+              Start Matching
+            </button>
+          </div>
+        ) : (
+          <div className="matching-search">
+            <div className="loading-animation">
+              <div className="pulse-dot"></div>
+              <div className="pulse-ring"></div>
+            </div>
+            <p className="search-status">{searchStatus}</p>
+            <button onClick={cancelMatching} className="cancel-matching-btn">
+              Cancel Search
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Video Call Ready Screen
+function VideoCallReady({ session, user, onEndCall }) {
+  const [timeLeft, setTimeLeft] = useState(
+    user.english_level === 'beginner' ? 300 : 600 // 5 or 10 minutes in seconds
+  );
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleEndCall();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleEndCall = async () => {
+    try {
+      await fetch(`${API_URL}/api/matching/end`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_id: session.session_id,
+          user_id: user.id
+        }),
+      });
+    } catch (error) {
+      console.error('End call error:', error);
+    }
+    
+    onEndCall();
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="video-call-ready">
+      <div className="call-container">
+        <h2>🎉 Partner Found!</h2>
+        
+        <div className="partner-info">
+          <div className="partner-avatar">
+            {session.partner.username.charAt(0).toUpperCase()}
+          </div>
+          <h3>{session.partner.username}</h3>
+          <p>English Level: <strong>{session.partner.english_level}</strong></p>
+        </div>
+
+        <div className="call-info">
+          <div className="timer">
+            <span className="time-left">{formatTime(timeLeft)}</span>
+            <p>Time Remaining</p>
+          </div>
+          
+          <div className="call-actions">
+            <p className="call-ready-text">Video call is ready to start!</p>
+            <p className="call-instruction">
+              <strong>Next Step:</strong> We'll integrate Cloudflare Realtime for video calling
+            </p>
+            
+            <div className="action-buttons">
+              <button className="start-video-btn">
+                Start Video Call (Coming Soon)
+              </button>
+              <button onClick={handleEndCall} className="end-call-btn">
+                End Call
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [user, setUser] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [currentSession, setCurrentSession] = useState(null);
+  const [appView, setAppView] = useState('main'); // 'main', 'matching', 'video'
 
-  // Check if user is already logged in
+  // Check if user is already logged in and has active session
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
+      
+      // Check for active session
+      checkActiveSession(userData.id);
     }
   }, []);
+
+  const checkActiveSession = async (userId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/matching/session/${userId}`);
+      const data = await response.json();
+      
+      if (data.active_session) {
+        setCurrentSession(data.session);
+        setAppView('video');
+      }
+    } catch (error) {
+      console.error('Check session error:', error);
+    }
+  };
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
@@ -253,6 +490,26 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('user');
     setUser(null);
+    setAppView('main');
+    setCurrentSession(null);
+  };
+
+  const handleStartMatching = () => {
+    setAppView('matching');
+  };
+
+  const handleMatchFound = (sessionData) => {
+    setCurrentSession(sessionData);
+    setAppView('video');
+  };
+
+  const handleCancelMatching = () => {
+    setAppView('main');
+  };
+
+  const handleEndCall = () => {
+    setCurrentSession(null);
+    setAppView('main');
   };
 
   if (!user) {
@@ -268,7 +525,7 @@ function App() {
                 className="app-logo"
               />
             </div>
-            
+            <h1>Welcome to Chatter3</h1>
             <p>Practice English with native speakers</p>
             
             {authError && <div className="error-message">{authError}</div>}
@@ -309,7 +566,52 @@ function App() {
     );
   }
 
-  // Main app after authentication
+  // Render different app views based on state
+  const renderAppView = () => {
+    switch (appView) {
+      case 'matching':
+        return (
+          <MatchingScreen 
+            user={user}
+            onMatchFound={handleMatchFound}
+            onCancel={handleCancelMatching}
+          />
+        );
+      
+      case 'video':
+        return (
+          <VideoCallReady 
+            session={currentSession}
+            user={user}
+            onEndCall={handleEndCall}
+          />
+        );
+      
+      default:
+        return (
+          <div className="welcome-message">
+            <h2>Ready to start a conversation?</h2>
+            <p>Your English practice journey begins here!</p>
+            <button onClick={handleStartMatching} className="start-matching-btn">
+              Find a Conversation Partner
+            </button>
+            
+            <div className="user-stats">
+              <div className="stat-card">
+                <h3>Your Stats</h3>
+                <p>Points: <strong>{user.points}</strong></p>
+                <p>Level: <strong>{user.english_level}</strong></p>
+                <p>Call Duration: <strong>
+                  {user.english_level === 'beginner' ? '5 minutes' : 
+                   user.english_level === 'intermediate' ? '10 minutes' : '10 minutes'}
+                </strong></p>
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -320,7 +622,7 @@ function App() {
               alt="Chatter3 Logo" 
               className="header-logo-img"
             />
-            
+            <h1>Chatter3</h1>
           </div>
           <div className="user-info">
             <span>Welcome, {user.username}!</span>
@@ -332,13 +634,7 @@ function App() {
       </header>
       
       <main className="app-content">
-        <div className="welcome-message">
-          <h2>Ready to start a conversation?</h2>
-          <p>Your English practice journey begins here!</p>
-          <button className="start-matching-btn">
-            Find a Conversation Partner
-          </button>
-        </div>
+        {renderAppView()}
       </main>
     </div>
   );
