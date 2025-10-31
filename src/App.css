@@ -34,6 +34,25 @@ body, html {
   padding: 0 1rem;
 }
 
+/* Logo Styles */
+.chatter3-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
 /* Auth Styles */
 .auth-container {
   display: flex;
@@ -53,6 +72,31 @@ body, html {
   width: 100%;
   max-width: 400px;
   margin: 0 auto;
+}
+
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-logo {
+  height: 50px;
+  width: auto;
+  margin-bottom: 1rem;
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+  color: #666;
+  margin-bottom: 0.5rem;
 }
 
 .auth-box h1 {
@@ -158,6 +202,38 @@ body, html {
   border-left: 4px solid #c62828;
 }
 
+/* Login Form Specific Styles */
+.login-form {
+  text-align: left;
+}
+
+.continue-as {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  background: #f9f9f9;
+  cursor: pointer;
+}
+
+.continue-as:hover {
+  background: #f0f0f0;
+}
+
+.auth-link {
+  color: #4285f4;
+  text-decoration: none;
+  margin-top: 1rem;
+  display: block;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
 /* Main App Header */
 .app-header {
   background: white;
@@ -213,6 +289,7 @@ body, html {
 .welcome-message h2 {
   color: #333;
   margin-bottom: 1rem;
+  font-size: 2rem;
 }
 
 .welcome-message p {
@@ -234,6 +311,35 @@ body, html {
 
 .start-matching-btn:hover {
   background: #3367d6;
+}
+
+/* Dashboard Styles */
+.dashboard-container {
+  padding: 2rem 1rem;
+}
+
+.user-stats {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.user-stats h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
 }
 
 /* Responsive Design */
@@ -264,5 +370,17 @@ body, html {
   
   .welcome-message p {
     font-size: 1rem;
+  }
+  
+  .logo-container {
+    justify-content: center;
+  }
+  
+  .chatter3-logo {
+    height: 35px;
+  }
+  
+  .logo-text {
+    font-size: 1.3rem;
   }
 }
