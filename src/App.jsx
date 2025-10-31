@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './App.css';
 
 const API_URL = 'https://api.chatter3.com';
@@ -16,33 +15,6 @@ function App() {
       setUser(JSON.parse(savedUser));
     }
   }, []);
-
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/google`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          credential: credentialResponse.credential
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setUser(data.user);
-        setAuthError('');
-      } else {
-        setAuthError(data.error || 'Authentication failed');
-      }
-    } catch (error) {
-      console.error('Google auth error:', error);
-      setAuthError('Authentication failed');
-    }
-  };
 
   const handleEmailRegister = async (formData) => {
     try {
@@ -76,43 +48,39 @@ function App() {
 
   if (!user) {
     return (
-      <GoogleOAuthProvider clientId="935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com">
-        <div className="auth-container">
-          <div className="auth-box">
-            <h1>💬 Welcome to Chatter3</h1>
-            <p>Practice English with native speakers</p>
-            
-            {authError && <div className="error-message">{authError}</div>}
-            
-            {!showRegister ? (
-              <>
-                <div className="google-button-container">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => setAuthError('Google login failed')}
-                    theme="filled_blue"
-                    size="large"
-                    text="signin_with"
-                    shape="rectangular"
-                  />
-                </div>
-                <div className="auth-divider">or</div>
+      <div className="auth-container">
+        <div className="auth-box">
+          <h1>💬 Welcome to Chatter3</h1>
+          <p>Practice English with native speakers</p>
+          
+          {authError && <div className="error-message">{authError}</div>}
+          
+          {!showRegister ? (
+            <>
+              <div className="google-button-container">
                 <button 
-                  onClick={() => setShowRegister(true)}
-                  className="email-register-btn"
+                  onClick={() => setAuthError('Google OAuth coming soon - use email registration for now')}
+                  className="google-btn"
                 >
-                  Sign up with Email
+                  Sign in with Google
                 </button>
-              </>
-            ) : (
-              <EmailRegisterForm 
-                onSubmit={handleEmailRegister}
-                onBack={() => setShowRegister(false)}
-              />
-            )}
-          </div>
+              </div>
+              <div className="auth-divider">or</div>
+              <button 
+                onClick={() => setShowRegister(true)}
+                className="email-register-btn"
+              >
+                Sign up with Email
+              </button>
+            </>
+          ) : (
+            <EmailRegisterForm 
+              onSubmit={handleEmailRegister}
+              onBack={() => setShowRegister(false)}
+            />
+          )}
         </div>
-      </GoogleOAuthProvider>
+      </div>
     );
   }
 
@@ -193,7 +161,7 @@ function EmailRegisterForm({ onSubmit, onBack }) {
       
       <button type="submit">Register</button>
       <button type="button" onClick={onBack} className="back-button">
-        Back to Google Sign In
+        Back to Sign In Options
       </button>
     </form>
   );
