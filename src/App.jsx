@@ -268,7 +268,7 @@ function App() {
                 className="app-logo"
               />
             </div>
-            <h1>Welcome to Chatter3</h1>
+            
             <p>Practice English with native speakers</p>
             
             {authError && <div className="error-message">{authError}</div>}
