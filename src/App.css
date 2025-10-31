@@ -44,7 +44,6 @@ body, html {
 .app-logo {
   height: 500px;
   width: 500px;
-  align-items: left;
   object-fit: contain;
 }
 
