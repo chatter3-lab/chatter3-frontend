@@ -1,34 +1,254 @@
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Main App Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
 /* Logo Styles */
 .logo-container {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .app-logo {
-  height: 50px;
+  height: 40px;
   width: auto;
   object-fit: contain;
 }
 
 .logo-text {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: #333;
 }
 
-/* Main App Header - CENTERED LOGO with USER INFO ON LEFT */
+/* Auth Styles */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
+}
+
+.auth-box {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-logo {
+  height: 50px;
+  width: auto;
+  margin-bottom: 1rem;
+  object-fit: contain;
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.auth-box h1 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.auth-box p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+/* Google Button Container - CENTERED */
+.google-button-container {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.google-button-container > div {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.auth-divider {
+  margin: 1.5rem 0;
+  color: #999;
+  position: relative;
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #eee;
+}
+
+.email-register-btn, .back-button {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #4285f4;
+  background: white;
+  color: #4285f4;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 0.5rem;
+}
+
+.email-register-btn:hover, .back-button:hover {
+  background: #4285f4;
+  color: white;
+}
+
+/* Register Form */
+.register-form {
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.register-form button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #c62828;
+}
+
+/* Login Form Specific Styles */
+.login-form {
+  text-align: left;
+}
+
+.continue-as {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  background: #f9f9f9;
+  cursor: pointer;
+}
+
+.continue-as:hover {
+  background: #f0f0f0;
+}
+
+.auth-link {
+  color: #4285f4;
+  text-decoration: none;
+  margin-top: 1rem;
+  display: block;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* Main App Header */
 .app-header {
   background: white;
   padding: 1rem 0;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
-  position: relative;
 }
 
 .app-header-content {
   display: flex;
-  justify-content: space-between; /* Space between left and right sections */
+  justify-content: space-between;
   align-items: center;
   width: 100%;
   max-width: 1200px;
@@ -36,44 +256,98 @@
   padding: 0 1rem;
 }
 
-/* Logo container positioned absolutely in center */
-.logo-container {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-/* User info on the left */
 .user-info {
   display: flex;
   gap: 1rem;
   align-items: center;
-  margin-right: auto; /* Push to left */
 }
 
-/* Auth Logo Styles */
-.auth-logo {
-  height: 60px;
-  width: auto;
+.user-info span {
+  font-weight: 500;
+}
+
+.user-info button {
+  padding: 8px 16px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.user-info button:hover {
+  background: #d32f2f;
+}
+
+/* Welcome Message - Now Centered */
+.welcome-message {
+  text-align: center;
+  padding: 4rem 1rem;
+  width: 100%;
+}
+
+.welcome-message h2 {
+  color: #333;
   margin-bottom: 1rem;
-  object-fit: contain;
+  font-size: 2rem;
+}
+
+.welcome-message p {
+  color: #666;
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.start-matching-btn {
+  padding: 12px 24px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.start-matching-btn:hover {
+  background: #3367d6;
+}
+
+/* Dashboard Styles */
+.dashboard-container {
+  padding: 2rem 1rem;
+}
+
+.user-stats {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.user-stats h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .app-logo {
-    height: 45px;
-  }
-  
-  .auth-logo {
-    height: 50px;
-  }
-  
-  .logo-text {
-    font-size: 1.5rem;
+  .auth-box {
+    padding: 1.5rem;
+    margin: 1rem;
   }
   
   .app-header-content {
@@ -82,16 +356,36 @@
     text-align: center;
   }
   
-  .logo-container {
-    position: static;
-    transform: none;
-    order: 1;
-  }
-  
   .user-info {
-    margin-right: 0;
     flex-direction: column;
     gap: 0.5rem;
-    order: 2;
+  }
+  
+  .welcome-message {
+    padding: 2rem 1rem;
+  }
+  
+  .welcome-message h2 {
+    font-size: 1.5rem;
+  }
+  
+  .welcome-message p {
+    font-size: 1rem;
+  }
+  
+  .logo-container {
+    justify-content: center;
+  }
+  
+  .app-logo {
+    height: 35px;
+  }
+  
+  .auth-logo {
+    height: 40px;
+  }
+  
+  .logo-text {
+    font-size: 1.3rem;
   }
 }
