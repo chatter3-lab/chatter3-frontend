@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './App.css';
 
 const API_URL = 'https://api.chatter3.com';
@@ -15,6 +16,40 @@ function App() {
       setUser(JSON.parse(savedUser));
     }
   }, []);
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      console.log('Google auth response:', credentialResponse);
+      
+      const response = await fetch(`${API_URL}/api/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          credential: credentialResponse.credential
+        }),
+      });
+      
+      const data = await response.json();
+      console.log('Backend response:', data);
+      
+      if (data.success) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+        setAuthError('');
+      } else {
+        setAuthError(data.error || 'Authentication failed');
+      }
+    } catch (error) {
+      console.error('Google auth error:', error);
+      setAuthError('Authentication failed - check console for details');
+    }
+  };
+
+  const handleGoogleError = () => {
+    setAuthError('Google login failed');
+  };
 
   const handleEmailRegister = async (formData) => {
     try {
@@ -48,39 +83,46 @@ function App() {
 
   if (!user) {
     return (
-      <div className="auth-container">
-        <div className="auth-box">
-          <h1>💬 Welcome to Chatter3</h1>
-          <p>Practice English with native speakers</p>
-          
-          {authError && <div className="error-message">{authError}</div>}
-          
-          {!showRegister ? (
-            <>
-              <div className="google-button-container">
+      <GoogleOAuthProvider clientId="935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com">
+        <div className="auth-container">
+          <div className="auth-box">
+            <h1>💬 Welcome to Chatter3</h1>
+            <p>Practice English with native speakers</p>
+            
+            {authError && <div className="error-message">{authError}</div>}
+            
+            {!showRegister ? (
+              <>
+                <div className="google-button-container">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    useOneTap
+                    theme="filled_blue"
+                    size="large"
+                    text="continue_with"
+                  />
+                </div>
+                <div className="auth-divider">or</div>
                 <button 
-                  onClick={() => setAuthError('Google OAuth coming soon - use email registration for now')}
-                  className="google-btn"
+                  onClick={() => setShowRegister(true)}
+                  className="email-register-btn"
                 >
-                  Sign in with Google
+                  Sign up with Email
                 </button>
-              </div>
-              <div className="auth-divider">or</div>
-              <button 
-                onClick={() => setShowRegister(true)}
-                className="email-register-btn"
-              >
-                Sign up with Email
-              </button>
-            </>
-          ) : (
-            <EmailRegisterForm 
-              onSubmit={handleEmailRegister}
-              onBack={() => setShowRegister(false)}
-            />
-          )}
+              </>
+            ) : (
+              <EmailRegisterForm 
+                onSubmit={handleEmailRegister}
+                onBack={() => {
+                  setShowRegister(false);
+                  setAuthError('');
+                }}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      </GoogleOAuthProvider>
     );
   }
 
@@ -161,7 +203,7 @@ function EmailRegisterForm({ onSubmit, onBack }) {
       
       <button type="submit">Register</button>
       <button type="button" onClick={onBack} className="back-button">
-        Back to Sign In Options
+        Back to Google Sign In
       </button>
     </form>
   );
