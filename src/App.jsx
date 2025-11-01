@@ -344,12 +344,12 @@ function VideoCallReady({ session, user, onEndCall }) {
           <div className="call-actions">
             <p className="call-ready-text">Video call is ready to start!</p>
             <p className="call-instruction">
-              <strong>Remaining task:</strong> We need to integrate Cloudflare Realtime for video calling
+              <strong>Next Step:</strong> We'll integrate Cloudflare Realtime for video calling
             </p>
             
             <div className="action-buttons">
               <button className="start-video-btn">
-                Start Video Call (next version feature)
+                Start Video Call (Coming Soon)
               </button>
               <button onClick={handleEndCall} className="end-call-btn">
                 End Call
@@ -621,7 +621,8 @@ function App() {
               src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" 
               alt="Chatter3 Logo" 
               className="header-logo-img"
-            />            
+            />
+            <h1>Chatter3</h1>
           </div>
           <div className="user-info">
             <span>Welcome, {user.username}!</span>
