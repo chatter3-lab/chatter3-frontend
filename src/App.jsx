@@ -621,8 +621,7 @@ function App() {
               src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" 
               alt="Chatter3 Logo" 
               className="header-logo-img"
-            />
-            <h1>Chatter3</h1>
+            />            
           </div>
           <div className="user-info">
             <span>Welcome, {user.username}!</span>
