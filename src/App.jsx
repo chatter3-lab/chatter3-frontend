@@ -276,13 +276,79 @@ function MatchingScreen({ user, onMatchFound, onCancel }) {
   );
 }
 
-// Simple Video Call Ready Screen (No WebRTC - Working Version)
+// Video Call Ready Screen with Daily.co
 function VideoCallReady({ session, user, onEndCall }) {
   const [timeLeft, setTimeLeft] = useState(
     user.english_level === 'beginner' ? 300 : 600
   );
+  const [callFrame, setCallFrame] = useState(null);
+  const [isJoining, setIsJoining] = useState(false);
+  const [roomUrl, setRoomUrl] = useState(null);
 
   useEffect(() => {
+    createDailyRoom();
+    startTimer();
+
+    return () => {
+      if (callFrame) {
+        callFrame.destroy();
+      }
+    };
+  }, []);
+
+  const createDailyRoom = async () => {
+    try {
+      setIsJoining(true);
+      
+      const response = await fetch(`${API_URL}/api/daily/create-room`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_id: session.session_id,
+          user_id: user.id
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setRoomUrl(data.room.url);
+        initializeDailyCall(data.room.url, data.room.token);
+      } else {
+        console.error('Failed to create room:', data.error);
+        setIsJoining(false);
+      }
+    } catch (error) {
+      console.error('Room creation error:', error);
+      setIsJoining(false);
+    }
+  };
+
+  const initializeDailyCall = (url, token) => {
+    // Load Daily.co iframe
+    const iframe = document.createElement('iframe');
+    iframe.allow = 'microphone; camera; display-capture';
+    iframe.style.width = '100%';
+    iframe.style.height = '500px';
+    iframe.style.border = 'none';
+    iframe.style.borderRadius = '12px';
+    
+    const container = document.getElementById('daily-call-container');
+    if (container) {
+      container.innerHTML = '';
+      container.appendChild(iframe);
+    }
+
+    // For MVP, we'll use the direct URL approach
+    // In production, you'd use Daily.co's React components
+    window.open(url, '_blank');
+    
+    setIsJoining(false);
+  };
+
+  const startTimer = () => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -293,11 +359,13 @@ function VideoCallReady({ session, user, onEndCall }) {
         return prev - 1;
       });
     }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
+  };
 
   const handleEndCall = async () => {
+    if (callFrame) {
+      callFrame.leave();
+    }
+    
     try {
       await fetch(`${API_URL}/api/matching/end`, {
         method: 'POST',
@@ -316,6 +384,12 @@ function VideoCallReady({ session, user, onEndCall }) {
     onEndCall();
   };
 
+  const joinVideoCall = () => {
+    if (roomUrl) {
+      window.open(roomUrl, '_blank', 'width=800,height=600');
+    }
+  };
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -325,7 +399,7 @@ function VideoCallReady({ session, user, onEndCall }) {
   return (
     <div className="video-call-ready">
       <div className="call-container">
-        <h2>🎉 Partner Found!</h2>
+        <h2>🎥 Video Call with {session.partner.username}</h2>
         
         <div className="partner-info">
           <div className="partner-avatar">
@@ -335,26 +409,57 @@ function VideoCallReady({ session, user, onEndCall }) {
           <p>English Level: <strong>{session.partner.english_level}</strong></p>
         </div>
 
-        <div className="call-info">
-          <div className="timer">
-            <span className="time-left">{formatTime(timeLeft)}</span>
-            <p>Time Remaining</p>
-          </div>
-          
-          <div className="call-actions">
-            <p className="call-ready-text">Video call session is active</p>
-            <p className="call-instruction">
-              <strong>Video Calling:</strong> WebRTC integration coming soon
-            </p>
-            
-            <div className="action-buttons">
-              <button className="start-video-btn" disabled>
-                Start Video Call (Coming Soon)
-              </button>
-              <button onClick={handleEndCall} className="end-call-btn">
-                End Session
-              </button>
+        <div className="daily-call-interface">
+          <div className="timer-section">
+            <div className="timer">
+              <span className="time-left">{formatTime(timeLeft)}</span>
+              <p>Time Remaining</p>
             </div>
+          </div>
+
+          {isJoining ? (
+            <div className="joining-call">
+              <div className="loading-spinner"></div>
+              <p>Setting up video call...</p>
+            </div>
+          ) : (
+            <div className="call-ready">
+              <div className="call-instructions">
+                <h3>🎯 Ready for Your Video Call!</h3>
+                <p>Click the button below to start your video conversation with <strong>{session.partner.username}</strong></p>
+                
+                <div className="feature-list">
+                  <div className="feature-item">
+                    <span>✅</span> High-quality video & audio
+                  </div>
+                  <div className="feature-item">
+                    <span>✅</span> Screen sharing available
+                  </div>
+                  <div className="feature-item">
+                    <span>✅</span> Built-in chat (optional)
+                  </div>
+                </div>
+              </div>
+
+              <div className="call-actions">
+                <button onClick={joinVideoCall} className="join-call-btn">
+                  🎥 Join Video Call
+                </button>
+                <p className="call-note">
+                  The call will open in a new window. Both you and {session.partner.username} need to join.
+                </p>
+              </div>
+
+              <div id="daily-call-container" className="daily-container">
+                {/* Daily.co iframe will be inserted here */}
+              </div>
+            </div>
+          )}
+
+          <div className="call-controls">
+            <button onClick={handleEndCall} className="end-call-btn">
+              📞 End Session
+            </button>
           </div>
         </div>
       </div>
