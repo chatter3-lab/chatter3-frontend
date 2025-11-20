@@ -276,7 +276,7 @@ function MatchingScreen({ user, onMatchFound, onCancel }) {
   );
 }
 
-// Video Call Ready Screen with WebRTC
+// Video Call Ready Screen with WebRTC Signaling
 function VideoCallReady({ session, user, onEndCall }) {
   const [timeLeft, setTimeLeft] = useState(
     user.english_level === 'beginner' ? 300 : 600
@@ -284,77 +284,156 @@ function VideoCallReady({ session, user, onEndCall }) {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [peerConnection, setPeerConnection] = useState(null);
-  const [callStatus, setCallStatus] = useState('connecting');
+  const [webSocket, setWebSocket] = useState(null);
+  const [callStatus, setCallStatus] = useState('initializing');
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
 
   useEffect(() => {
-    initializeWebRTC();
+    initializeCall();
     startTimer();
 
     return () => {
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-      }
-      if (peerConnection) {
-        peerConnection.close();
-      }
+      cleanupCall();
     };
   }, []);
 
-  const initializeWebRTC = async () => {
+  const initializeCall = async () => {
     try {
+      setCallStatus('getting_media');
+      
       // Get user media
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
+        video: { width: 640, height: 480 },
         audio: true 
       });
       setLocalStream(stream);
+      
+      // Create WebSocket connection for signaling
+      const ws = new WebSocket(`wss://api.chatter3.com/api/webrtc/ws/${session.session_id}/${user.id}`);
+      setWebSocket(ws);
 
-      // Create peer connection
-      const pc = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ]
-      });
-      setPeerConnection(pc);
-
-      // Add local stream to connection
-      stream.getTracks().forEach(track => {
-        pc.addTrack(track, stream);
-      });
-
-      // Handle remote stream
-      pc.ontrack = (event) => {
-        setRemoteStream(event.streams[0]);
-        setCallStatus('connected');
+      ws.onopen = () => {
+        setCallStatus('connecting');
+        createPeerConnection(stream, ws);
       };
 
-      // Handle connection state
-      pc.onconnectionstatechange = () => {
-        if (pc.connectionState === 'connected') {
-          setCallStatus('connected');
-        }
+      ws.onmessage = async (event) => {
+        const message = JSON.parse(event.data);
+        await handleSignalingMessage(message);
       };
 
-      // For MVP, we'll simulate the signaling - in production we'd use WebSockets
-      simulateSignaling(pc);
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        setCallStatus('failed');
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket closed');
+      };
 
     } catch (error) {
-      console.error('WebRTC initialization error:', error);
+      console.error('Call initialization error:', error);
       setCallStatus('failed');
     }
   };
 
-  const simulateSignaling = (pc) => {
-    // In a real app, we will exchange offers/answers via WebSocket
-    // For MVP, we'll create a simple direct connection simulation
-    setTimeout(() => {
+  const createPeerConnection = (stream, ws) => {
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    });
+    setPeerConnection(pc);
+
+    // Add local stream to connection
+    stream.getTracks().forEach(track => {
+      pc.addTrack(track, stream);
+    });
+
+    // Handle remote stream
+    pc.ontrack = (event) => {
+      console.log('Received remote stream');
+      setRemoteStream(event.streams[0]);
       setCallStatus('connected');
-      // Simulate remote stream after delay
-      setTimeout(() => {
-        setRemoteStream(new MediaStream());
-      }, 1000);
-    }, 2000);
+    };
+
+    // Handle ICE candidates
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        ws.send(JSON.stringify({
+          type: 'ice-candidate',
+          toUserId: getPartnerId(),
+          data: event.candidate
+        }));
+      }
+    };
+
+    // Handle connection state
+    pc.onconnectionstatechange = () => {
+      console.log('Connection state:', pc.connectionState);
+      if (pc.connectionState === 'connected') {
+        setCallStatus('connected');
+      } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        setCallStatus('failed');
+      }
+    };
+
+    // Create and send offer if we're user1 (initiator)
+    if (session.user1_id === user.id) {
+      createOffer(pc, ws);
+    }
+  };
+
+  const createOffer = async (pc, ws) => {
+    try {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      ws.send(JSON.stringify({
+        type: 'offer',
+        toUserId: getPartnerId(),
+        data: offer
+      }));
+    } catch (error) {
+      console.error('Create offer error:', error);
+    }
+  };
+
+  const handleSignalingMessage = async (message) => {
+    const pc = peerConnection;
+    if (!pc) return;
+
+    try {
+      switch (message.type) {
+        case 'offer':
+          await pc.setRemoteDescription(message.data);
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          
+          webSocket.send(JSON.stringify({
+            type: 'answer',
+            toUserId: getPartnerId(),
+            data: answer
+          }));
+          break;
+
+        case 'answer':
+          await pc.setRemoteDescription(message.data);
+          break;
+
+        case 'ice-candidate':
+          await pc.addIceCandidate(message.data);
+          break;
+      }
+    } catch (error) {
+      console.error('Signaling message error:', error);
+    }
+  };
+
+  const getPartnerId = () => {
+    return session.user1_id === user.id ? session.user2_id : session.user1_id;
   };
 
   const startTimer = () => {
@@ -370,15 +449,42 @@ function VideoCallReady({ session, user, onEndCall }) {
     }, 1000);
   };
 
-  const handleEndCall = async () => {
-    try {
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
+  const toggleMute = () => {
+    if (localStream) {
+      const audioTrack = localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setIsMuted(!audioTrack.enabled);
       }
-      if (peerConnection) {
-        peerConnection.close();
-      }
+    }
+  };
 
+  const toggleVideo = () => {
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setIsVideoOff(!videoTrack.enabled);
+      }
+    }
+  };
+
+  const cleanupCall = () => {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+    }
+    if (peerConnection) {
+      peerConnection.close();
+    }
+    if (webSocket) {
+      webSocket.close();
+    }
+  };
+
+  const handleEndCall = async () => {
+    cleanupCall();
+    
+    try {
       await fetch(`${API_URL}/api/matching/end`, {
         method: 'POST',
         headers: {
@@ -405,42 +511,21 @@ function VideoCallReady({ session, user, onEndCall }) {
   return (
     <div className="video-call-ready">
       <div className="call-container">
-        <h2>🎥 Video Call</h2>
-        
-        <div className="partner-info">
-          <div className="partner-avatar">
-            {session.partner.username.charAt(0).toUpperCase()}
+        <div className="call-header">
+          <h2>🎥 Video Call with {session.partner.username}</h2>
+          <div className="call-status">
+            <span className={`status-indicator ${callStatus}`}>
+              {callStatus === 'connected' ? 'Connected' : 
+               callStatus === 'connecting' ? 'Connecting...' : 
+               callStatus === 'getting_media' ? 'Starting camera...' : 'Connection Failed'}
+            </span>
           </div>
-          <h3>{session.partner.username}</h3>
-          <p>English Level: <strong>{session.partner.english_level}</strong></p>
         </div>
 
         <div className="video-call-interface">
           <div className="video-container">
-            {/* Local Video */}
-            <div className="video-wrapper local-video">
-              <h4>You</h4>
-              {localStream && (
-                <video 
-                  ref={video => {
-                    if (video) video.srcObject = localStream;
-                  }}
-                  autoPlay 
-                  muted
-                  playsInline
-                />
-              )}
-              {!localStream && (
-                <div className="video-placeholder">
-                  <div className="loading-spinner"></div>
-                  <p>Starting camera...</p>
-                </div>
-              )}
-            </div>
-
-            {/* Remote Video */}
+            {/* Remote Video (Main) */}
             <div className="video-wrapper remote-video">
-              <h4>{session.partner.username}</h4>
               {remoteStream ? (
                 <video 
                   ref={video => {
@@ -448,28 +533,80 @@ function VideoCallReady({ session, user, onEndCall }) {
                   }}
                   autoPlay 
                   playsInline
+                  className="video-element"
                 />
               ) : (
                 <div className="video-placeholder">
+                  <div className="partner-avatar large">
+                    {session.partner.username.charAt(0).toUpperCase()}
+                  </div>
+                  <p>{session.partner.username}</p>
                   <div className="loading-spinner"></div>
-                  <p>
-                    {callStatus === 'connecting' ? 'Connecting to partner...' : 
-                     callStatus === 'connected' ? 'Waiting for video...' : 'Call failed'}
+                  <p className="status-text">
+                    {callStatus === 'connecting' ? 'Waiting for partner...' : 
+                     callStatus === 'getting_media' ? 'Initializing call...' : 
+                     'Connecting...'}
                   </p>
                 </div>
               )}
             </div>
+
+            {/* Local Video (Picture-in-picture) */}
+            <div className="video-wrapper local-video pip">
+              {localStream ? (
+                <video 
+                  ref={video => {
+                    if (video) video.srcObject = localStream;
+                  }}
+                  autoPlay 
+                  muted
+                  playsInline
+                  className="video-element"
+                />
+              ) : (
+                <div className="video-placeholder small">
+                  <div className="loading-spinner"></div>
+                </div>
+              )}
+              <div className="video-overlay">
+                <span className="video-label">You</span>
+                {isVideoOff && <span className="video-off-indicator">📷 Off</span>}
+              </div>
+            </div>
           </div>
 
           <div className="call-controls">
-            <div className="timer">
-              <span className="time-left">{formatTime(timeLeft)}</span>
-              <p>Time Remaining</p>
+            <div className="timer-section">
+              <div className="timer">
+                <span className="time-left">{formatTime(timeLeft)}</span>
+                <p>Time Remaining</p>
+              </div>
+              <div className="call-info">
+                <p>English Level: <strong>{session.partner.english_level}</strong></p>
+                <p>Call Type: <strong>Video</strong></p>
+              </div>
             </div>
             
             <div className="control-buttons">
+              <button 
+                onClick={toggleMute} 
+                className={`control-btn ${isMuted ? 'active' : ''}`}
+              >
+                {isMuted ? '🔇' : '🎤'}
+                <span>{isMuted ? 'Unmute' : 'Mute'}</span>
+              </button>
+              
+              <button 
+                onClick={toggleVideo} 
+                className={`control-btn ${isVideoOff ? 'active' : ''}`}
+              >
+                {isVideoOff ? '📷 Off' : '📹'}
+                <span>{isVideoOff ? 'Video On' : 'Video Off'}</span>
+              </button>
+              
               <button onClick={handleEndCall} className="end-call-btn">
-                📞 End Call
+                📞
+                <span>End Call</span>
               </button>
             </div>
           </div>
