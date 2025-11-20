@@ -433,9 +433,6 @@ function VideoCallReady({ session, user, onEndCall }) {
                     <span>✅</span> High-quality video & audio
                   </div>
                   <div className="feature-item">
-                    <span>✅</span> Screen sharing available
-                  </div>
-                  <div className="feature-item">
                     <span>✅</span> Built-in chat (optional)
                   </div>
                 </div>
