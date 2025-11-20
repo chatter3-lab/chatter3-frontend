@@ -276,13 +276,88 @@ function MatchingScreen({ user, onMatchFound, onCancel }) {
   );
 }
 
-// Video Call Ready Screen
+// Video Call Ready Screen with WebRTC
 function VideoCallReady({ session, user, onEndCall }) {
   const [timeLeft, setTimeLeft] = useState(
-    user.english_level === 'beginner' ? 300 : 600 // 5 or 10 minutes in seconds
+    user.english_level === 'beginner' ? 300 : 600
   );
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const [peerConnection, setPeerConnection] = useState(null);
+  const [callStatus, setCallStatus] = useState('connecting');
 
   useEffect(() => {
+    initializeWebRTC();
+    startTimer();
+
+    return () => {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      if (peerConnection) {
+        peerConnection.close();
+      }
+    };
+  }, []);
+
+  const initializeWebRTC = async () => {
+    try {
+      // Get user media
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      setLocalStream(stream);
+
+      // Create peer connection
+      const pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      });
+      setPeerConnection(pc);
+
+      // Add local stream to connection
+      stream.getTracks().forEach(track => {
+        pc.addTrack(track, stream);
+      });
+
+      // Handle remote stream
+      pc.ontrack = (event) => {
+        setRemoteStream(event.streams[0]);
+        setCallStatus('connected');
+      };
+
+      // Handle connection state
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'connected') {
+          setCallStatus('connected');
+        }
+      };
+
+      // For MVP, we'll simulate the signaling - in production we'd use WebSockets
+      simulateSignaling(pc);
+
+    } catch (error) {
+      console.error('WebRTC initialization error:', error);
+      setCallStatus('failed');
+    }
+  };
+
+  const simulateSignaling = (pc) => {
+    // In a real app, we will exchange offers/answers via WebSocket
+    // For MVP, we'll create a simple direct connection simulation
+    setTimeout(() => {
+      setCallStatus('connected');
+      // Simulate remote stream after delay
+      setTimeout(() => {
+        setRemoteStream(new MediaStream());
+      }, 1000);
+    }, 2000);
+  };
+
+  const startTimer = () => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -293,12 +368,17 @@ function VideoCallReady({ session, user, onEndCall }) {
         return prev - 1;
       });
     }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
+  };
 
   const handleEndCall = async () => {
     try {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      if (peerConnection) {
+        peerConnection.close();
+      }
+
       await fetch(`${API_URL}/api/matching/end`, {
         method: 'POST',
         headers: {
@@ -325,7 +405,7 @@ function VideoCallReady({ session, user, onEndCall }) {
   return (
     <div className="video-call-ready">
       <div className="call-container">
-        <h2>🎉 Partner Found!</h2>
+        <h2>🎥 Video Call</h2>
         
         <div className="partner-info">
           <div className="partner-avatar">
@@ -335,24 +415,61 @@ function VideoCallReady({ session, user, onEndCall }) {
           <p>English Level: <strong>{session.partner.english_level}</strong></p>
         </div>
 
-        <div className="call-info">
-          <div className="timer">
-            <span className="time-left">{formatTime(timeLeft)}</span>
-            <p>Time Remaining</p>
+        <div className="video-call-interface">
+          <div className="video-container">
+            {/* Local Video */}
+            <div className="video-wrapper local-video">
+              <h4>You</h4>
+              {localStream && (
+                <video 
+                  ref={video => {
+                    if (video) video.srcObject = localStream;
+                  }}
+                  autoPlay 
+                  muted
+                  playsInline
+                />
+              )}
+              {!localStream && (
+                <div className="video-placeholder">
+                  <div className="loading-spinner"></div>
+                  <p>Starting camera...</p>
+                </div>
+              )}
+            </div>
+
+            {/* Remote Video */}
+            <div className="video-wrapper remote-video">
+              <h4>{session.partner.username}</h4>
+              {remoteStream ? (
+                <video 
+                  ref={video => {
+                    if (video) video.srcObject = remoteStream;
+                  }}
+                  autoPlay 
+                  playsInline
+                />
+              ) : (
+                <div className="video-placeholder">
+                  <div className="loading-spinner"></div>
+                  <p>
+                    {callStatus === 'connecting' ? 'Connecting to partner...' : 
+                     callStatus === 'connected' ? 'Waiting for video...' : 'Call failed'}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-          
-          <div className="call-actions">
-            <p className="call-ready-text">Video call is ready to start!</p>
-            <p className="call-instruction">
-              <strong>Next Step:</strong> We'll integrate Cloudflare Realtime for video calling
-            </p>
+
+          <div className="call-controls">
+            <div className="timer">
+              <span className="time-left">{formatTime(timeLeft)}</span>
+              <p>Time Remaining</p>
+            </div>
             
-            <div className="action-buttons">
-              <button className="start-video-btn">
-                Start Video Call (Coming Soon)
-              </button>
+            <div className="control-buttons">
               <button onClick={handleEndCall} className="end-call-btn">
-                End Call
+                📞 End Call
               </button>
             </div>
           </div>
