@@ -276,234 +276,87 @@ function MatchingScreen({ user, onMatchFound, onCancel }) {
   );
 }
 
-// Video Call Ready Screen with Proper Flow
+// Simple Video Call Ready Screen (No WebRTC - Working Version)
 function VideoCallReady({ session, user, onEndCall }) {
-  const [callStage, setCallStage] = useState('ready'); // 'ready', 'connecting', 'connected'
   const [timeLeft, setTimeLeft] = useState(
     user.english_level === 'beginner' ? 300 : 600
   );
-  const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null);
-  const [peerConnection, setPeerConnection] = useState(null);
-  const [webSocket, setWebSocket] = useState(null);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
 
   useEffect(() => {
-    if (callStage === 'connecting') {
-      initializeMedia();
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleEndCall();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleEndCall = async () => {
+    try {
+      await fetch(`${API_URL}/api/matching/end`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_id: session.session_id,
+          user_id: user.id
+        }),
+      });
+    } catch (error) {
+      console.error('End call error:', error);
     }
     
-    startTimer();
-
-    return () => {
-      cleanupCall();
-    };
-  }, [callStage]);
-
-  const startCall = () => {
-    setCallStage('connecting');
+    onEndCall();
   };
 
-  const initializeMedia = async () => {
-    try {
-      // Get user media first
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 640, height: 480 },
-        audio: true 
-      });
-      setLocalStream(stream);
-      
-      // Then connect WebSocket
-      initializeWebSocket(stream);
-
-    } catch (error) {
-      console.error('Media initialization error:', error);
-      setCallStage('failed');
-    }
-  };
-
-  const initializeWebSocket = (stream) => {
-    const ws = new WebSocket(`wss://api.chatter3.com/api/webrtc/ws/${session.session_id}/${user.id}`);
-    setWebSocket(ws);
-
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-      createPeerConnection(stream, ws);
-    };
-
-    ws.onmessage = async (event) => {
-      const message = JSON.parse(event.data);
-      console.log('WebSocket message:', message.type);
-      await handleSignalingMessage(message);
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      setCallStage('failed');
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket closed');
-    };
-  };
-
-  const createPeerConnection = (stream, ws) => {
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' }
-      ]
-    });
-    setPeerConnection(pc);
-
-    // Add local stream to connection
-    stream.getTracks().forEach(track => {
-      pc.addTrack(track, stream);
-    });
-
-    // Handle remote stream
-    pc.ontrack = (event) => {
-      console.log('Received remote stream tracks:', event.streams[0].getTracks().length);
-      setRemoteStream(event.streams[0]);
-      setCallStage('connected');
-    };
-
-    // Handle ICE candidates
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        ws.send(JSON.stringify({
-          type: 'ice-candidate',
-          toUserId: getPartnerId(),
-          data: event.candidate
-        }));
-      }
-    };
-
-    pc.oniceconnectionstatechange = () => {
-      console.log('ICE connection state:', pc.iceConnectionState);
-    };
-
-    // User 1 creates offer
-    if (session.user1_id === user.id) {
-      setTimeout(() => createOffer(pc, ws), 1000);
-    }
-  };
-
-  // ... rest of the WebRTC functions remain the same ...
-
-  // Render different stages
-  const renderCallStage = () => {
-    switch (callStage) {
-      case 'ready':
-        return (
-          <div className="call-ready-screen">
-            <div className="ready-container">
-              <h2>Partner Found! 🎉</h2>
-              
-              <div className="partner-info-card">
-                <div className="partner-avatar large">
-                  {session.partner.username.charAt(0).toUpperCase()}
-                </div>
-                <h3>{session.partner.username}</h3>
-                <p>English Level: <strong>{session.partner.english_level}</strong></p>
-                <p>Call Duration: <strong>
-                  {user.english_level === 'beginner' ? '5 minutes' : '10 minutes'}
-                </strong></p>
-              </div>
-
-              <div className="ready-actions">
-                <p>Ready to start your video call?</p>
-                <button onClick={startCall} className="start-call-btn">
-                  Start Video Call
-                </button>
-                <button onClick={handleEndCall} className="cancel-call-btn">
-                  Cancel Call
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'connecting':
-        return renderVideoInterface();
-
-      case 'connected':
-        return renderVideoInterface();
-
-      default:
-        return (
-          <div className="error-screen">
-            <h2>Connection Failed</h2>
-            <p>Please try again</p>
-            <button onClick={handleEndCall}>Return to Main</button>
-          </div>
-        );
-    }
-  };
-
-  const renderVideoInterface = () => {
-    return (
-      <div className="video-call-interface">
-        {/* Same video interface as before */}
-        <div className="video-container">
-          {/* Remote Video */}
-          <div className="video-wrapper remote-video">
-            {remoteStream ? (
-              <video 
-                key="remote-video"
-                ref={video => {
-                  if (video && remoteStream) {
-                    video.srcObject = remoteStream;
-                  }
-                }}
-                autoPlay 
-                playsInline
-                className="video-element"
-              />
-            ) : (
-              <div className="video-placeholder">
-                <div className="partner-avatar large">
-                  {session.partner.username.charAt(0).toUpperCase()}
-                </div>
-                <p>{session.partner.username}</p>
-                <div className="loading-spinner"></div>
-                <p>Connecting to partner...</p>
-              </div>
-            )}
-          </div>
-
-          {/* Local Video */}
-          <div className="video-wrapper local-video pip">
-            {localStream && (
-              <video 
-                key="local-video"
-                ref={video => {
-                  if (video && localStream) {
-                    video.srcObject = localStream;
-                  }
-                }}
-                autoPlay 
-                muted
-                playsInline
-                className="video-element"
-              />
-            )}
-          </div>
-        </div>
-
-        <div className="call-controls">
-          {/* Same controls as before */}
-        </div>
-      </div>
-    );
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
     <div className="video-call-ready">
       <div className="call-container">
-        {renderCallStage()}
+        <h2>🎉 Partner Found!</h2>
+        
+        <div className="partner-info">
+          <div className="partner-avatar">
+            {session.partner.username.charAt(0).toUpperCase()}
+          </div>
+          <h3>{session.partner.username}</h3>
+          <p>English Level: <strong>{session.partner.english_level}</strong></p>
+        </div>
+
+        <div className="call-info">
+          <div className="timer">
+            <span className="time-left">{formatTime(timeLeft)}</span>
+            <p>Time Remaining</p>
+          </div>
+          
+          <div className="call-actions">
+            <p className="call-ready-text">Video call session is active</p>
+            <p className="call-instruction">
+              <strong>Video Calling:</strong> WebRTC integration coming soon
+            </p>
+            
+            <div className="action-buttons">
+              <button className="start-video-btn" disabled>
+                Start Video Call (Coming Soon)
+              </button>
+              <button onClick={handleEndCall} className="end-call-btn">
+                End Session
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -544,8 +397,6 @@ function App() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      console.log('Google auth response:', credentialResponse);
-      
       const response = await fetch(`${API_URL}/api/auth/google`, {
         method: 'POST',
         headers: {
@@ -557,7 +408,6 @@ function App() {
       });
       
       const data = await response.json();
-      console.log('Backend response:', data);
       
       if (data.success) {
         localStorage.setItem('user', JSON.stringify(data.user));
@@ -568,7 +418,7 @@ function App() {
       }
     } catch (error) {
       console.error('Google auth error:', error);
-      setAuthError('Authentication failed - check console for details');
+      setAuthError('Authentication failed');
     }
   };
 
@@ -664,7 +514,6 @@ function App() {
       <GoogleOAuthProvider clientId="935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com">
         <div className="auth-container">
           <div className="auth-box">
-            {/* Chatter3 Logo */}
             <div className="logo-container">
               <img 
                 src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" 
@@ -691,7 +540,6 @@ function App() {
                 </div>
                 <div className="auth-divider">or</div>
                 
-                {/* Login Form for Existing Users */}
                 <LoginForm 
                   onLogin={handleEmailLogin}
                   onSwitchToRegister={() => setShowRegister(true)}
@@ -768,7 +616,8 @@ function App() {
               src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" 
               alt="Chatter3 Logo" 
               className="header-logo-img"
-            />            
+            />
+            <h1>Chatter3</h1>
           </div>
           <div className="user-info">
             <span>Welcome, {user.username}!</span>
