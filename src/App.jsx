@@ -276,56 +276,61 @@ function MatchingScreen({ user, onMatchFound, onCancel }) {
   );
 }
 
-// Video Call Ready Screen with Persistent Timer
+// Video Call Ready Screen with Session Timer
 function VideoCallReady({ session, user, onEndCall }) {
   const [timeLeft, setTimeLeft] = useState(null);
   const [roomUrl, setRoomUrl] = useState(null);
-  const [isJoining, setIsJoining] = useState(false);
+  const [callStage, setCallStage] = useState('ready'); // 'ready', 'setting_up', 'call_ready'
 
   useEffect(() => {
-    initializeTimer();
-    createDailyRoom();
+    initializeSessionTimer();
     
     const timer = setInterval(() => {
-      updateTimer();
+      updateSessionTimer();
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      // Clean up if session ends
+      const sessionKey = `session_${session.session_id}_start`;
+      localStorage.removeItem(sessionKey);
+    };
   }, []);
 
-  const initializeTimer = () => {
+  const initializeSessionTimer = () => {
     const sessionKey = `session_${session.session_id}_start`;
     let sessionStartTime = localStorage.getItem(sessionKey);
     
-    // If no start time stored, set it now
+    // If no start time stored, set it now (session just started)
     if (!sessionStartTime) {
       sessionStartTime = new Date().toISOString();
       localStorage.setItem(sessionKey, sessionStartTime);
     }
     
-    updateTimer();
+    updateSessionTimer();
   };
 
-  const updateTimer = () => {
+  const updateSessionTimer = () => {
     const sessionKey = `session_${session.session_id}_start`;
     const sessionStartTime = new Date(localStorage.getItem(sessionKey));
     const now = new Date();
     const elapsedSeconds = Math.floor((now - sessionStartTime) / 1000);
     
-    const totalDuration = user.english_level === 'beginner' ? 300 : 600;
+    const totalDuration = user.english_level === 'beginner' ? 300 : 600; // 5 or 10 minutes
     const remaining = Math.max(0, totalDuration - elapsedSeconds);
     
     setTimeLeft(remaining);
 
+    // Auto-end session when time runs out
     if (remaining <= 0) {
       handleEndCall();
     }
   };
 
-  const createDailyRoom = async () => {
+  const setupVideoCall = async () => {
+    setCallStage('setting_up');
+    
     try {
-      setIsJoining(true);
-      
       const response = await fetch(`${API_URL}/api/daily/create-room`, {
         method: 'POST',
         headers: {
@@ -341,13 +346,20 @@ function VideoCallReady({ session, user, onEndCall }) {
       
       if (data.success) {
         setRoomUrl(data.room.url);
+        setCallStage('call_ready');
       } else {
         console.error('Failed to create room:', data.error);
+        setCallStage('ready');
       }
     } catch (error) {
       console.error('Room creation error:', error);
-    } finally {
-      setIsJoining(false);
+      setCallStage('ready');
+    }
+  };
+
+  const joinVideoCall = () => {
+    if (roomUrl) {
+      window.open(roomUrl, '_blank', 'width=800,height=600');
     }
   };
 
@@ -374,12 +386,6 @@ function VideoCallReady({ session, user, onEndCall }) {
     onEndCall();
   };
 
-  const joinVideoCall = () => {
-    if (roomUrl) {
-      window.open(roomUrl, '_blank', 'width=800,height=600');
-    }
-  };
-
   const formatTime = (seconds) => {
     if (seconds === null) return '--:--';
     const mins = Math.floor(seconds / 60);
@@ -390,7 +396,7 @@ function VideoCallReady({ session, user, onEndCall }) {
   return (
     <div className="video-call-ready">
       <div className="call-container">
-        <h2>🎥 Video Call with {session.partner.username}</h2>
+        <h2>🎉 Partner Found!</h2>
         
         <div className="partner-info">
           <div className="partner-avatar">
@@ -398,44 +404,49 @@ function VideoCallReady({ session, user, onEndCall }) {
           </div>
           <h3>{session.partner.username}</h3>
           <p>English Level: <strong>{session.partner.english_level}</strong></p>
+          <p>Session Time: <strong>
+            {user.english_level === 'beginner' ? '5 minutes' : '10 minutes'}
+          </strong></p>
         </div>
 
-        <div className="daily-call-interface">
-          <div className="timer-section">
-            <div className="timer">
-              <span className="time-left">{formatTime(timeLeft)}</span>
-              <p>Time Remaining</p>
-            </div>
+        <div className="session-timer-section">
+          <div className="timer">
+            <span className="time-left">{formatTime(timeLeft)}</span>
+            <p>Session Time Remaining</p>
           </div>
+        </div>
 
-          {isJoining ? (
-            <div className="joining-call">
-              <div className="loading-spinner"></div>
-              <p>Setting up video call...</p>
-            </div>
-          ) : (
-            <div className="call-ready">
-              <div className="call-instructions">
-                <h3>🎯 Ready for Your Video Call!</h3>
-                <p>Click the button below to start your video conversation with <strong>{session.partner.username}</strong></p>
-              </div>
-
-              <div className="call-actions">
-                <button onClick={joinVideoCall} className="join-call-btn">
-                  🎥 Join Video Call
-                </button>
-                <p className="call-note">
-                  The call will open in a new window. Both you and {session.partner.username} need to join.
-                </p>
-              </div>
+        <div className="session-actions">
+          {callStage === 'ready' && (
+            <div className="ready-stage">
+              <p>You're matched with <strong>{session.partner.username}</strong> for an English practice session!</p>
+              <button onClick={setupVideoCall} className="setup-call-btn">
+                🎥 Setup Video Call
+              </button>
+              <button onClick={handleEndCall} className="end-session-btn">
+                End Session
+              </button>
             </div>
           )}
 
-          <div className="call-controls">
-            <button onClick={handleEndCall} className="end-call-btn">
-              📞 End Session
-            </button>
-          </div>
+          {callStage === 'setting_up' && (
+            <div className="setting-up-stage">
+              <div className="loading-spinner"></div>
+              <p>Setting up video call room...</p>
+            </div>
+          )}
+
+          {callStage === 'call_ready' && (
+            <div className="call-ready-stage">
+              <p>Video call room is ready!</p>
+              <button onClick={joinVideoCall} className="join-call-btn">
+                🎥 Join Video Call
+              </button>
+              <p className="call-note">
+                The video call will open in a new window. You have {formatTime(timeLeft)} remaining in your session.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
