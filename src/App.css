@@ -747,3 +747,66 @@ body, html {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Session Timer Styles */
+.session-timer-section {
+  text-align: center;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.session-timer-section .timer .time-left {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #4285f4;
+}
+
+.session-actions {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.ready-stage, .setting-up-stage, .call-ready-stage {
+  padding: 2rem;
+}
+
+.setup-call-btn {
+  background: #00b4ff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 0.5rem;
+}
+
+.join-call-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 0.5rem;
+}
+
+.end-session-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 0.5rem;
+}
+
+.call-note {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
