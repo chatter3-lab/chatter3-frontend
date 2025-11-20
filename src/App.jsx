@@ -276,25 +276,51 @@ function MatchingScreen({ user, onMatchFound, onCancel }) {
   );
 }
 
-// Video Call Ready Screen with Daily.co
+// Video Call Ready Screen with Persistent Timer
 function VideoCallReady({ session, user, onEndCall }) {
-  const [timeLeft, setTimeLeft] = useState(
-    user.english_level === 'beginner' ? 300 : 600
-  );
-  const [callFrame, setCallFrame] = useState(null);
-  const [isJoining, setIsJoining] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
   const [roomUrl, setRoomUrl] = useState(null);
+  const [isJoining, setIsJoining] = useState(false);
 
   useEffect(() => {
+    initializeTimer();
     createDailyRoom();
-    startTimer();
+    
+    const timer = setInterval(() => {
+      updateTimer();
+    }, 1000);
 
-    return () => {
-      if (callFrame) {
-        callFrame.destroy();
-      }
-    };
+    return () => clearInterval(timer);
   }, []);
+
+  const initializeTimer = () => {
+    const sessionKey = `session_${session.session_id}_start`;
+    let sessionStartTime = localStorage.getItem(sessionKey);
+    
+    // If no start time stored, set it now
+    if (!sessionStartTime) {
+      sessionStartTime = new Date().toISOString();
+      localStorage.setItem(sessionKey, sessionStartTime);
+    }
+    
+    updateTimer();
+  };
+
+  const updateTimer = () => {
+    const sessionKey = `session_${session.session_id}_start`;
+    const sessionStartTime = new Date(localStorage.getItem(sessionKey));
+    const now = new Date();
+    const elapsedSeconds = Math.floor((now - sessionStartTime) / 1000);
+    
+    const totalDuration = user.english_level === 'beginner' ? 300 : 600;
+    const remaining = Math.max(0, totalDuration - elapsedSeconds);
+    
+    setTimeLeft(remaining);
+
+    if (remaining <= 0) {
+      handleEndCall();
+    }
+  };
 
   const createDailyRoom = async () => {
     try {
@@ -315,56 +341,20 @@ function VideoCallReady({ session, user, onEndCall }) {
       
       if (data.success) {
         setRoomUrl(data.room.url);
-        initializeDailyCall(data.room.url, data.room.token);
       } else {
         console.error('Failed to create room:', data.error);
-        setIsJoining(false);
       }
     } catch (error) {
       console.error('Room creation error:', error);
+    } finally {
       setIsJoining(false);
     }
   };
 
-  const initializeDailyCall = (url, token) => {
-    // Load Daily.co iframe
-    const iframe = document.createElement('iframe');
-    iframe.allow = 'microphone; camera; display-capture';
-    iframe.style.width = '100%';
-    iframe.style.height = '500px';
-    iframe.style.border = 'none';
-    iframe.style.borderRadius = '12px';
-    
-    const container = document.getElementById('daily-call-container');
-    if (container) {
-      container.innerHTML = '';
-      container.appendChild(iframe);
-    }
-
-    // For MVP, we'll use the direct URL approach
-    // In production, you'd use Daily.co's React components
-    window.open(url, '_blank');
-    
-    setIsJoining(false);
-  };
-
-  const startTimer = () => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleEndCall();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
   const handleEndCall = async () => {
-    if (callFrame) {
-      callFrame.leave();
-    }
+    // Clean up localStorage
+    const sessionKey = `session_${session.session_id}_start`;
+    localStorage.removeItem(sessionKey);
     
     try {
       await fetch(`${API_URL}/api/matching/end`, {
@@ -391,6 +381,7 @@ function VideoCallReady({ session, user, onEndCall }) {
   };
 
   const formatTime = (seconds) => {
+    if (seconds === null) return '--:--';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -427,15 +418,6 @@ function VideoCallReady({ session, user, onEndCall }) {
               <div className="call-instructions">
                 <h3>🎯 Ready for Your Video Call!</h3>
                 <p>Click the button below to start your video conversation with <strong>{session.partner.username}</strong></p>
-                
-                <div className="feature-list">
-                  <div className="feature-item">
-                    <span>✅</span> High-quality video & audio
-                  </div>
-                  <div className="feature-item">
-                    <span>✅</span> Built-in chat (optional)
-                  </div>
-                </div>
               </div>
 
               <div className="call-actions">
@@ -445,10 +427,6 @@ function VideoCallReady({ session, user, onEndCall }) {
                 <p className="call-note">
                   The call will open in a new window. Both you and {session.partner.username} need to join.
                 </p>
-              </div>
-
-              <div id="daily-call-container" className="daily-container">
-                {/* Daily.co iframe will be inserted here */}
               </div>
             </div>
           )}
