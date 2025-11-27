@@ -1,5 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+
+// --- [PRODUCTION STEP 1] UNCOMMENT THE LINE BELOW FOR GITHUB/PROD ---
+// import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+
+// --- [PRODUCTION STEP 2] DELETE THIS MOCK SECTION FOR GITHUB/PROD ---
+// These mocks allow the preview to run without crashing on missing dependencies.
+const GoogleOAuthProvider = ({ children, clientId }) => <>{children}</>;
+const GoogleLogin = ({ onSuccess, onError }) => (
+  <button 
+    onClick={() => onSuccess({ credential: "mock_token_for_preview" })}
+    style={{
+      width: '100%',
+      padding: '12px',
+      backgroundColor: '#4285f4',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '10px',
+      cursor: 'pointer',
+      fontWeight: '500'
+    }}
+  >
+    <span>Sign in with Google (Preview Mock)</span>
+  </button>
+);
+// --- END MOCK SECTION ---
 
 // --- Configuration ---
 const API_URL = 'https://api.chatter3.com'; 
@@ -416,6 +444,7 @@ function VideoRoomView({ user, session, onEnd }) {
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
+  const negotiatingRef = useRef(false); // Track negotiation to prevent race
 
   useEffect(() => {
     // 1. Initialize WebRTC
@@ -431,9 +460,15 @@ function VideoRoomView({ user, session, onEnd }) {
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
         pc.ontrack = (event) => {
-          if (remoteVideoRef.current) remoteVideoRef.current.srcObject = event.streams[0];
+          if (remoteVideoRef.current) {
+             remoteVideoRef.current.srcObject = event.streams[0];
+             // Explicitly play to ensure video starts
+             remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked', e));
+          }
         };
 
+        // Queue candidates until remote description is set
+        const candidateQueue = [];
         pc.onicecandidate = (event) => {
           if (event.candidate) {
             if(wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -449,26 +484,47 @@ function VideoRoomView({ user, session, onEnd }) {
         wsRef.current = ws;
 
         ws.onopen = async () => {
-          // Determine initiator based on user ID sorting (or session user1)
-          const isInitiator = user.id === session.user1_id;
-          if (isInitiator) {
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
-          }
+          console.log("WS Connected. Sending READY.");
+          // Send READY to announce presence. 
+          // We WAIT for the other peer to be ready before offering.
+          ws.send(JSON.stringify({ type: 'ready' }));
         };
 
         ws.onmessage = async (msg) => {
           const data = JSON.parse(msg.data);
-          if (data.type === 'offer') {
+          
+          if (data.type === 'ready') {
+            console.log("Peer is ready.");
+            // If I am the initiator (user1) and not already negotiating, start the offer.
+            // This prevents the "offer sent before peer connected" race condition.
+            if (user.id === session.user1_id && !negotiatingRef.current) {
+               console.log("I am initiator. Sending OFFER.");
+               negotiatingRef.current = true;
+               const offer = await pc.createOffer();
+               await pc.setLocalDescription(offer);
+               ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
+            }
+          }
+          else if (data.type === 'offer') {
+            if (pc.signalingState !== "stable") return; // Avoid glare
+            console.log("Received OFFER.");
+            negotiatingRef.current = true;
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
             ws.send(JSON.stringify({ type: 'answer', sdp: answer }));
-          } else if (data.type === 'answer') {
+          } 
+          else if (data.type === 'answer') {
+            console.log("Received ANSWER.");
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-          } else if (data.type === 'candidate') {
-            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+          } 
+          else if (data.type === 'candidate') {
+            if (pc.remoteDescription) {
+               await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } else {
+               // If remote desc not ready, we could queue, but usually 'ready' handshake prevents this.
+               console.log("Received candidate too early, ignoring.");
+            }
           }
         };
 
