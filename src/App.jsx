@@ -484,7 +484,7 @@ const Video = (props) => <Icon {...props}><polygon points="23 7 16 12 23 17 23 7
 const Phone = (props) => <Icon {...props}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></Icon>;
 const PhoneOff = (props) => <Icon {...props}><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></Icon>;
 const Wallet = (props) => <Icon {...props}><path d="M20 12V8H6a2 2 0 0 1-2-2 2 2 0 0 1 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H4z"/></Icon>;
-const Sparkles = (props) => <Icon {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 5H1"/><path d="M5 19v4"/><path d="M9 21H1"/></Icon>;
+const Sparkles = (props) => <Icon {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 5H1"/><path d="M5 19v4"/><path d="M9 21H1"/></Icon>;
 const ArrowLeft = (props) => <Icon {...props}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></Icon>;
 const Save = (props) => <Icon {...props}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></Icon>;
 const LogOut = (props) => <Icon {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></Icon>;
@@ -621,37 +621,55 @@ function AuthView({ onLogin }) {
     finally { setLoading(false); }
   };
 
-  // Mock Google Login Handler for MVP - Updated to create real DB user to prevent FK errors in matching
+  // Mock Google Login Handler for MVP - Updated to ask for email to prevent FK errors in matching
   const handleGoogleMock = async () => {
+    // 1. Simulate Google OAuth by asking for the email
+    const email = window.prompt("Simulate Google Login:\nPlease enter your Gmail address:");
+    if (!email) return; // User cancelled
+
     setLoading(true);
     setError('');
-    // Generate unique random email/username to avoid collisions
-    const randomId = Math.random().toString(36).substring(7);
-    const mockData = {
-      username: `GoogleUser_${randomId}`,
-      email: `user_${randomId}@gmail.com`,
-      password: 'google_mock_password',
-      english_level: 'beginner'
-    };
+    
+    // We use a dummy password for this simulation since we can't do real OAuth
+    const DUMMY_PASS = 'google-simulated-pass';
 
     try {
-      // 1. Register the mock user in the backend DB
-      const res = await fetch(`${API_URL}/api/auth/register`, {
+      // 2. Try to Login first
+      const loginRes = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mockData)
+        body: JSON.stringify({ email, password: DUMMY_PASS })
       });
       
-      const data = await res.json();
+      const loginData = await loginRes.json();
       
-      if (data.success) {
-        // 2. Login with the real user object from DB (contains valid ID)
-        onLogin(data.user);
+      if (loginData.success) {
+        // User exists, log them in
+        onLogin(loginData.user);
       } else {
-        setError(data.error || 'Google Login Simulation Failed');
+        // 3. User does not exist, Register them automatically (Upsert behavior)
+        const registerRes = await fetch(`${API_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email, 
+            username: email.split('@')[0], // Derive username from email
+            password: DUMMY_PASS,
+            english_level: 'beginner' // Default level
+          })
+        });
+        
+        const registerData = await registerRes.json();
+        
+        if (registerData.success) {
+          onLogin(registerData.user);
+        } else {
+          setError(registerData.error || 'Google Login Simulation Failed');
+        }
       }
     } catch (err) {
-      setError('Network error during Google Login');
+      console.error(err);
+      setError('Network error. Ensure your backend is running at ' + API_URL);
     } finally {
       setLoading(false);
     }
