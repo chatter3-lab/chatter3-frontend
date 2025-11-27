@@ -8,21 +8,11 @@ import {
 // Point this to your Cloudflare Worker URL
 const API_URL = 'https://api.chatter3.com'; 
 
-// --- Types ---
-interface UserProfile {
-  id: string;
-  username: string;
-  email: string;
-  bio?: string;
-  points: number;
-  english_level: 'beginner' | 'intermediate' | 'advanced';
-}
-
 // --- Main App Component ---
 export default function App() {
-  const [view, setView] = useState<'auth' | 'dashboard' | 'matching' | 'video' | 'profile'>('auth');
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [currentSession, setCurrentSession] = useState<any>(null);
+  const [view, setView] = useState('auth');
+  const [user, setUser] = useState(null);
+  const [currentSession, setCurrentSession] = useState(null);
 
   // Restore session
   useEffect(() => {
@@ -35,7 +25,7 @@ export default function App() {
     }
   }, []);
 
-  const checkActiveSession = async (userId: string) => {
+  const checkActiveSession = async (userId) => {
     try {
       const res = await fetch(`${API_URL}/api/matching/session/${userId}`);
       const data = await res.json();
@@ -46,7 +36,7 @@ export default function App() {
     } catch (e) { console.error(e); }
   };
 
-  const handleLoginSuccess = (u: UserProfile) => {
+  const handleLoginSuccess = (u) => {
     localStorage.setItem('chatter3_user', JSON.stringify(u));
     setUser(u);
     setView('dashboard');
@@ -105,13 +95,13 @@ export default function App() {
 }
 
 // --- 1. Polished Auth View ---
-function AuthView({ onLogin }: { onLogin: (u: UserProfile) => void }) {
+function AuthView({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '', username: '', english_level: 'beginner' });
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -177,7 +167,7 @@ function AuthView({ onLogin }: { onLogin: (u: UserProfile) => void }) {
                 <select 
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
                   value={formData.english_level}
-                  onChange={e => setFormData({...formData, english_level: e.target.value as any})}
+                  onChange={e => setFormData({...formData, english_level: e.target.value})}
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
@@ -243,7 +233,7 @@ function AuthView({ onLogin }: { onLogin: (u: UserProfile) => void }) {
 }
 
 // --- 2. Dashboard View ---
-function DashboardView({ user, onNavigate }: { user: UserProfile, onNavigate: (v: any) => void }) {
+function DashboardView({ user, onNavigate }) {
   return (
     <div className="min-h-screen pb-20">
       <header className="bg-white px-6 py-5 shadow-sm flex justify-between items-center sticky top-0 z-10">
@@ -303,11 +293,11 @@ function DashboardView({ user, onNavigate }: { user: UserProfile, onNavigate: (v
 }
 
 // --- 3. Matching View (Queue Logic) ---
-function MatchingView({ user, onCancel, onMatch }: { user: UserProfile, onCancel: () => void, onMatch: (s: any) => void }) {
+function MatchingView({ user, onCancel, onMatch }) {
   const [status, setStatus] = useState('Looking for a partner...');
   
   useEffect(() => {
-    let polling: any;
+    let polling;
 
     const startMatching = async () => {
       try {
@@ -382,8 +372,8 @@ function MatchingView({ user, onCancel, onMatch }: { user: UserProfile, onCancel
 }
 
 // --- 4. Video Room View (Daily.co Integration) ---
-function VideoRoomView({ user, session, onEnd }: { user: UserProfile, session: any, onEnd: () => void }) {
-  const [roomUrl, setRoomUrl] = useState<string | null>(null);
+function VideoRoomView({ user, session, onEnd }) {
+  const [roomUrl, setRoomUrl] = useState(null);
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
 
@@ -431,7 +421,7 @@ function VideoRoomView({ user, session, onEnd }: { user: UserProfile, session: a
     onEnd();
   };
 
-  const formatTime = (s: number) => {
+  const formatTime = (s) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
     return `${m}:${sec < 10 ? '0' : ''}${sec}`;
@@ -488,7 +478,7 @@ function VideoRoomView({ user, session, onEnd }: { user: UserProfile, session: a
 }
 
 // --- 5. Profile View ---
-function ProfileView({ user, onBack, onUpdate, onLogout }: { user: UserProfile, onBack: () => void, onUpdate: (u: UserProfile) => void, onLogout: () => void }) {
+function ProfileView({ user, onBack, onUpdate, onLogout }) {
   const [bio, setBio] = useState(user.bio || '');
 
   return (
