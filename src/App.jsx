@@ -1,729 +1,537 @@
-import { useState, useEffect } from 'react';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import { 
+  Video, Mic, MicOff, VideoOff, PhoneOff, Settings, 
+  User, Wallet, Phone, ArrowLeft, Save, LogOut, Loader2, Sparkles, Clock, Mail
+} from 'lucide-react';
 
-const API_URL = 'https://api.chatter3.com';
+// --- Configuration ---
+// Point this to your Cloudflare Worker URL
+const API_URL = 'https://api.chatter3.com'; 
 
-// Login Form Component for existing users
-function LoginForm({ onLogin, onSwitchToRegister }) {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onLogin(formData);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="login-form">
-      <div className="form-group">
-        <label>Email:</label>
-        <input
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({...formData, email: e.target.value})}
-          placeholder="Enter your email"
-          required
-        />
-      </div>
-      
-      <div className="form-group">
-        <label>Password:</label>
-        <input
-          type="password"
-          value={formData.password}
-          onChange={(e) => setFormData({...formData, password: e.target.value})}
-          placeholder="Enter your password"
-          required
-        />
-      </div>
-      
-      <button type="submit">Login with Email</button>
-      <button type="button" onClick={onSwitchToRegister} className="switch-auth-btn">
-        Don't have an account? Sign up
-      </button>
-    </form>
-  );
+// --- Types ---
+interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  bio?: string;
+  points: number;
+  english_level: 'beginner' | 'intermediate' | 'advanced';
 }
 
-// Email Registration Form Component
-function EmailRegisterForm({ onSubmit, onBack, onSwitchToLogin }) {
-  const [formData, setFormData] = useState({
-    email: '',
-    username: '',
-    password: '',
-    confirmPassword: '',
-    english_level: 'beginner'
-  });
+// --- Main App Component ---
+export default function App() {
+  const [view, setView] = useState<'auth' | 'dashboard' | 'matching' | 'video' | 'profile'>('auth');
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [currentSession, setCurrentSession] = useState<any>(null);
 
-  const [passwordError, setPasswordError] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      setPasswordError('Passwords do not match');
-      return;
-    }
-    
-    if (formData.password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
-      return;
-    }
-    
-    setPasswordError('');
-    onSubmit(formData);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="register-form">
-      <h3>Create Account</h3>
-      
-      <div className="form-group">
-        <label>Email:</label>
-        <input
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({...formData, email: e.target.value})}
-          required
-        />
-      </div>
-      
-      <div className="form-group">
-        <label>Username:</label>
-        <input
-          type="text"
-          value={formData.username}
-          onChange={(e) => setFormData({...formData, username: e.target.value})}
-          required
-        />
-      </div>
-      
-      <div className="form-group">
-        <label>Password:</label>
-        <input
-          type="password"
-          value={formData.password}
-          onChange={(e) => setFormData({...formData, password: e.target.value})}
-          required
-        />
-      </div>
-      
-      <div className="form-group">
-        <label>Confirm Password:</label>
-        <input
-          type="password"
-          value={formData.confirmPassword}
-          onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-          required
-        />
-        {passwordError && <div className="password-error">{passwordError}</div>}
-      </div>
-      
-      <div className="form-group">
-        <label>English Level:</label>
-        <select
-          value={formData.english_level}
-          onChange={(e) => setFormData({...formData, english_level: e.target.value})}
-        >
-          <option value="beginner">Beginner</option>
-          <option value="intermediate">Intermediate</option>
-          <option value="advanced">Advanced</option>
-        </select>
-      </div>
-      
-      <button type="submit">Register</button>
-      <button type="button" onClick={onBack} className="back-button">
-        Back to Google Sign In
-      </button>
-      <button type="button" onClick={onSwitchToLogin} className="switch-auth-btn">
-        Already have an account? Login
-      </button>
-    </form>
-  );
-}
-
-// Matching Screen Component
-function MatchingScreen({ user, onMatchFound, onCancel }) {
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchStatus, setSearchStatus] = useState('');
-
-  const startMatching = async () => {
-    setIsSearching(true);
-    setSearchStatus('Finding a conversation partner...');
-    
-    try {
-      const response = await fetch(`${API_URL}/api/matching/join`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          english_level: user.english_level
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        if (data.matched) {
-          setSearchStatus('Partner found! Connecting...');
-          // Wait a moment to show the success message
-          setTimeout(() => {
-            onMatchFound(data);
-          }, 2000);
-        } else {
-          setSearchStatus('Searching for a partner...');
-          // Continue polling for a match
-          pollForMatch(user.id);
-        }
-      } else {
-        setSearchStatus('Failed to start matching. Please try again.');
-        setIsSearching(false);
-      }
-    } catch (error) {
-      console.error('Matching error:', error);
-      setSearchStatus('Connection error. Please try again.');
-      setIsSearching(false);
-    }
-  };
-
-  const pollForMatch = async (userId) => {
-    const checkMatch = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/matching/session/${userId}`);
-        const data = await response.json();
-        
-        if (data.active_session) {
-          setSearchStatus('Partner found! Connecting...');
-          setTimeout(() => {
-            onMatchFound({
-              session_id: data.session.id,
-              partner: data.session.partner,
-              room_name: data.session.room_name
-            });
-          }, 2000);
-        } else {
-          // Continue polling every 3 seconds
-          setTimeout(() => checkMatch(), 3000);
-        }
-      } catch (error) {
-        console.error('Polling error:', error);
-        setTimeout(() => checkMatch(), 3000);
-      }
-    };
-    
-    checkMatch();
-  };
-
-  const cancelMatching = async () => {
-    setIsSearching(false);
-    setSearchStatus('');
-    
-    try {
-      await fetch(`${API_URL}/api/matching/leave`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: user.id
-        }),
-      });
-    } catch (error) {
-      console.error('Leave matching error:', error);
-    }
-    
-    onCancel();
-  };
-
-  return (
-    <div className="matching-screen">
-      <div className="matching-container">
-        <h2>Find a Conversation Partner</h2>
-        <p>Practice English with native speakers through video calls</p>
-        
-        {!isSearching ? (
-          <div className="matching-start">
-            <div className="user-level-info">
-              <p>Your English Level: <strong>{user.english_level}</strong></p>
-              <p>Call Duration: <strong>
-                {user.english_level === 'beginner' ? '5 minutes' : 
-                 user.english_level === 'intermediate' ? '10 minutes' : '10 minutes'}
-              </strong></p>
-            </div>
-            <button onClick={startMatching} className="start-matching-btn">
-              Start Matching
-            </button>
-          </div>
-        ) : (
-          <div className="matching-search">
-            <div className="loading-animation">
-              <div className="pulse-dot"></div>
-              <div className="pulse-ring"></div>
-            </div>
-            <p className="search-status">{searchStatus}</p>
-            <button onClick={cancelMatching} className="cancel-matching-btn">
-              Cancel Search
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Video Call Ready Screen with Session Timer
-function VideoCallReady({ session, user, onEndCall }) {
-  const [timeLeft, setTimeLeft] = useState(null);
-  const [roomUrl, setRoomUrl] = useState(null);
-  const [callStage, setCallStage] = useState('ready'); // 'ready', 'setting_up', 'call_ready'
-
+  // Restore session
   useEffect(() => {
-    initializeSessionTimer();
-    
-    const timer = setInterval(() => {
-      updateSessionTimer();
-    }, 1000);
-
-    return () => {
-      clearInterval(timer);
-      // Clean up if session ends
-      const sessionKey = `session_${session.session_id}_start`;
-      localStorage.removeItem(sessionKey);
-    };
-  }, []);
-
-  const initializeSessionTimer = () => {
-    const sessionKey = `session_${session.session_id}_start`;
-    let sessionStartTime = localStorage.getItem(sessionKey);
-    
-    // If no start time stored, set it now (session just started)
-    if (!sessionStartTime) {
-      sessionStartTime = new Date().toISOString();
-      localStorage.setItem(sessionKey, sessionStartTime);
-    }
-    
-    updateSessionTimer();
-  };
-
-  const updateSessionTimer = () => {
-    const sessionKey = `session_${session.session_id}_start`;
-    const sessionStartTime = new Date(localStorage.getItem(sessionKey));
-    const now = new Date();
-    const elapsedSeconds = Math.floor((now - sessionStartTime) / 1000);
-    
-    const totalDuration = user.english_level === 'beginner' ? 300 : 600; // 5 or 10 minutes
-    const remaining = Math.max(0, totalDuration - elapsedSeconds);
-    
-    setTimeLeft(remaining);
-
-    // Auto-end session when time runs out
-    if (remaining <= 0) {
-      handleEndCall();
-    }
-  };
-
-  const setupVideoCall = async () => {
-    setCallStage('setting_up');
-    
-    try {
-      const response = await fetch(`${API_URL}/api/daily/create-room`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          session_id: session.session_id,
-          user_id: user.id
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setRoomUrl(data.room.url);
-        setCallStage('call_ready');
-      } else {
-        console.error('Failed to create room:', data.error);
-        setCallStage('ready');
-      }
-    } catch (error) {
-      console.error('Room creation error:', error);
-      setCallStage('ready');
-    }
-  };
-
-  const joinVideoCall = () => {
-    if (roomUrl) {
-      window.open(roomUrl, '_blank', 'width=800,height=600');
-    }
-  };
-
-  const handleEndCall = async () => {
-    // Clean up localStorage
-    const sessionKey = `session_${session.session_id}_start`;
-    localStorage.removeItem(sessionKey);
-    
-    try {
-      await fetch(`${API_URL}/api/matching/end`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          session_id: session.session_id,
-          user_id: user.id
-        }),
-      });
-    } catch (error) {
-      console.error('End call error:', error);
-    }
-    
-    onEndCall();
-  };
-
-  const formatTime = (seconds) => {
-    if (seconds === null) return '--:--';
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  return (
-    <div className="video-call-ready">
-      <div className="call-container">
-        <h2>🎉 Partner Found!</h2>
-        
-        <div className="partner-info">
-          <div className="partner-avatar">
-            {session.partner.username.charAt(0).toUpperCase()}
-          </div>
-          <h3>{session.partner.username}</h3>
-          <p>English Level: <strong>{session.partner.english_level}</strong></p>
-          <p>Session Time: <strong>
-            {user.english_level === 'beginner' ? '5 minutes' : '10 minutes'}
-          </strong></p>
-        </div>
-
-        <div className="session-timer-section">
-          <div className="timer">
-            <span className="time-left">{formatTime(timeLeft)}</span>
-            <p>Session Time Remaining</p>
-          </div>
-        </div>
-
-        <div className="session-actions">
-          {callStage === 'ready' && (
-            <div className="ready-stage">
-              <p>You're matched with <strong>{session.partner.username}</strong> for an English practice session!</p>
-              <button onClick={setupVideoCall} className="setup-call-btn">
-                🎥 Setup Video Call
-              </button>
-              <button onClick={handleEndCall} className="end-session-btn">
-                End Session
-              </button>
-            </div>
-          )}
-
-          {callStage === 'setting_up' && (
-            <div className="setting-up-stage">
-              <div className="loading-spinner"></div>
-              <p>Setting up video call room...</p>
-            </div>
-          )}
-
-          {callStage === 'call_ready' && (
-            <div className="call-ready-stage">
-              <p>Video call room is ready!</p>
-              <button onClick={joinVideoCall} className="join-call-btn">
-                🎥 Join Video Call
-              </button>
-              <p className="call-note">
-                The video call will open in a new window. You have {formatTime(timeLeft)} remaining in your session.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function App() {
-  const [user, setUser] = useState(null);
-  const [showRegister, setShowRegister] = useState(false);
-  const [authError, setAuthError] = useState('');
-  const [currentSession, setCurrentSession] = useState(null);
-  const [appView, setAppView] = useState('main'); // 'main', 'matching', 'video'
-
-  // Check if user is already logged in and has active session
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      const userData = JSON.parse(savedUser);
-      setUser(userData);
-      
-      // Check for active session
-      checkActiveSession(userData.id);
+    const saved = localStorage.getItem('chatter3_user');
+    if (saved) {
+      const u = JSON.parse(saved);
+      setUser(u);
+      setView('dashboard');
+      checkActiveSession(u.id);
     }
   }, []);
 
-  const checkActiveSession = async (userId) => {
+  const checkActiveSession = async (userId: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/matching/session/${userId}`);
-      const data = await response.json();
-      
+      const res = await fetch(`${API_URL}/api/matching/session/${userId}`);
+      const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
-        setAppView('video');
+        setView('video');
       }
-    } catch (error) {
-      console.error('Check session error:', error);
-    }
+    } catch (e) { console.error(e); }
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/google`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          credential: credentialResponse.credential
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setUser(data.user);
-        setAuthError('');
-      } else {
-        setAuthError(data.error || 'Authentication failed');
-      }
-    } catch (error) {
-      console.error('Google auth error:', error);
-      setAuthError('Authentication failed');
-    }
-  };
-
-  const handleGoogleError = () => {
-    setAuthError('Google login failed');
-  };
-
-  const handleEmailLogin = async (formData) => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setUser(data.user);
-        setAuthError('');
-      } else {
-        setAuthError(data.error || 'Login failed. Please check your credentials.');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setAuthError('Login failed - please try again');
-    }
-  };
-
-  const handleEmailRegister = async (formData) => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          username: formData.username,
-          password: formData.password,
-          english_level: formData.english_level
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setUser(data.user);
-        setAuthError('');
-      } else {
-        setAuthError(data.error || 'Registration failed');
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
-      setAuthError('Registration failed');
-    }
+  const handleLoginSuccess = (u: UserProfile) => {
+    localStorage.setItem('chatter3_user', JSON.stringify(u));
+    setUser(u);
+    setView('dashboard');
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem('chatter3_user');
     setUser(null);
-    setAppView('main');
-    setCurrentSession(null);
-  };
-
-  const handleStartMatching = () => {
-    setAppView('matching');
-  };
-
-  const handleMatchFound = (sessionData) => {
-    setCurrentSession(sessionData);
-    setAppView('video');
-  };
-
-  const handleCancelMatching = () => {
-    setAppView('main');
-  };
-
-  const handleEndCall = () => {
-    setCurrentSession(null);
-    setAppView('main');
-  };
-
-  if (!user) {
-    return (
-      <GoogleOAuthProvider clientId="935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com">
-        <div className="auth-container">
-          <div className="auth-box">
-            <div className="logo-container">
-              <img 
-                src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" 
-                alt="Chatter3 Logo" 
-                className="app-logo"
-              />
-            </div>
-            <h1>Welcome to Chatter3</h1>
-            <p>Practice English with native speakers</p>
-            
-            {authError && <div className="error-message">{authError}</div>}
-            
-            {!showRegister ? (
-              <>
-                <div className="google-button-container">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={handleGoogleError}
-                    useOneTap
-                    theme="filled_blue"
-                    size="large"
-                    text="continue_with"
-                  />
-                </div>
-                <div className="auth-divider">or</div>
-                
-                <LoginForm 
-                  onLogin={handleEmailLogin}
-                  onSwitchToRegister={() => setShowRegister(true)}
-                />
-              </>
-            ) : (
-              <EmailRegisterForm 
-                onSubmit={handleEmailRegister}
-                onBack={() => {
-                  setShowRegister(false);
-                  setAuthError('');
-                }}
-                onSwitchToLogin={() => setShowRegister(false)}
-              />
-            )}
-          </div>
-        </div>
-      </GoogleOAuthProvider>
-    );
-  }
-
-  // Render different app views based on state
-  const renderAppView = () => {
-    switch (appView) {
-      case 'matching':
-        return (
-          <MatchingScreen 
-            user={user}
-            onMatchFound={handleMatchFound}
-            onCancel={handleCancelMatching}
-          />
-        );
-      
-      case 'video':
-        return (
-          <VideoCallReady 
-            session={currentSession}
-            user={user}
-            onEndCall={handleEndCall}
-          />
-        );
-      
-      default:
-        return (
-          <div className="welcome-message">
-            <h2>Ready to start a conversation?</h2>
-            <p>Your English practice journey begins here!</p>
-            <button onClick={handleStartMatching} className="start-matching-btn">
-              Find a Conversation Partner
-            </button>
-            
-            <div className="user-stats">
-              <div className="stat-card">
-                <h3>Your Stats</h3>
-                <p>Points: <strong>{user.points}</strong></p>
-                <p>Level: <strong>{user.english_level}</strong></p>
-                <p>Call Duration: <strong>
-                  {user.english_level === 'beginner' ? '5 minutes' : 
-                   user.english_level === 'intermediate' ? '10 minutes' : '10 minutes'}
-                </strong></p>
-              </div>
-            </div>
-          </div>
-        );
-    }
+    setView('auth');
   };
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <div className="app-header-content">
-          <div className="header-logo">
-            <img 
-              src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" 
-              alt="Chatter3 Logo" 
-              className="header-logo-img"
-            />
-            <h1>Chatter3</h1>
+    <div className="font-sans antialiased text-slate-900 bg-slate-50 min-h-screen">
+      {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
+      
+      {view === 'dashboard' && user && (
+        <DashboardView 
+          user={user} 
+          onNavigate={setView} 
+        />
+      )}
+
+      {view === 'matching' && user && (
+        <MatchingView 
+          user={user} 
+          onCancel={() => setView('dashboard')}
+          onMatch={(session) => {
+            setCurrentSession(session);
+            setView('video');
+          }}
+        />
+      )}
+
+      {view === 'video' && user && currentSession && (
+        <VideoRoomView 
+          user={user} 
+          session={currentSession} 
+          onEnd={() => {
+            setCurrentSession(null);
+            // Refresh user points
+            setView('dashboard');
+          }} 
+        />
+      )}
+
+      {view === 'profile' && user && (
+        <ProfileView 
+          user={user} 
+          onBack={() => setView('dashboard')} 
+          onUpdate={setUser}
+          onLogout={handleLogout}
+        />
+      )}
+    </div>
+  );
+}
+
+// --- 1. Polished Auth View ---
+function AuthView({ onLogin }: { onLogin: (u: UserProfile) => void }) {
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({ email: '', password: '', username: '', english_level: 'beginner' });
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
+    
+    try {
+      const res = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        onLogin(data.user);
+      } else {
+        setError(data.error || 'Authentication failed');
+      }
+    } catch (err) {
+      setError('Network error. Is the backend running?');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock Google Login Handler for MVP
+  const handleGoogleMock = () => {
+    // In a real implementation, you would redirect to your OAuth endpoint
+    console.log("Simulating Google Login");
+    onLogin({ 
+      id: 'google-user-' + Math.random().toString(36).substr(2, 9), 
+      username: 'Google User', 
+      email: 'google@test.com', 
+      points: 100, 
+      english_level: 'beginner' 
+    });
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-600 to-purple-700">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="p-8 pb-6 text-center">
+          <div className="mx-auto bg-indigo-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transform rotate-3">
+            <Video className="w-8 h-8 text-indigo-600" />
           </div>
-          <div className="user-info">
-            <span>Welcome, {user.username}!</span>
-            <span>Points: {user.points}</span>
-            <span>Level: {user.english_level}</span>
-            <button onClick={handleLogout}>Logout</button>
+          <h1 className="text-3xl font-bold text-gray-900">Chatter3</h1>
+          <p className="text-gray-500 mt-2">Master English with native speakers</p>
+        </div>
+
+        <div className="px-8 pb-8 space-y-6">
+          {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>}
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isRegistering && (
+              <>
+                <input 
+                  type="text" placeholder="Username" required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  value={formData.username}
+                  onChange={e => setFormData({...formData, username: e.target.value})}
+                />
+                <select 
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                  value={formData.english_level}
+                  onChange={e => setFormData({...formData, english_level: e.target.value as any})}
+                >
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </>
+            )}
+            <input 
+              type="email" placeholder="Email address" required
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+              value={formData.email}
+              onChange={e => setFormData({...formData, email: e.target.value})}
+            />
+            <input 
+              type="password" placeholder="Password" required
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+              value={formData.password}
+              onChange={e => setFormData({...formData, password: e.target.value})}
+            />
+            
+            <button 
+              disabled={loading}
+              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition flex justify-center items-center"
+            >
+              {loading ? <Loader2 className="animate-spin" /> : (isRegistering ? 'Create Account' : 'Sign In')}
+            </button>
+          </form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+            <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">Or continue with</span></div>
+          </div>
+
+          <div className="flex justify-center">
+             <button
+               onClick={handleGoogleMock}
+               className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-xl transition shadow-sm"
+             >
+                {/* Simple Google G Icon Mock */}
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M23.52 12.29C23.52 11.43 23.44 10.61 23.3 9.81H12V14.45H18.45C18.17 15.93 17.32 17.18 16.05 18.03V21H19.92C22.18 18.91 23.52 15.86 23.52 12.29Z" fill="#4285F4"/>
+                  <path d="M12 24C15.24 24 17.96 22.92 19.92 21.11L16.05 18.03C14.98 18.75 13.61 19.18 12 19.18C8.87 19.18 6.22 17.06 5.27 14.16H1.27V17.26C3.25 21.19 7.32 24 12 24Z" fill="#34A853"/>
+                  <path d="M5.27 14.16C5.03 13.26 4.9 12.31 4.9 11.33C4.9 10.35 5.03 9.4 5.27 8.5V5.4H1.27C0.46 7.02 0 8.83 0 10.74C0 12.65 0.46 14.46 1.27 16.08L5.27 14.16Z" fill="#FBBC05"/>
+                  <path d="M12 3.49C13.76 3.49 15.34 4.1 16.58 5.29L19.97 1.9C17.96 0.03 15.24 0 12 0C7.32 0 3.25 2.81 1.27 6.74L5.27 9.84C6.22 6.94 8.87 3.49 12 3.49Z" fill="#EA4335"/>
+                </svg>
+                <span>Continue with Google</span>
+             </button>
+          </div>
+
+          <p className="text-center text-sm text-gray-600">
+            {isRegistering ? 'Already have an account?' : 'New to Chatter3?'}
+            <button 
+              onClick={() => setIsRegistering(!isRegistering)}
+              className="ml-1 text-indigo-600 font-semibold hover:underline"
+            >
+              {isRegistering ? 'Sign In' : 'Create Account'}
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- 2. Dashboard View ---
+function DashboardView({ user, onNavigate }: { user: UserProfile, onNavigate: (v: any) => void }) {
+  return (
+    <div className="min-h-screen pb-20">
+      <header className="bg-white px-6 py-5 shadow-sm flex justify-between items-center sticky top-0 z-10">
+        <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Chatter3</h2>
+        <button onClick={() => onNavigate('profile')} className="relative">
+          <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold">
+            {user.username.charAt(0).toUpperCase()}
+          </div>
+          <div className="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white"></div>
+        </button>
+      </header>
+
+      <main className="p-6 space-y-6">
+        {/* Wallet */}
+        <div className="bg-gray-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-2 opacity-80">
+              <Wallet className="w-5 h-5" />
+              <span className="text-sm font-medium">Balance</span>
+            </div>
+            <div className="text-4xl font-bold mb-6">{user.points} <span className="text-lg font-normal text-gray-400">PTS</span></div>
+            <div className="flex gap-3">
+              <button className="flex-1 bg-indigo-500 hover:bg-indigo-600 py-3 rounded-xl font-semibold transition">Top Up</button>
+              <button className="flex-1 bg-white/10 hover:bg-white/20 py-3 rounded-xl font-semibold transition backdrop-blur-md">Withdraw</button>
+            </div>
           </div>
         </div>
-      </header>
-      
-      <main className="app-content">
-        {renderAppView()}
+
+        {/* Level Badge */}
+        <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-indigo-600 uppercase tracking-wide">Current Level</p>
+            <p className="text-lg font-bold text-indigo-900 capitalize">{user.english_level}</p>
+          </div>
+          <Sparkles className="text-indigo-400 w-8 h-8" />
+        </div>
+
+        {/* Main Action */}
+        <button 
+          onClick={() => onNavigate('matching')}
+          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-1 rounded-3xl shadow-xl shadow-indigo-200 transform transition active:scale-95"
+        >
+          <div className="bg-white/10 backdrop-blur-sm rounded-[20px] p-6 flex items-center justify-between">
+            <div className="text-left">
+              <h3 className="text-xl font-bold">Find a Partner</h3>
+              <p className="text-indigo-100 text-sm">Practice speaking now</p>
+            </div>
+            <div className="bg-white text-indigo-600 w-12 h-12 rounded-full flex items-center justify-center">
+              <Phone className="w-6 h-6 fill-current" />
+            </div>
+          </div>
+        </button>
       </main>
     </div>
   );
 }
 
-export default App;
+// --- 3. Matching View (Queue Logic) ---
+function MatchingView({ user, onCancel, onMatch }: { user: UserProfile, onCancel: () => void, onMatch: (s: any) => void }) {
+  const [status, setStatus] = useState('Looking for a partner...');
+  
+  useEffect(() => {
+    let polling: any;
+
+    const startMatching = async () => {
+      try {
+        // 1. Join Queue
+        const joinRes = await fetch(`${API_URL}/api/matching/join`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: user.id, english_level: user.english_level })
+        });
+        const joinData = await joinRes.json();
+
+        if (joinData.matched) {
+          setStatus('Partner found! Preparing session...');
+          // Immediate match
+          checkSession();
+        } else {
+          // 2. Poll for match
+          polling = setInterval(checkSession, 3000);
+        }
+      } catch (e) {
+        setStatus('Connection error. Retrying...');
+      }
+    };
+
+    const checkSession = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/matching/session/${user.id}`);
+        const data = await res.json();
+        if (data.active_session) {
+          clearInterval(polling);
+          setStatus('Connecting...');
+          setTimeout(() => onMatch(data.session), 1000);
+        }
+      } catch (e) { console.error(e); }
+    };
+
+    startMatching();
+
+    return () => {
+      clearInterval(polling);
+      // Optional: call /leave endpoint here
+    };
+  }, []);
+
+  return (
+    <div className="h-screen bg-indigo-600 flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
+      {/* Background Animation */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500 rounded-full animate-ping opacity-20"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-indigo-400 rounded-full animate-pulse opacity-30"></div>
+      </div>
+
+      <div className="relative z-10 text-center space-y-8">
+        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto shadow-xl">
+          <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+        </div>
+        
+        <div>
+          <h2 className="text-2xl font-bold mb-2">{status}</h2>
+          <p className="text-indigo-200">Matching you with {user.english_level} speakers</p>
+        </div>
+
+        <button 
+          onClick={onCancel}
+          className="px-8 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full font-semibold transition border border-white/10"
+        >
+          Cancel Search
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --- 4. Video Room View (Daily.co Integration) ---
+function VideoRoomView({ user, session, onEnd }: { user: UserProfile, session: any, onEnd: () => void }) {
+  const [roomUrl, setRoomUrl] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
+
+  useEffect(() => {
+    // 1. Get/Create Daily Room
+    const setupRoom = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/daily/create-room`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: session.id, user_id: user.id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setRoomUrl(data.room.url);
+        } else {
+          setError('Failed to create video room');
+        }
+      } catch (e) { setError('Connection failed'); }
+    };
+    setupRoom();
+
+    // 2. Timer
+    const timer = setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          handleEnd();
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleEnd = async () => {
+    try {
+      await fetch(`${API_URL}/api/matching/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: session.id, user_id: user.id })
+      });
+    } catch (e) {}
+    onEnd();
+  };
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec < 10 ? '0' : ''}${sec}`;
+  };
+
+  if (error) return (
+    <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="text-center">
+        <p className="text-red-400 mb-4">{error}</p>
+        <button onClick={onEnd} className="px-6 py-2 bg-white text-black rounded-lg">Go Back</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="h-screen flex flex-col bg-black">
+      {/* Video Area (Iframe) */}
+      <div className="flex-1 relative">
+        {roomUrl ? (
+          <iframe 
+            src={roomUrl} 
+            allow="camera; microphone; autoplay; fullscreen"
+            className="w-full h-full border-0"
+            title="Daily Call"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-white">
+            <Loader2 className="w-8 h-8 animate-spin mr-2" /> Connecting to Daily.co...
+          </div>
+        )}
+        
+        {/* Timer Overlay */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur text-white px-4 py-1 rounded-full font-mono font-bold flex items-center gap-2 border border-white/10">
+          <Clock className="w-4 h-4 text-red-400" />
+          {formatTime(timeLeft)}
+        </div>
+      </div>
+
+      {/* Control Bar */}
+      <div className="bg-gray-900 p-4 pb-8 flex items-center justify-between px-8">
+        <div className="text-white">
+          <p className="text-xs text-gray-400">Talking to</p>
+          <p className="font-bold">{session.partner.username}</p>
+        </div>
+        <button 
+          onClick={handleEnd}
+          className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-700 transition shadow-lg shadow-red-900/50"
+        >
+          <PhoneOff className="w-6 h-6 text-white" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --- 5. Profile View ---
+function ProfileView({ user, onBack, onUpdate, onLogout }: { user: UserProfile, onBack: () => void, onUpdate: (u: UserProfile) => void, onLogout: () => void }) {
+  const [bio, setBio] = useState(user.bio || '');
+
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="p-4 flex items-center border-b border-gray-100">
+        <button onClick={onBack} className="p-2 hover:bg-gray-50 rounded-full mr-2"><ArrowLeft className="w-6 h-6" /></button>
+        <h2 className="font-bold text-lg">My Profile</h2>
+      </div>
+
+      <div className="p-6">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center text-3xl font-bold text-indigo-700 mb-3">
+            {user.username.charAt(0).toUpperCase()}
+          </div>
+          <h3 className="text-xl font-bold">{user.username}</h3>
+          <p className="text-gray-500">{user.email}</p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+             <label className="text-sm font-medium text-gray-700">Bio</label>
+             <textarea 
+               value={bio} onChange={e => setBio(e.target.value)}
+               className="w-full mt-1 p-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none" 
+               rows={3} 
+             />
+          </div>
+          <button 
+            onClick={() => {
+              // Call API to update bio
+              onUpdate({ ...user, bio });
+              onBack();
+            }}
+            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
+          >
+            <Save className="w-4 h-4" /> Save Changes
+          </button>
+          
+          <button onClick={onLogout} className="w-full py-3 text-red-600 font-medium flex items-center justify-center gap-2 mt-4">
+            <LogOut className="w-4 h-4" /> Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
