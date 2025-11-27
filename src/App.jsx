@@ -1,33 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-
-// --- [PRODUCTION STEP 1] UNCOMMENT THE LINE BELOW FOR GITHUB/PROD ---
-// import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-
-// --- [PRODUCTION STEP 2] DELETE THIS MOCK SECTION FOR GITHUB/PROD ---
-// These mocks allow the preview to run without crashing on missing dependencies.
-const GoogleOAuthProvider = ({ children, clientId }) => <>{children}</>;
-const GoogleLogin = ({ onSuccess, onError }) => (
-  <button 
-    onClick={() => onSuccess({ credential: "mock_token_for_preview" })}
-    style={{
-      width: '100%',
-      padding: '12px',
-      backgroundColor: '#4285f4',
-      color: 'white',
-      border: 'none',
-      borderRadius: '4px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '10px',
-      cursor: 'pointer',
-      fontWeight: '500'
-    }}
-  >
-    <span>Sign in with Google (Preview Mock)</span>
-  </button>
-);
-// --- END MOCK SECTION ---
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 // --- Configuration ---
 const API_URL = 'https://api.chatter3.com'; 
