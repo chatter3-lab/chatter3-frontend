@@ -416,17 +416,19 @@ function VideoRoomView({ user, session, onEnd }) {
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
-  const negotiatingRef = useRef(false); // Track negotiation to prevent race
+  
+  // Track candidates arriving before remote description is set
+  const candidateQueue = useRef([]); 
+  const negotiatingRef = useRef(false);
 
   useEffect(() => {
-    // 1. Initialize WebRTC
     const startCall = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
         const pc = new RTCPeerConnection({
-          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] // Public STUN server
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
         });
         
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
@@ -434,31 +436,29 @@ function VideoRoomView({ user, session, onEnd }) {
         pc.ontrack = (event) => {
           if (remoteVideoRef.current) {
              remoteVideoRef.current.srcObject = event.streams[0];
-             // Explicitly play to ensure video starts
-             remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked', e));
+             // FIX: Explicitly try to play video to handle autoplay policies
+             remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
 
-        // Queue candidates until remote description is set
-        const candidateQueue = [];
         pc.onicecandidate = (event) => {
-          if (event.candidate) {
-            if(wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-               wsRef.current.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
-            }
+          if (event.candidate && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+             wsRef.current.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
           }
         };
+
+        // Debugging connection state
+        pc.onconnectionstatechange = () => console.log("Connection State:", pc.connectionState);
+        pc.oniceconnectionstatechange = () => console.log("ICE Connection State:", pc.iceConnectionState);
 
         pcRef.current = pc;
 
-        // 2. Connect Signaling
+        // Connect Signaling
         const ws = new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
         wsRef.current = ws;
 
         ws.onopen = async () => {
-          console.log("WS Connected. Sending READY.");
-          // Send READY to announce presence. 
-          // We WAIT for the other peer to be ready before offering.
+          console.log("WS Open. Sending READY.");
           ws.send(JSON.stringify({ type: 'ready' }));
         };
 
@@ -466,11 +466,9 @@ function VideoRoomView({ user, session, onEnd }) {
           const data = JSON.parse(msg.data);
           
           if (data.type === 'ready') {
-            console.log("Peer is ready.");
-            // If I am the initiator (user1) and not already negotiating, start the offer.
-            // This prevents the "offer sent before peer connected" race condition.
+            // Initiate offer ONLY if I am user1 and we haven't started yet
             if (user.id === session.user1_id && !negotiatingRef.current) {
-               console.log("I am initiator. Sending OFFER.");
+               console.log("Initiating Offer...");
                negotiatingRef.current = true;
                const offer = await pc.createOffer();
                await pc.setLocalDescription(offer);
@@ -478,24 +476,28 @@ function VideoRoomView({ user, session, onEnd }) {
             }
           }
           else if (data.type === 'offer') {
-            if (pc.signalingState !== "stable") return; // Avoid glare
-            console.log("Received OFFER.");
+            console.log("Received Offer");
             negotiatingRef.current = true;
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+            processCandidateQueue(); // Process any queued candidates
+            
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
             ws.send(JSON.stringify({ type: 'answer', sdp: answer }));
           } 
           else if (data.type === 'answer') {
-            console.log("Received ANSWER.");
+            console.log("Received Answer");
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+            processCandidateQueue(); // Process any queued candidates
           } 
           else if (data.type === 'candidate') {
-            if (pc.remoteDescription) {
-               await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            const candidate = new RTCIceCandidate(data.candidate);
+            // FIX: Check if remote description is set before adding candidate
+            if (pc.remoteDescription && pc.remoteDescription.type) {
+               await pc.addIceCandidate(candidate);
             } else {
-               // If remote desc not ready, we could queue, but usually 'ready' handshake prevents this.
-               console.log("Received candidate too early, ignoring.");
+               console.log("Queueing candidate...");
+               candidateQueue.current.push(candidate);
             }
           }
         };
@@ -506,9 +508,19 @@ function VideoRoomView({ user, session, onEnd }) {
       }
     };
 
+    const processCandidateQueue = async () => {
+        if (!pcRef.current) return;
+        while (candidateQueue.current.length > 0) {
+            const cand = candidateQueue.current.shift();
+            try {
+                await pcRef.current.addIceCandidate(cand);
+                console.log("Added queued candidate");
+            } catch (e) { console.error("Error adding queued candidate", e); }
+        }
+    };
+
     startCall();
 
-    // 3. Timer
     const timer = setInterval(() => {
       setTimeLeft(t => {
         if (t <= 1) { handleEnd(); return 0; }
@@ -520,7 +532,6 @@ function VideoRoomView({ user, session, onEnd }) {
       clearInterval(timer);
       if (wsRef.current) wsRef.current.close();
       if (pcRef.current) pcRef.current.close();
-      // Stop local stream tracks
       if (localVideoRef.current && localVideoRef.current.srcObject) {
         localVideoRef.current.srcObject.getTracks().forEach(t => t.stop());
       }
