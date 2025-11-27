@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from 'react';
-
-// --- [ACTION REQUIRED] UNCOMMENT THIS LINE FOR PRODUCTION ---
+import React, { useState, useEffect, useRef } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 // --- Configuration ---
 const API_URL = 'https://api.chatter3.com'; 
+const WS_URL = 'wss://api.chatter3.com';
 const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com";
 
-// --- STYLES ---
+// --- INLINE STYLES ---
 const STYLES = `
-/* Reset and base styles */
+/* Reset */
 * { box-sizing: border-box; }
 body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background-color: #f5f5f5; }
 #root { width: 100%; margin: 0; padding: 0; }
 
-/* Main Layout */
+/* Layout */
 .app-container { display: flex; flex-direction: column; min-height: 100vh; width: 100%; }
 .app-content { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 
@@ -60,18 +59,22 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .stat-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
 .stat-item:last-child { border-bottom: none; }
 
-/* Matching & Video */
+/* Video Call Interface */
+.video-call-interface { display: flex; flex-direction: column; height: 80vh; gap: 1rem; padding: 1rem; }
+.video-container { position: relative; flex: 1; background: #1a1a1a; border-radius: 12px; overflow: hidden; min-height: 400px; display: flex; justify-content: center; align-items: center; }
+
+.video-element { width: 100%; height: 100%; object-fit: cover; }
+/* Local video PiP style */
+.video-element.local { position: absolute; bottom: 20px; right: 20px; width: 150px; height: 200px; border: 2px solid white; border-radius: 8px; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.5); object-fit: cover; background: #333; }
+.video-overlay { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px; color: white; display: flex; align-items: center; gap: 0.5rem; z-index: 5; }
+.call-controls { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+.control-btn { background: #f44336; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+/* Matching & Misc */
 .matching-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; }
 .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4285f4; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 2rem; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .cancel-btn { margin-top: 2rem; padding: 10px 20px; background: transparent; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
-
-.video-call-interface { display: flex; flex-direction: column; height: 80vh; gap: 1rem; padding: 1rem; }
-.video-container { position: relative; flex: 1; background: #1a1a1a; border-radius: 12px; overflow: hidden; min-height: 400px; }
-.video-element { width: 100%; height: 100%; border: none; }
-.video-overlay { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px; color: white; display: flex; align-items: center; gap: 0.5rem; }
-.call-controls { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-.control-btn { background: #f44336; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
 
 @media (max-width: 768px) {
   .app-header-content { flex-direction: column; gap: 1rem; }
@@ -80,14 +83,12 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 }
 `;
 
-// --- Icon Components (Inline SVGs) ---
+// --- Icon Components (Inline SVG) ---
 const Icon = ({ children, className, style }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
     {children}
   </svg>
 );
-const Video = (props) => <Icon {...props}><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></Icon>;
-const Phone = (props) => <Icon {...props}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></Icon>;
 const PhoneOff = (props) => <Icon {...props}><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></Icon>;
 const Wallet = (props) => <Icon {...props}><path d="M20 12V8H6a2 2 0 0 1-2-2 2 2 0 0 1 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H4z"/></Icon>;
 const Sparkles = (props) => <Icon {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 5H1"/><path d="M5 19v4"/><path d="M9 21H1"/></Icon>;
@@ -137,9 +138,7 @@ export default function App() {
   };
 
   return (
-    // --- [ACTION REQUIRED] UNCOMMENT <GoogleOAuthProvider> FOR PRODUCTION ---
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-    <React.Fragment>
       <div className="app-container">
         <style>{STYLES}</style>
         
@@ -200,8 +199,7 @@ export default function App() {
           )}
         </main>
       </div>
-    </React.Fragment>
-    // </GoogleOAuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 
@@ -312,8 +310,7 @@ function AuthView({ onLogin }) {
         <div className="auth-divider">or</div>
 
         <div className="google-button-container">
-           {/* --- [ACTION REQUIRED] UNCOMMENT THIS FOR PRODUCTION --- */}
-           {<GoogleLogin
+           <GoogleLogin
              onSuccess={handleGoogleSuccess}
              onError={handleGoogleError}
              useOneTap
@@ -322,7 +319,6 @@ function AuthView({ onLogin }) {
              width="100%"
              text="continue_with"
            />
-           }                      
         </div>
 
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>
@@ -411,33 +407,96 @@ function MatchingView({ user, onCancel, onMatch }) {
   );
 }
 
+// --- NEW WEBRTC VIDEO VIEW ---
 function VideoRoomView({ user, session, onEnd }) {
-  const [roomUrl, setRoomUrl] = useState(null);
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
+  
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const pcRef = useRef(null);
+  const wsRef = useRef(null);
 
   useEffect(() => {
-    const setupRoom = async () => {
+    // 1. Initialize WebRTC
+    const startCall = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/daily/create-room`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: session.id, user_id: user.id })
-        });
-        const data = await res.json();
-        if (data.success) setRoomUrl(data.room.url);
-        else setError('Failed to create video room');
-      } catch (e) { setError('Connection failed'); }
-    };
-    setupRoom();
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
+        const pc = new RTCPeerConnection({
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] // Public STUN server
+        });
+        
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+        pc.ontrack = (event) => {
+          if (remoteVideoRef.current) remoteVideoRef.current.srcObject = event.streams[0];
+        };
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            if(wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+               wsRef.current.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+            }
+          }
+        };
+
+        pcRef.current = pc;
+
+        // 2. Connect Signaling
+        const ws = new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
+        wsRef.current = ws;
+
+        ws.onopen = async () => {
+          // Determine initiator based on user ID sorting (or session user1)
+          const isInitiator = user.id === session.user1_id;
+          if (isInitiator) {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
+          }
+        };
+
+        ws.onmessage = async (msg) => {
+          const data = JSON.parse(msg.data);
+          if (data.type === 'offer') {
+            await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            ws.send(JSON.stringify({ type: 'answer', sdp: answer }));
+          } else if (data.type === 'answer') {
+            await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+          } else if (data.type === 'candidate') {
+            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+          }
+        };
+
+      } catch (err) {
+        console.error(err);
+        setError('Could not access camera/microphone');
+      }
+    };
+
+    startCall();
+
+    // 3. Timer
     const timer = setInterval(() => {
       setTimeLeft(t => {
         if (t <= 1) { handleEnd(); return 0; }
         return t - 1;
       });
     }, 1000);
-    return () => clearInterval(timer);
+
+    return () => {
+      clearInterval(timer);
+      if (wsRef.current) wsRef.current.close();
+      if (pcRef.current) pcRef.current.close();
+      // Stop local stream tracks
+      if (localVideoRef.current && localVideoRef.current.srcObject) {
+        localVideoRef.current.srcObject.getTracks().forEach(t => t.stop());
+      }
+    };
   }, []);
 
   const handleEnd = async () => {
@@ -467,19 +526,23 @@ function VideoRoomView({ user, session, onEnd }) {
   return (
     <div className="video-call-interface">
       <div className="video-container">
-        {roomUrl ? (
-          <iframe 
-            src={roomUrl} 
-            allow="camera; microphone; autoplay; fullscreen"
-            className="video-element"
-            title="Daily Call"
-          />
-        ) : (
-          <div className="matching-screen" style={{minHeight: '100%'}}>
-             <div className="loader"></div>
-             <p style={{color: 'white'}}>Connecting to Daily.co...</p>
-          </div>
-        )}
+        {/* Remote Video (Large) */}
+        <video 
+          ref={remoteVideoRef} 
+          autoPlay 
+          playsInline 
+          className="video-element"
+        />
+        
+        {/* Local Video (PiP) */}
+        <video 
+          ref={localVideoRef} 
+          autoPlay 
+          playsInline 
+          muted
+          className="video-element local" 
+        />
+
         <div className="video-overlay">
           <Clock className="w-4 h-4" color="white" />
           <span>{formatTime(timeLeft)}</span>
