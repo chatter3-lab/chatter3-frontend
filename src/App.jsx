@@ -233,6 +233,7 @@ function AuthView({ onLogin }) {
     setLoading(true);
     setError('');
     try {
+      // CORS fix: Explicit mode and header
       const response = await fetch(`${API_URL}/api/auth/google`, {
         method: 'POST',
         mode: 'cors',
@@ -318,8 +319,7 @@ function AuthView({ onLogin }) {
              width="100%"
              text="continue_with"
            />
-           }
-           
+           }        
            
         </div>
 
@@ -422,11 +422,14 @@ function VideoRoomView({ user, session, onEnd }) {
   // Track candidates arriving before remote description is set
   const candidateQueue = useRef([]); 
   const negotiatingRef = useRef(false);
+  const streamRef = useRef(null); // Reference to media stream for cleanup
 
   useEffect(() => {
     const startCall = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        streamRef.current = stream; // Store stream for safe cleanup
+        
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
         const pc = new RTCPeerConnection({
@@ -538,8 +541,10 @@ function VideoRoomView({ user, session, onEnd }) {
       clearInterval(timer);
       if (wsRef.current) wsRef.current.close();
       if (pcRef.current) pcRef.current.close();
-      if (localVideoRef.current && localVideoRef.current.srcObject) {
-        localVideoRef.current.srcObject.getTracks().forEach(t => t.stop());
+      
+      // FIX: Use streamRef to cleanup tracks even if DOM element is gone
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
       }
     };
   }, []);
