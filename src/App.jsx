@@ -121,8 +121,24 @@ export default function App() {
       if (data.active_session) {
         setCurrentSession(data.session);
         setView('video');
+      } else if (user && view === 'video') {
+        // If no active session but we are in video view, likely it ended.
+        // Refresh user data to get new points.
+        refreshUserData(userId);
       }
     } catch (e) { console.error(e); }
+  };
+
+  const refreshUserData = async (userId) => {
+    try {
+      const res = await fetch(`${API_URL}/api/user/${userId}`);
+      const data = await res.json();
+      if (data.success) {
+        const updatedUser = { ...user, ...data.user };
+        localStorage.setItem('chatter3_user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+      }
+    } catch (e) { console.error("Failed to refresh user data", e); }
   };
 
   const handleLoginSuccess = (u) => {
@@ -139,7 +155,6 @@ export default function App() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-    <React.Fragment>
       <div className="app-container">
         <style>{STYLES}</style>
         
@@ -185,6 +200,7 @@ export default function App() {
               session={currentSession} 
               onEnd={() => {
                 setCurrentSession(null);
+                refreshUserData(user.id); // Refresh points
                 setView('dashboard');
               }} 
             />
@@ -200,8 +216,7 @@ export default function App() {
           )}
         </main>
       </div>
-    </React.Fragment>
-    // </GoogleOAuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 
@@ -235,7 +250,6 @@ function AuthView({ onLogin }) {
     setLoading(true);
     setError('');
     try {
-      // CORS fix: Explicit mode and header
       const response = await fetch(`${API_URL}/api/auth/google`, {
         method: 'POST',
         mode: 'cors',
@@ -311,8 +325,8 @@ function AuthView({ onLogin }) {
 
         <div className="auth-divider">or</div>
 
-        <div className="google-button-container">           
-           {<GoogleLogin
+        <div className="google-button-container">
+           <GoogleLogin
              onSuccess={handleGoogleSuccess}
              onError={handleGoogleError}
              useOneTap
@@ -321,8 +335,6 @@ function AuthView({ onLogin }) {
              width="100%"
              text="continue_with"
            />
-           }
-                      
         </div>
 
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>
@@ -414,51 +426,44 @@ function MatchingView({ user, onCancel, onMatch }) {
 // --- NEW WEBRTC VIDEO VIEW ---
 function VideoRoomView({ user, session, onEnd }) {
   const [error, setError] = useState('');
-  const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
+  const [timeLeft, setTimeLeft] = useState(null); // Init as null, calc in effect
   
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
   
-  // Track candidates arriving before remote description is set
-  const localCandidatesQueue = useRef([]); // Candidates generated locally
-  const remoteCandidatesQueue = useRef([]); // Candidates received from peer
+  const localCandidatesQueue = useRef([]); 
+  const remoteCandidatesQueue = useRef([]); 
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
 
-  // --- HARDWARE CLEANUP FUNCTION ---
   const cleanupMedia = () => {
-    // 1. Stop all tracks in the stream
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => {
-        track.stop();
-      });
+      streamRef.current.getTracks().forEach(track => { track.stop(); });
       streamRef.current = null;
     }
-
-    // 2. Clear video elements to detach DOM from stream
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = null;
-    }
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = null;
-    }
-
-    // 3. Close peer connection
-    if (pcRef.current) {
-      pcRef.current.close();
-      pcRef.current = null;
-    }
-
-    // 4. Close signaling
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
+    if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+    if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
+    if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
   };
 
   useEffect(() => {
+    // Correct Time Calculation based on DB created_at
+    const startObj = new Date(session.created_at.endsWith('Z') ? session.created_at : session.created_at + 'Z');
+    const totalDuration = session.english_level === 'beginner' ? 300 : 600;
+    
+    const updateTimer = () => {
+      const now = new Date();
+      const elapsedSeconds = Math.floor((now.getTime() - startObj.getTime()) / 1000);
+      const remaining = Math.max(0, totalDuration - elapsedSeconds);
+      setTimeLeft(remaining);
+      return remaining;
+    };
+
+    updateTimer(); // Initial set
+
     const startCall = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -475,7 +480,6 @@ function VideoRoomView({ user, session, onEnd }) {
         pc.ontrack = (event) => {
           if (remoteVideoRef.current) {
              remoteVideoRef.current.srcObject = event.streams[0];
-             // FIX: Explicitly try to play video to handle autoplay policies
              remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
@@ -501,12 +505,10 @@ function VideoRoomView({ user, session, onEnd }) {
         ws.onopen = async () => {
           console.log("WS Open.");
           
-          // Flush local candidates generated while connecting
           while (localCandidatesQueue.current.length > 0) {
              ws.send(localCandidatesQueue.current.shift());
           }
 
-          // Send READY to announce presence. 
           ws.send(JSON.stringify({ type: 'ready' }));
         };
 
@@ -514,14 +516,11 @@ function VideoRoomView({ user, session, onEnd }) {
           const data = JSON.parse(msg.data);
           
           if (data.type === 'bye') {
-             console.log("Peer left. Ending call.");
-             // Ensure we cleanup before navigating away
              cleanupMedia();
              onEnd(); 
           }
           else if (data.type === 'ready') {
             if (user.id === session.user1_id && !negotiatingRef.current) {
-               console.log("Initiating Offer...");
                negotiatingRef.current = true;
                const offer = await pc.createOffer();
                await pc.setLocalDescription(offer);
@@ -529,7 +528,6 @@ function VideoRoomView({ user, session, onEnd }) {
             }
           }
           else if (data.type === 'offer') {
-            console.log("Received Offer");
             negotiatingRef.current = true;
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             processRemoteCandidates();
@@ -539,7 +537,6 @@ function VideoRoomView({ user, session, onEnd }) {
             ws.send(JSON.stringify({ type: 'answer', sdp: answer }));
           } 
           else if (data.type === 'answer') {
-            console.log("Received Answer");
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             processRemoteCandidates();
           } 
@@ -572,14 +569,11 @@ function VideoRoomView({ user, session, onEnd }) {
     startCall();
 
     const timer = setInterval(() => {
-      setTimeLeft(t => {
-        if (t <= 1) { 
-          cleanupMedia();
-          handleEnd(); 
-          return 0; 
-        }
-        return t - 1;
-      });
+      const remaining = updateTimer();
+      if (remaining <= 0) {
+        cleanupMedia();
+        handleEnd();
+      }
     }, 1000);
 
     return () => {
@@ -601,12 +595,12 @@ function VideoRoomView({ user, session, onEnd }) {
       });
     } catch (e) {}
     
-    // Explicitly stop hardware before unmounting
     cleanupMedia();
     onEnd();
   };
 
   const formatTime = (s) => {
+    if (s === null) return '--:--';
     const m = Math.floor(s / 60);
     const sec = s % 60;
     return `${m}:${sec < 10 ? '0' : ''}${sec}`;
