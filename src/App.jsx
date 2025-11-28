@@ -308,9 +308,8 @@ function AuthView({ onLogin }) {
 
         <div className="auth-divider">or</div>
 
-        <div className="google-button-container">
-           {/* --- [ACTION REQUIRED] UNCOMMENT THIS FOR PRODUCTION --- */}
-           {/* <GoogleLogin
+        <div className="google-button-container">           
+           {<GoogleLogin
              onSuccess={handleGoogleSuccess}
              onError={handleGoogleError}
              useOneTap
@@ -319,12 +318,9 @@ function AuthView({ onLogin }) {
              width="100%"
              text="continue_with"
            />
-           */}
+           }
            
-           {/* --- DELETE THIS MOCK BUTTON FOR PRODUCTION --- */}
-           <button style={{padding: '10px', background: '#ddd', width: '100%'}} disabled>
-             Google Login (Uncomment in code)
-           </button>
+           
         </div>
 
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>
