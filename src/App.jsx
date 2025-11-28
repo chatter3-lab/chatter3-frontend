@@ -233,7 +233,6 @@ function AuthView({ onLogin }) {
     setLoading(true);
     setError('');
     try {
-      // CORS fix: Explicit mode and header
       const response = await fetch(`${API_URL}/api/auth/google`, {
         method: 'POST',
         mode: 'cors',
@@ -310,7 +309,8 @@ function AuthView({ onLogin }) {
         <div className="auth-divider">or</div>
 
         <div className="google-button-container">
-           <GoogleLogin
+           {/* --- [ACTION REQUIRED] UNCOMMENT THIS FOR PRODUCTION --- */}
+           {/* <GoogleLogin
              onSuccess={handleGoogleSuccess}
              onError={handleGoogleError}
              useOneTap
@@ -319,6 +319,12 @@ function AuthView({ onLogin }) {
              width="100%"
              text="continue_with"
            />
+           */}
+           
+           {/* --- DELETE THIS MOCK BUTTON FOR PRODUCTION --- */}
+           <button style={{padding: '10px', background: '#ddd', width: '100%'}} disabled>
+             Google Login (Uncomment in code)
+           </button>
         </div>
 
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>
@@ -465,7 +471,11 @@ function VideoRoomView({ user, session, onEnd }) {
         ws.onmessage = async (msg) => {
           const data = JSON.parse(msg.data);
           
-          if (data.type === 'ready') {
+          if (data.type === 'bye') {
+             console.log("Peer left. Ending call.");
+             onEnd(); // End call locally if peer leaves
+          }
+          else if (data.type === 'ready') {
             // Initiate offer ONLY if I am user1 and we haven't started yet
             if (user.id === session.user1_id && !negotiatingRef.current) {
                console.log("Initiating Offer...");
@@ -539,6 +549,11 @@ function VideoRoomView({ user, session, onEnd }) {
   }, []);
 
   const handleEnd = async () => {
+    // 1. Notify peer to close
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+       wsRef.current.send(JSON.stringify({ type: 'bye' }));
+    }
+
     try {
       await fetch(`${API_URL}/api/matching/end`, {
         method: 'POST',
