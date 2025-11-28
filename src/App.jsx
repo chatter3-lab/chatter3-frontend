@@ -148,8 +148,7 @@ export default function App() {
           <header className="app-header">
             <div className="app-header-content">
               <div className="logo-container">
-                <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" style={{height: '40px', marginBottom: 0}} />
-                <span className="logo-text">Chatter3</span>
+                <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" style={{height: '100px', marginBottom: 0}} />                
               </div>
               {user && (
                 <div className="user-info">
@@ -319,8 +318,8 @@ function AuthView({ onLogin }) {
              width="100%"
              text="continue_with"
            />
-           }        
-           
+           }
+                      
         </div>
 
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>
@@ -420,15 +419,16 @@ function VideoRoomView({ user, session, onEnd }) {
   const wsRef = useRef(null);
   
   // Track candidates arriving before remote description is set
-  const candidateQueue = useRef([]); 
+  const localCandidatesQueue = useRef([]); // Candidates generated locally
+  const remoteCandidatesQueue = useRef([]); // Candidates received from peer
   const negotiatingRef = useRef(false);
-  const streamRef = useRef(null); // Reference to media stream for cleanup
+  const streamRef = useRef(null);
 
   useEffect(() => {
     const startCall = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        streamRef.current = stream; // Store stream for safe cleanup
+        streamRef.current = stream; 
         
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
@@ -441,21 +441,22 @@ function VideoRoomView({ user, session, onEnd }) {
         pc.ontrack = (event) => {
           if (remoteVideoRef.current) {
              remoteVideoRef.current.srcObject = event.streams[0];
-             // FIX: Explicitly try to play video to handle autoplay policies
              remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
 
         pc.onicecandidate = (event) => {
-          if (event.candidate && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-             wsRef.current.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+          if (event.candidate) {
+             const payload = JSON.stringify({ type: 'candidate', candidate: event.candidate });
+             if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                wsRef.current.send(payload);
+             } else {
+                localCandidatesQueue.current.push(payload);
+             }
           }
         };
 
-        // Debugging connection state
         pc.onconnectionstatechange = () => console.log("Connection State:", pc.connectionState);
-        pc.oniceconnectionstatechange = () => console.log("ICE Connection State:", pc.iceConnectionState);
-
         pcRef.current = pc;
 
         // Connect Signaling
@@ -463,7 +464,14 @@ function VideoRoomView({ user, session, onEnd }) {
         wsRef.current = ws;
 
         ws.onopen = async () => {
-          console.log("WS Open. Sending READY.");
+          console.log("WS Open.");
+          
+          // Flush local candidates generated while connecting
+          while (localCandidatesQueue.current.length > 0) {
+             ws.send(localCandidatesQueue.current.shift());
+          }
+
+          // Send READY to announce presence. 
           ws.send(JSON.stringify({ type: 'ready' }));
         };
 
@@ -472,10 +480,9 @@ function VideoRoomView({ user, session, onEnd }) {
           
           if (data.type === 'bye') {
              console.log("Peer left. Ending call.");
-             onEnd(); // End call locally if peer leaves
+             onEnd(); 
           }
           else if (data.type === 'ready') {
-            // Initiate offer ONLY if I am user1 and we haven't started yet
             if (user.id === session.user1_id && !negotiatingRef.current) {
                console.log("Initiating Offer...");
                negotiatingRef.current = true;
@@ -488,7 +495,7 @@ function VideoRoomView({ user, session, onEnd }) {
             console.log("Received Offer");
             negotiatingRef.current = true;
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-            processCandidateQueue(); // Process any queued candidates
+            processRemoteCandidates();
             
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
@@ -497,16 +504,14 @@ function VideoRoomView({ user, session, onEnd }) {
           else if (data.type === 'answer') {
             console.log("Received Answer");
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-            processCandidateQueue(); // Process any queued candidates
+            processRemoteCandidates();
           } 
           else if (data.type === 'candidate') {
             const candidate = new RTCIceCandidate(data.candidate);
-            // FIX: Check if remote description is set before adding candidate
             if (pc.remoteDescription && pc.remoteDescription.type) {
                await pc.addIceCandidate(candidate);
             } else {
-               console.log("Queueing candidate...");
-               candidateQueue.current.push(candidate);
+               remoteCandidatesQueue.current.push(candidate);
             }
           }
         };
@@ -517,13 +522,12 @@ function VideoRoomView({ user, session, onEnd }) {
       }
     };
 
-    const processCandidateQueue = async () => {
+    const processRemoteCandidates = async () => {
         if (!pcRef.current) return;
-        while (candidateQueue.current.length > 0) {
-            const cand = candidateQueue.current.shift();
+        while (remoteCandidatesQueue.current.length > 0) {
+            const cand = remoteCandidatesQueue.current.shift();
             try {
                 await pcRef.current.addIceCandidate(cand);
-                console.log("Added queued candidate");
             } catch (e) { console.error("Error adding queued candidate", e); }
         }
     };
@@ -541,8 +545,6 @@ function VideoRoomView({ user, session, onEnd }) {
       clearInterval(timer);
       if (wsRef.current) wsRef.current.close();
       if (pcRef.current) pcRef.current.close();
-      
-      // FIX: Use streamRef to cleanup tracks even if DOM element is gone
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(t => t.stop());
       }
@@ -550,7 +552,6 @@ function VideoRoomView({ user, session, onEnd }) {
   }, []);
 
   const handleEnd = async () => {
-    // 1. Notify peer to close
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
        wsRef.current.send(JSON.stringify({ type: 'bye' }));
     }
