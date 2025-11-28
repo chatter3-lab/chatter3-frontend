@@ -139,6 +139,7 @@ export default function App() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+    <React.Fragment>
       <div className="app-container">
         <style>{STYLES}</style>
         
@@ -148,7 +149,8 @@ export default function App() {
           <header className="app-header">
             <div className="app-header-content">
               <div className="logo-container">
-                <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" style={{height: '100px', marginBottom: 0}} />                
+                <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" style={{height: '40px', marginBottom: 0}} />
+                <span className="logo-text">Chatter3</span>
               </div>
               {user && (
                 <div className="user-info">
@@ -198,7 +200,8 @@ export default function App() {
           )}
         </main>
       </div>
-    </GoogleOAuthProvider>
+    </React.Fragment>
+    // </GoogleOAuthProvider>
   );
 }
 
@@ -424,6 +427,37 @@ function VideoRoomView({ user, session, onEnd }) {
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
 
+  // --- HARDWARE CLEANUP FUNCTION ---
+  const cleanupMedia = () => {
+    // 1. Stop all tracks in the stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+      });
+      streamRef.current = null;
+    }
+
+    // 2. Clear video elements to detach DOM from stream
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+
+    // 3. Close peer connection
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+
+    // 4. Close signaling
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+  };
+
   useEffect(() => {
     const startCall = async () => {
       try {
@@ -441,6 +475,7 @@ function VideoRoomView({ user, session, onEnd }) {
         pc.ontrack = (event) => {
           if (remoteVideoRef.current) {
              remoteVideoRef.current.srcObject = event.streams[0];
+             // FIX: Explicitly try to play video to handle autoplay policies
              remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
@@ -480,6 +515,8 @@ function VideoRoomView({ user, session, onEnd }) {
           
           if (data.type === 'bye') {
              console.log("Peer left. Ending call.");
+             // Ensure we cleanup before navigating away
+             cleanupMedia();
              onEnd(); 
           }
           else if (data.type === 'ready') {
@@ -536,18 +573,18 @@ function VideoRoomView({ user, session, onEnd }) {
 
     const timer = setInterval(() => {
       setTimeLeft(t => {
-        if (t <= 1) { handleEnd(); return 0; }
+        if (t <= 1) { 
+          cleanupMedia();
+          handleEnd(); 
+          return 0; 
+        }
         return t - 1;
       });
     }, 1000);
 
     return () => {
       clearInterval(timer);
-      if (wsRef.current) wsRef.current.close();
-      if (pcRef.current) pcRef.current.close();
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop());
-      }
+      cleanupMedia();
     };
   }, []);
 
@@ -563,6 +600,9 @@ function VideoRoomView({ user, session, onEnd }) {
         body: JSON.stringify({ session_id: session.id, user_id: user.id })
       });
     } catch (e) {}
+    
+    // Explicitly stop hardware before unmounting
+    cleanupMedia();
     onEnd();
   };
 
