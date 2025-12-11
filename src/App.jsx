@@ -568,7 +568,7 @@ function VideoRoomView({ user, session, onEnd }) {
         streamRef.current = stream; 
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
-        // Create persistent stream for remote
+        // Initialize persistent remote stream
         remoteStreamRef.current = new MediaStream();
         if (remoteVideoRef.current) {
              remoteVideoRef.current.srcObject = remoteStreamRef.current;
@@ -578,15 +578,9 @@ function VideoRoomView({ user, session, onEnd }) {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun3.l.google.com:19302' },
-            { urls: 'stun:stun4.l.google.com:19302' }
+            { urls: 'stun:stun2.l.google.com:19302' }
           ]
         });
-
-        // FORCE TRANSCEIVERS to ensure video section is always in SDP
-        pc.addTransceiver('video', { direction: 'sendrecv' });
-        pc.addTransceiver('audio', { direction: 'sendrecv' });
         
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
@@ -668,7 +662,8 @@ function VideoRoomView({ user, session, onEnd }) {
             negotiatingRef.current = true;
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             processRemoteCandidates();
-            const answer = await pc.createAnswer();
+            // Important: Explicitly create answer with video intent
+            const answer = await pc.createAnswer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
             await pc.setLocalDescription(answer);
             ws.send(JSON.stringify({ type: 'answer', sdp: answer }));
           } 
@@ -688,7 +683,8 @@ function VideoRoomView({ user, session, onEnd }) {
 
         const startNegotiation = async () => {
            negotiatingRef.current = true;
-           const offer = await pc.createOffer();
+           // Important: Explicitly ask for video/audio in offer
+           const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
            await pc.setLocalDescription(offer);
            ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
         };
