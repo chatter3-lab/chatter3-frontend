@@ -161,8 +161,7 @@ export default function App() {
     setView('auth');
   };
 
-  return (
-    
+  return (    
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <div className="app-container">
       <style>{STYLES}</style>
@@ -173,7 +172,8 @@ export default function App() {
         <header className="app-header">
           <div className="app-header-content">
             <div className="logo-container">
-              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" style={{height: '400px', marginBottom: 0}} />              
+              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" style={{height: '400px', marginBottom: 0}} />
+              
             </div>
             {user && (
               <div className="user-info">
@@ -223,7 +223,8 @@ export default function App() {
           />
         )}
       </main>
-    </div>    
+    </div>
+    // </GoogleOAuthProvider>
   );
 }
 
@@ -294,7 +295,7 @@ function AuthView({ onLogin }) {
       <div className="auth-box">
         <div className="auth-header">
           <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" />
-          <h1 className="auth-title">Chatter3</h1>
+          
           <p className="auth-subtitle">Master English with native speakers</p>
         </div>
 
@@ -333,7 +334,8 @@ function AuthView({ onLogin }) {
 
         <div className="auth-divider">or</div>
 
-        <div className="google-button-container">           
+        <div className="google-button-container">
+           {}
            {<GoogleLogin
              onSuccess={handleGoogleSuccess}
              onError={handleGoogleError}
@@ -343,7 +345,9 @@ function AuthView({ onLogin }) {
              width="100%"
              text="continue_with"
            />
-           }      
+           }
+           
+           {}
            
         </div>
 
