@@ -21,7 +21,13 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header { background: white; padding: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
-.auth-logo { height: 40px; width: auto; object-fit: contain; }
+
+/* Header Logo (Small) */
+.header-logo-img { height: 40px; width: auto; object-fit: contain; }
+
+/* Auth Main Logo (Large 400px) */
+.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
+
 .logo-text { font-size: 1.5rem; font-weight: bold; color: #333; }
 .user-info { display: flex; gap: 1rem; align-items: center; }
 .user-info span { font-weight: 500; }
@@ -30,10 +36,10 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 
 /* Auth */
 .auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; }
-.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 400px; }
+.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; } /* Increased max-width for larger logo */
 .auth-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
 .auth-title { font-size: 1.5rem; font-weight: bold; color: #333; margin: 0.5rem 0; }
-.auth-subtitle { color: #666; margin-bottom: 0.5rem; }
+.auth-subtitle { color: #666; margin-bottom: 0.5rem; font-size: 1.1rem; }
 .auth-divider { margin: 1.5rem 0; color: #999; position: relative; }
 .auth-divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #eee; }
 .google-button-container { display: flex; justify-content: center; margin: 1rem 0; width: 100%; }
@@ -147,7 +153,6 @@ export default function App() {
 
   const handleLogout = async () => {
     if (user) {
-      // Explicitly remove from queue on logout
       try {
         await fetch(`${API_URL}/api/matching/leave`, {
           method: 'POST',
@@ -161,7 +166,8 @@ export default function App() {
     setView('auth');
   };
 
-  return (    
+  return (
+    
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <div className="app-container">
       <style>{STYLES}</style>
@@ -172,8 +178,8 @@ export default function App() {
         <header className="app-header">
           <div className="app-header-content">
             <div className="logo-container">
-              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" style={{height: '400px', marginBottom: 0}} />
-              
+              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />
+              <span className="logo-text">Chatter3</span>
             </div>
             {user && (
               <div className="user-info">
@@ -224,7 +230,7 @@ export default function App() {
         )}
       </main>
     </div>
-    // </GoogleOAuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 
@@ -295,7 +301,6 @@ function AuthView({ onLogin }) {
       <div className="auth-box">
         <div className="auth-header">
           <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" />
-          
           <p className="auth-subtitle">Master English with native speakers</p>
         </div>
 
