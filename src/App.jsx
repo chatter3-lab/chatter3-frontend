@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
-
-
 // --- Configuration ---
 const API_URL = 'https://api.chatter3.com'; 
 const WS_URL = 'wss://api.chatter3.com';
@@ -555,7 +553,6 @@ function VideoRoomView({ user, session, onEnd }) {
   const remoteCandidatesQueue = useRef([]); 
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
-  const remoteStreamRef = useRef(null);
 
   const cleanupMedia = () => {
     if (streamRef.current) {
@@ -595,12 +592,6 @@ function VideoRoomView({ user, session, onEnd }) {
         streamRef.current = stream; 
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
-        // Initialize persistent remote stream
-        remoteStreamRef.current = new MediaStream();
-        if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = remoteStreamRef.current;
-        }
-
         const pc = new RTCPeerConnection({
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -614,15 +605,10 @@ function VideoRoomView({ user, session, onEnd }) {
         // Use standard track handling
         pc.ontrack = (event) => {
           console.log("Track received:", event.track.kind);
-          // Add track to our persistent stream
-          remoteStreamRef.current.addTrack(event.track);
-          
-          // Force play
+          // Standard: Use event.streams[0]
           if (remoteVideoRef.current) {
-             const playPromise = remoteVideoRef.current.play();
-             if (playPromise !== undefined) {
-               playPromise.catch(e => console.log('Autoplay blocked (interaction needed):', e));
-             }
+             remoteVideoRef.current.srcObject = event.streams[0];
+             remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
 
@@ -659,7 +645,6 @@ function VideoRoomView({ user, session, onEnd }) {
              cleanupMedia();
              onEnd(); 
           }
-          // HANDSHAKE: Ensure connection only starts when both are present in Video View
           else if (data.type === 'join') {
             ws.send(JSON.stringify({ type: 'join_ack' }));
             if (user.id === session.user1_id && !negotiatingRef.current) {
@@ -746,6 +731,14 @@ function VideoRoomView({ user, session, onEnd }) {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
        wsRef.current.send(JSON.stringify({ type: 'bye' }));
     }
+    
+    // Check close listener
+    wsRef.current.onclose = () => {
+       console.log("Socket closed. Exiting call.");
+       cleanupMedia();
+       onEnd();
+    };
+    wsRef.current.close();
 
     try {
       await fetch(`${API_URL}/api/matching/end`, {
