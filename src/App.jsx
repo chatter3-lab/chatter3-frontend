@@ -161,7 +161,6 @@ export default function App() {
       const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
-        // Go to pre-call view first
         setView('precall');
       } else if (user && view === 'video') {
         refreshUserData(userId);
@@ -282,7 +281,6 @@ export default function App() {
 
 // --- Views ---
 
-// ... (AuthView, DashboardView kept the same as previous) ...
 function AuthView({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -451,6 +449,7 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
   const [presenceChecked, setPresenceChecked] = useState(false);
   const wsRef = useRef(null);
   const timerRef = useRef(null);
+  const pingInterval = useRef(null);
 
   // Identify roles based on session data
   const isInitiator = user.id === session.user1_id;
@@ -484,8 +483,12 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
     }, 15000);
 
     ws.onopen = () => {
-      // Send Presence Ping
-      ws.send(JSON.stringify({ type: 'lobby_ping' }));
+      // Send Presence Ping repeatedly until acked
+      pingInterval.current = setInterval(() => {
+         if(ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'lobby_ping' }));
+         }
+      }, 1000);
     };
 
     ws.onmessage = (msg) => {
@@ -494,12 +497,18 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
       // PRESENCE CHECK
       if (data.type === 'lobby_ping') {
          ws.send(JSON.stringify({ type: 'lobby_pong' }));
-         setPresenceChecked(true); 
-         if (isInitiator) setStatusText("Partner online. Ready to start.");
+         if (!presenceChecked) {
+             setPresenceChecked(true); 
+             if (isInitiator) setStatusText("Partner online. Ready to start.");
+             clearInterval(pingInterval.current);
+         }
       }
       else if (data.type === 'lobby_pong') {
-         setPresenceChecked(true);
-         if (isInitiator) setStatusText("Partner online. Ready to start.");
+         if (!presenceChecked) {
+             setPresenceChecked(true);
+             if (isInitiator) setStatusText("Partner online. Ready to start.");
+             clearInterval(pingInterval.current);
+         }
       }
       
       // CALL LOGIC
@@ -520,6 +529,7 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
     return () => {
        ws.close();
        clearTimeout(timerRef.current);
+       clearInterval(pingInterval.current);
     };
   }, []);
 
@@ -594,6 +604,7 @@ function VideoRoomView({ user, session, onEnd }) {
   const remoteCandidatesQueue = useRef([]); 
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
+  const joinInterval = useRef(null);
 
   const cleanupMedia = () => {
     if (streamRef.current) {
@@ -689,7 +700,10 @@ function VideoRoomView({ user, session, onEnd }) {
           while (localCandidatesQueue.current.length > 0) {
              ws.send(localCandidatesQueue.current.shift());
           }
-          // Handshake trigger
+          // Repeatedly announce self until acknowledged
+          joinInterval.current = setInterval(() => {
+             ws.send(JSON.stringify({ type: 'join' }));
+          }, 1000);
           ws.send(JSON.stringify({ type: 'join' }));
         };
 
@@ -702,6 +716,7 @@ function VideoRoomView({ user, session, onEnd }) {
           }
           // HANDSHAKE: Ensure connection only starts when both are present in Video View
           else if (data.type === 'join') {
+            clearInterval(joinInterval.current); // Stop pinging, found peer
             ws.send(JSON.stringify({ type: 'join_ack' }));
             if (user.id === session.user1_id && !negotiatingRef.current) {
                console.log("Peer Joined. Initiating Offer...");
@@ -709,6 +724,7 @@ function VideoRoomView({ user, session, onEnd }) {
             }
           }
           else if (data.type === 'join_ack') {
+             clearInterval(joinInterval.current); // Stop pinging, found peer
              if (user.id === session.user1_id && !negotiatingRef.current) {
                 console.log("Peer Ack. Initiating Offer...");
                 startNegotiation();
@@ -778,6 +794,7 @@ function VideoRoomView({ user, session, onEnd }) {
 
     return () => {
       clearInterval(timer);
+      clearInterval(joinInterval.current);
       window.removeEventListener('beforeunload', () => {});
       cleanupMedia();
     };
