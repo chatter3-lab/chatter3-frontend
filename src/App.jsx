@@ -21,13 +21,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header { background: white; padding: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
-
-/* Header Logo (Small) */
-.header-logo-img { height: 400px; width: auto; object-fit: contain; }
-
-/* Auth Main Logo (Large 400px) */
-.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
-
+.auth-logo { height: 400px; width: auto; object-fit: contain; }
 .logo-text { font-size: 1.5rem; font-weight: bold; color: #333; }
 .user-info { display: flex; gap: 1rem; align-items: center; }
 .user-info span { font-weight: 500; }
@@ -81,6 +75,10 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4285f4; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 2rem; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .cancel-btn { margin-top: 2rem; padding: 10px 20px; background: transparent; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+
+/* Custom Logo (400px width) */
+.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
+.header-logo-img { height: 400px; width: auto; object-fit: contain; }
 
 /* Pre-Call Lobby */
 .pre-call-lobby {
@@ -160,7 +158,6 @@ export default function App() {
       const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
-        // Go to pre-call view first
         setView('precall');
       } else if (user && view === 'video') {
         refreshUserData(userId);
@@ -236,7 +233,7 @@ export default function App() {
             onCancel={() => setView('dashboard')}
             onMatch={(session) => {
               setCurrentSession(session);
-              setView('precall'); // Go to lobby first
+              setView('precall'); 
             }}
           />
         )}
@@ -281,7 +278,6 @@ export default function App() {
 
 // --- Views ---
 
-// ... (AuthView, DashboardView kept the same as previous) ...
 function AuthView({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -381,11 +377,8 @@ function MatchingView({ user, onCancel, onMatch }) {
 
   useEffect(() => {
     let polling;
-    
-    // Heartbeat & Search function
     const performSearch = async () => {
       try {
-        // 1. Join Queue (Heartbeat) - keep refreshing presence
         if (!isMatched) {
             const joinRes = await fetch(`${API_URL}/api/matching/join`, {
                 method: 'POST',
@@ -395,12 +388,11 @@ function MatchingView({ user, onCancel, onMatch }) {
             const joinData = await joinRes.json();
             
             if (joinData.matched) {
-                setIsMatched(true); // Stop re-joining
+                setIsMatched(true);
                 setStatus('Partner found! Preparing session...');
             }
         }
 
-        // 2. Always check for active session (User A needs this to know User B created session)
         const sessRes = await fetch(`${API_URL}/api/matching/session/${user.id}`);
         const sessData = await sessRes.json();
         if (sessData.active_session) {
@@ -414,13 +406,8 @@ function MatchingView({ user, onCancel, onMatch }) {
         setStatus('Connection error. Retrying...'); 
       }
     };
-
-    // Initial Search
     performSearch();
-
-    // Fast polling (3s) to catch match immediately
     polling = setInterval(performSearch, 3000);
-
     return () => clearInterval(polling);
   }, [isMatched]);
 
@@ -450,9 +437,6 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
   const [statusText, setStatusText] = useState("Connecting to partner...");
   const [incomingCall, setIncomingCall] = useState(false);
   const wsRef = useRef(null);
-
-  // Identify roles based on session data
-  // user1 = initiator (Start Call), user2 = receiver (Wait for call)
   const isInitiator = user.id === session.user1_id;
 
   useEffect(() => {
@@ -465,25 +449,20 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
 
     ws.onmessage = (msg) => {
       const data = JSON.parse(msg.data);
-      
       if (data.type === 'ring') {
          setIncomingCall(true);
          setStatusText(`${session.partner.username} is calling...`);
       }
       else if (data.type === 'accept_call') {
-         // Both sides enter video room now
          onStartCall();
       }
       else if (data.type === 'decline_call') {
          alert("Partner declined the call.");
-         handleDecline(); // Go back to dashboard
+         handleDecline();
       }
     };
 
-    return () => {
-       // Don't close WS here, we might need it? No, VideoRoom opens new one.
-       ws.close();
-    };
+    return () => { ws.close(); };
   }, []);
 
   const handleStart = () => {
@@ -500,8 +479,6 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
        wsRef.current.send(JSON.stringify({ type: 'decline_call' }));
     }
-    // Also tell backend session ended/failed?
-    // For now just exit locally
     onCancel();
   };
 
@@ -513,23 +490,17 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
         </div>
         <h2 style={{color: '#333'}}>Match Found!</h2>
         <p style={{fontSize: '1.2rem', marginBottom: '1rem'}}>You are matched with <strong>{session.partner.username}</strong></p>
-        
         <p style={{color: '#666', fontStyle: 'italic'}}>{statusText}</p>
-
         <div className="pre-call-actions">
            {isInitiator && !incomingCall && (
-              <button className="start-matching-btn" onClick={handleStart} style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                 <Phone className="w-5 h-5"/> Start Video Call
-              </button>
+              <button className="start-matching-btn" onClick={handleStart} style={{display: 'flex', alignItems: 'center', gap: '8px'}}><Phone className="w-5 h-5"/> Start Video Call</button>
            )}
-
            {incomingCall && (
               <>
                 <button className="accept-btn" onClick={handleAccept}>Accept Call</button>
                 <button className="cancel-btn" onClick={handleDecline} style={{borderColor: 'red', color: 'red'}}>Decline</button>
               </>
            )}
-           
            {!incomingCall && (
               <button className="cancel-btn" onClick={handleDecline}>Cancel Match</button>
            )}
@@ -548,6 +519,7 @@ function VideoRoomView({ user, session, onEnd }) {
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
+  const remoteStreamRef = useRef(null);
   
   const localCandidatesQueue = useRef([]); 
   const remoteCandidatesQueue = useRef([]); 
@@ -592,6 +564,12 @@ function VideoRoomView({ user, session, onEnd }) {
         streamRef.current = stream; 
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
+        // Create persistent stream for remote
+        remoteStreamRef.current = new MediaStream();
+        if (remoteVideoRef.current) {
+             remoteVideoRef.current.srcObject = remoteStreamRef.current;
+        }
+
         const pc = new RTCPeerConnection({
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -602,12 +580,12 @@ function VideoRoomView({ user, session, onEnd }) {
         
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-        // Use standard track handling
         pc.ontrack = (event) => {
           console.log("Track received:", event.track.kind);
-          // Standard: Use event.streams[0]
+          // Always add to persistent stream
+          remoteStreamRef.current.addTrack(event.track);
+          // Play attempt
           if (remoteVideoRef.current) {
-             remoteVideoRef.current.srcObject = event.streams[0];
              remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
@@ -634,7 +612,6 @@ function VideoRoomView({ user, session, onEnd }) {
           while (localCandidatesQueue.current.length > 0) {
              ws.send(localCandidatesQueue.current.shift());
           }
-          // Handshake trigger
           ws.send(JSON.stringify({ type: 'join' }));
         };
 
@@ -705,13 +682,6 @@ function VideoRoomView({ user, session, onEnd }) {
 
     startCall();
 
-    // Force play remote video if metadata loads late
-    if(remoteVideoRef.current) {
-      remoteVideoRef.current.onloadedmetadata = () => {
-         remoteVideoRef.current.play().catch(e => console.log("Metadata play blocked", e));
-      };
-    }
-
     const timer = setInterval(() => {
       const remaining = updateTimer();
       if (remaining <= 0) {
@@ -731,14 +701,6 @@ function VideoRoomView({ user, session, onEnd }) {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
        wsRef.current.send(JSON.stringify({ type: 'bye' }));
     }
-    
-    // Check close listener
-    wsRef.current.onclose = () => {
-       console.log("Socket closed. Exiting call.");
-       cleanupMedia();
-       onEnd();
-    };
-    wsRef.current.close();
 
     try {
       await fetch(`${API_URL}/api/matching/end`, {
@@ -769,37 +731,13 @@ function VideoRoomView({ user, session, onEnd }) {
   return (
     <div className="video-call-interface">
       <div className="video-container">
-        {/* Remote Video (Large) */}
-        <video 
-          ref={remoteVideoRef} 
-          autoPlay 
-          playsInline 
-          className="video-element"
-        />
-        
-        {/* Local Video (PiP) */}
-        <video 
-          ref={localVideoRef} 
-          autoPlay 
-          playsInline 
-          muted
-          className="video-element local" 
-        />
-
-        <div className="video-overlay">
-          <Clock className="w-4 h-4" color="white" />
-          <span>{formatTime(timeLeft)}</span>
-        </div>
+        <video ref={remoteVideoRef} autoPlay playsInline className="video-element" />
+        <video ref={localVideoRef} autoPlay playsInline muted className="video-element local" />
+        <div className="video-overlay"><Clock className="w-4 h-4" color="white" /><span>{formatTime(timeLeft)}</span></div>
       </div>
-
       <div className="call-controls">
-        <div style={{textAlign: 'left'}}>
-          <p style={{fontSize: '0.9rem', color: '#666'}}>Talking to</p>
-          <p style={{fontWeight: 'bold', fontSize: '1.1rem'}}>{session.partner.username}</p>
-        </div>
-        <button onClick={handleEnd} className="control-btn">
-          <PhoneOff className="w-5 h-5" /> End Call
-        </button>
+        <div style={{textAlign: 'left'}}><p style={{fontSize: '0.9rem', color: '#666'}}>Talking to</p><p style={{fontWeight: 'bold', fontSize: '1.1rem'}}>{session.partner.username}</p></div>
+        <button onClick={handleEnd} className="control-btn"><PhoneOff className="w-5 h-5" /> End Call</button>
       </div>
     </div>
   );
@@ -807,37 +745,15 @@ function VideoRoomView({ user, session, onEnd }) {
 
 function ProfileView({ user, onBack, onUpdate, onLogout }) {
   const [bio, setBio] = useState(user.bio || '');
-
   return (
     <div className="dashboard-container">
-      <div className="auth-header">
-         <h2 className="auth-title">My Profile</h2>
-      </div>
-      
+      <div className="auth-header"><h2 className="auth-title">My Profile</h2></div>
       <div className="auth-box" style={{textAlign: 'left'}}>
-        <div className="form-group">
-           <label>Username</label>
-           <input type="text" value={user.username} disabled style={{background: '#f5f5f5'}} />
-        </div>
-        <div className="form-group">
-           <label>Email</label>
-           <input type="text" value={user.email} disabled style={{background: '#f5f5f5'}} />
-        </div>
-        <div className="form-group">
-           <label>Bio</label>
-           <textarea 
-             value={bio} 
-             onChange={e => setBio(e.target.value)}
-             style={{width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px'}}
-             rows={4}
-           />
-        </div>
-        <button className="email-register-btn" style={{background: '#4285f4', color: 'white', border: 'none'}} onClick={() => { onUpdate({ ...user, bio }); onBack(); }}>
-           <Save className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Save Changes
-        </button>
-        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}>
-           <ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back
-        </button>
+        <div className="form-group"><label>Username</label><input type="text" value={user.username} disabled style={{background: '#f5f5f5'}} /></div>
+        <div className="form-group"><label>Email</label><input type="text" value={user.email} disabled style={{background: '#f5f5f5'}} /></div>
+        <div className="form-group"><label>Bio</label><textarea value={bio} onChange={e => setBio(e.target.value)} style={{width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px'}} rows={4} /></div>
+        <button className="email-register-btn" style={{background: '#4285f4', color: 'white', border: 'none'}} onClick={() => { onUpdate({ ...user, bio }); onBack(); }}><Save className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Save Changes</button>
+        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}><ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back</button>
       </div>
     </div>
   );
