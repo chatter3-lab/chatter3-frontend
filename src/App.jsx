@@ -73,7 +73,6 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 /* Local video PiP style */
 .video-element.local { position: absolute; bottom: 20px; right: 20px; width: 150px; height: 200px; border: 2px solid white; border-radius: 8px; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.5); object-fit: cover; background: #333; }
 .video-overlay { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px; color: white; display: flex; align-items: center; gap: 0.5rem; z-index: 5; }
-.status-overlay { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; z-index: 20; }
 .call-controls { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
 .control-btn { background: #f44336; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
 
@@ -203,40 +202,40 @@ export default function App() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-    <div className="app-container">
-      <style>{STYLES}</style>
-      
-      {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
-      
-      {view !== 'auth' && (
-        <header className="app-header">
-          <div className="app-header-content">
-            <div className="logo-container">
-              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />              
-            </div>
-            {user && (
-              <div className="user-info">
-                <span>Welcome, {user.username}!</span>
-                <span style={{color: '#4285f4', fontWeight: 'bold'}}>{user.points} PTS</span>
-                <button onClick={handleLogout}>Logout</button>
+      <div className="app-container">
+        <style>{STYLES}</style>
+        
+        {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
+        
+        {view !== 'auth' && (
+          <header className="app-header">
+            <div className="app-header-content">
+              <div className="logo-container">
+                <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />                
               </div>
-            )}
-          </div>
-        </header>
-      )}
-
-      <main className="app-content">
-        {view === 'dashboard' && user && (
-          <DashboardView user={user} onNavigate={setView} />
+              {user && (
+                <div className="user-info">
+                  <span>Welcome, {user.username}!</span>
+                  <span style={{color: '#4285f4', fontWeight: 'bold'}}>{user.points} PTS</span>
+                  <button onClick={handleLogout}>Logout</button>
+                </div>
+              )}
+            </div>
+          </header>
         )}
 
-        {view === 'matching' && user && (
-          <MatchingView 
-            user={user} 
-            onCancel={() => setView('dashboard')}
-            onMatch={(session) => {
-              setCurrentSession(session);
-              setView('precall'); 
+        <main className="app-content">
+          {view === 'dashboard' && user && (
+            <DashboardView user={user} onNavigate={setView} />
+          )}
+
+          {view === 'matching' && user && (
+            <MatchingView 
+              user={user} 
+              onCancel={() => setView('dashboard')}
+              onMatch={(session) => {
+                setCurrentSession(session);
+                setView('precall'); 
             }}
           />
         )}
@@ -323,6 +322,10 @@ function AuthView({ onLogin }) {
     finally { setLoading(false); }
   };
 
+  const handleGoogleError = () => {
+    setError('Google Sign In was unsuccessful.');
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-box">
@@ -344,11 +347,7 @@ function AuthView({ onLogin }) {
         </form>
         <div className="auth-divider">or</div>
         <div className="google-button-container">
-           {}
-           {<GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError('Login failed')} useOneTap theme="filled_blue" size="large" width="100%" text="continue_with" />}
-           
-           {}
-           
+           <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
         </div>
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>{isRegistering ? 'Already have an account? Sign In' : 'New to Chatter3? Create Account'}</button>
       </div>
@@ -380,6 +379,8 @@ function MatchingView({ user, onCancel, onMatch }) {
 
   useEffect(() => {
     let polling;
+    
+    // Heartbeat & Search function
     const performSearch = async () => {
       try {
         if (!isMatched) {
@@ -409,8 +410,10 @@ function MatchingView({ user, onCancel, onMatch }) {
         setStatus('Connection error. Retrying...'); 
       }
     };
+
     performSearch();
     polling = setInterval(performSearch, 3000);
+
     return () => clearInterval(polling);
   }, [isMatched]);
 
@@ -645,6 +648,7 @@ function VideoRoomView({ user, session, onEnd }) {
              cleanupMedia();
              onEnd(); 
           }
+          // HANDSHAKE: Ensure connection only starts when both are present in Video View
           else if (data.type === 'join') {
             ws.send(JSON.stringify({ type: 'join_ack' }));
             if (user.id === session.user1_id && !negotiatingRef.current) {
@@ -662,8 +666,7 @@ function VideoRoomView({ user, session, onEnd }) {
             negotiatingRef.current = true;
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             processRemoteCandidates();
-            // Important: Explicitly create answer with video intent
-            const answer = await pc.createAnswer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+            const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
             ws.send(JSON.stringify({ type: 'answer', sdp: answer }));
           } 
@@ -683,8 +686,7 @@ function VideoRoomView({ user, session, onEnd }) {
 
         const startNegotiation = async () => {
            negotiatingRef.current = true;
-           // Important: Explicitly ask for video/audio in offer
-           const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+           const offer = await pc.createOffer();
            await pc.setLocalDescription(offer);
            ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
         };
