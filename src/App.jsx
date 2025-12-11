@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
+
+
 // --- Configuration ---
 const API_URL = 'https://api.chatter3.com'; 
 const WS_URL = 'wss://api.chatter3.com';
@@ -553,6 +555,7 @@ function VideoRoomView({ user, session, onEnd }) {
   const remoteCandidatesQueue = useRef([]); 
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
+  const remoteStreamRef = useRef(null);
 
   const cleanupMedia = () => {
     if (streamRef.current) {
@@ -592,7 +595,12 @@ function VideoRoomView({ user, session, onEnd }) {
         streamRef.current = stream; 
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
-        // Use multiple STUN servers for better connectivity
+        // Initialize persistent remote stream
+        remoteStreamRef.current = new MediaStream();
+        if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteStreamRef.current;
+        }
+
         const pc = new RTCPeerConnection({
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -605,11 +613,12 @@ function VideoRoomView({ user, session, onEnd }) {
 
         // Use standard track handling
         pc.ontrack = (event) => {
-          // Robust stream handling: Prefer browser-grouped streams if available
-          const remoteStream = event.streams[0] || new MediaStream([event.track]);
+          console.log("Track received:", event.track.kind);
+          // Add track to our persistent stream
+          remoteStreamRef.current.addTrack(event.track);
+          
+          // Force play
           if (remoteVideoRef.current) {
-             remoteVideoRef.current.srcObject = remoteStream;
-             // Force play to overcome autoplay policies
              const playPromise = remoteVideoRef.current.play();
              if (playPromise !== undefined) {
                playPromise.catch(e => console.log('Autoplay blocked (interaction needed):', e));
