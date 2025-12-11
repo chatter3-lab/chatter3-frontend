@@ -122,8 +122,6 @@ export default function App() {
         setCurrentSession(data.session);
         setView('video');
       } else if (user && view === 'video') {
-        // If no active session but we are in video view, likely it ended.
-        // Refresh user data to get new points.
         refreshUserData(userId);
       }
     } catch (e) { console.error(e); }
@@ -147,75 +145,85 @@ export default function App() {
     setView('dashboard');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (user) {
+      // Explicitly remove from queue on logout
+      try {
+        await fetch(`${API_URL}/api/matching/leave`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: user.id })
+        });
+      } catch (e) { console.error("Logout leave failed", e); }
+    }
     localStorage.removeItem('chatter3_user');
     setUser(null);
     setView('auth');
   };
 
   return (
+    
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="app-container">
-        <style>{STYLES}</style>
-        
-        {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
-        
-        {view !== 'auth' && (
-          <header className="app-header">
-            <div className="app-header-content">
-              <div className="logo-container">
-                <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" style={{height: '300px', marginBottom: 0}} />                
-              </div>
-              {user && (
-                <div className="user-info">
-                  <span>Welcome, {user.username}!</span>
-                  <span style={{color: '#4285f4', fontWeight: 'bold'}}>{user.points} PTS</span>
-                  <button onClick={handleLogout}>Logout</button>
-                </div>
-              )}
+    <div className="app-container">
+      <style>{STYLES}</style>
+      
+      {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
+      
+      {view !== 'auth' && (
+        <header className="app-header">
+          <div className="app-header-content">
+            <div className="logo-container">
+              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" style={{height: '400px', marginBottom: 0}} />              
             </div>
-          </header>
+            {user && (
+              <div className="user-info">
+                <span>Welcome, {user.username}!</span>
+                <span style={{color: '#4285f4', fontWeight: 'bold'}}>{user.points} PTS</span>
+                <button onClick={handleLogout}>Logout</button>
+              </div>
+            )}
+          </div>
+        </header>
+      )}
+
+      <main className="app-content">
+        {view === 'dashboard' && user && (
+          <DashboardView user={user} onNavigate={setView} />
         )}
 
-        <main className="app-content">
-          {view === 'dashboard' && user && (
-            <DashboardView user={user} onNavigate={setView} />
-          )}
+        {view === 'matching' && user && (
+          <MatchingView 
+            user={user} 
+            onCancel={() => setView('dashboard')}
+            onMatch={(session) => {
+              setCurrentSession(session);
+              setView('video');
+            }}
+          />
+        )}
 
-          {view === 'matching' && user && (
-            <MatchingView 
-              user={user} 
-              onCancel={() => setView('dashboard')}
-              onMatch={(session) => {
-                setCurrentSession(session);
-                setView('video');
-              }}
-            />
-          )}
+        {view === 'video' && user && currentSession && (
+          <VideoRoomView 
+            user={user} 
+            session={currentSession} 
+            onEnd={() => {
+              setCurrentSession(null);
+              refreshUserData(user.id); // Refresh points
+              setView('dashboard');
+            }} 
+          />
+        )}
 
-          {view === 'video' && user && currentSession && (
-            <VideoRoomView 
-              user={user} 
-              session={currentSession} 
-              onEnd={() => {
-                setCurrentSession(null);
-                refreshUserData(user.id); // Refresh points
-                setView('dashboard');
-              }} 
-            />
-          )}
-
-          {view === 'profile' && user && (
-            <ProfileView 
-              user={user} 
-              onBack={() => setView('dashboard')} 
-              onUpdate={setUser}
-              onLogout={handleLogout}
-            />
-          )}
-        </main>
-      </div>
-    </GoogleOAuthProvider>
+        {view === 'profile' && user && (
+          <ProfileView 
+            user={user} 
+            onBack={() => setView('dashboard')} 
+            onUpdate={setUser}
+            onLogout={handleLogout}
+          />
+        )}
+      </main>
+    </div>    
   );
 }
 
@@ -249,6 +257,7 @@ function AuthView({ onLogin }) {
     setLoading(true);
     setError('');
     try {
+      // CORS fix: Explicit mode and header
       const response = await fetch(`${API_URL}/api/auth/google`, {
         method: 'POST',
         mode: 'cors',
@@ -324,8 +333,8 @@ function AuthView({ onLogin }) {
 
         <div className="auth-divider">or</div>
 
-        <div className="google-button-container">
-           <GoogleLogin
+        <div className="google-button-container">           
+           {<GoogleLogin
              onSuccess={handleGoogleSuccess}
              onError={handleGoogleError}
              useOneTap
@@ -334,6 +343,8 @@ function AuthView({ onLogin }) {
              width="100%"
              text="continue_with"
            />
+           }      
+           
         </div>
 
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>
@@ -380,7 +391,9 @@ function MatchingView({ user, onCancel, onMatch }) {
   
   useEffect(() => {
     let polling;
-    const startMatching = async () => {
+    
+    // Heartbeat & Search function
+    const performSearch = async () => {
       try {
         const joinRes = await fetch(`${API_URL}/api/matching/join`, {
           method: 'POST',
@@ -388,36 +401,50 @@ function MatchingView({ user, onCancel, onMatch }) {
           body: JSON.stringify({ user_id: user.id, english_level: user.english_level })
         });
         const joinData = await joinRes.json();
+        
         if (joinData.matched) {
           setStatus('Partner found! Preparing session...');
-          checkSession();
-        } else {
-          polling = setInterval(checkSession, 3000);
+          // Immediate session check if matched
+          const res = await fetch(`${API_URL}/api/matching/session/${user.id}`);
+          const data = await res.json();
+          if (data.active_session) {
+            clearInterval(polling);
+            setStatus('Connecting...');
+            setTimeout(() => onMatch(data.session), 1000);
+          }
         }
-      } catch (e) { setStatus('Connection error. Retrying...'); }
+      } catch (e) { 
+        console.error("Match error:", e);
+        setStatus('Connection error. Retrying...'); 
+      }
     };
 
-    const checkSession = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/matching/session/${user.id}`);
-        const data = await res.json();
-        if (data.active_session) {
-          clearInterval(polling);
-          setStatus('Connecting...');
-          setTimeout(() => onMatch(data.session), 1000);
-        }
-      } catch (e) { console.error(e); }
-    };
-    startMatching();
+    // Initial Search
+    performSearch();
+
+    // Heartbeat Interval (Every 30s re-join to keep queue entry fresh)
+    polling = setInterval(performSearch, 30000);
+
     return () => clearInterval(polling);
   }, []);
+
+  const handleCancelSearch = async () => {
+    try {
+      await fetch(`${API_URL}/api/matching/leave`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id })
+      });
+    } catch (e) {}
+    onCancel();
+  };
 
   return (
     <div className="matching-screen">
       <div className="loader"></div>
       <h2 style={{fontSize: '1.5rem', marginBottom: '1rem', color: '#333'}}>{status}</h2>
       <p style={{color: '#666'}}>Matching you with {user.english_level} speakers</p>
-      <button onClick={onCancel} className="cancel-btn">Cancel Search</button>
+      <button onClick={handleCancelSearch} className="cancel-btn">Cancel Search</button>
     </div>
   );
 }
@@ -425,31 +452,51 @@ function MatchingView({ user, onCancel, onMatch }) {
 // --- NEW WEBRTC VIDEO VIEW ---
 function VideoRoomView({ user, session, onEnd }) {
   const [error, setError] = useState('');
-  const [timeLeft, setTimeLeft] = useState(null); // Init as null, calc in effect
+  const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
   
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
   
-  const localCandidatesQueue = useRef([]); 
-  const remoteCandidatesQueue = useRef([]); 
+  // Track candidates arriving before remote description is set
+  const localCandidatesQueue = useRef([]); // Candidates generated locally
+  const remoteCandidatesQueue = useRef([]); // Candidates received from peer
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
 
+  // --- HARDWARE CLEANUP FUNCTION ---
   const cleanupMedia = () => {
+    // 1. Stop all tracks in the stream
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => { track.stop(); });
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+      });
       streamRef.current = null;
     }
-    if (localVideoRef.current) localVideoRef.current.srcObject = null;
-    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
-    if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
-    if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
+
+    // 2. Clear video elements to detach DOM from stream
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+
+    // 3. Close peer connection
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+
+    // 4. Close signaling
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
   };
 
   useEffect(() => {
-    // Correct Time Calculation based on DB created_at
     const startObj = new Date(session.created_at.endsWith('Z') ? session.created_at : session.created_at + 'Z');
     const totalDuration = session.english_level === 'beginner' ? 300 : 600;
     
@@ -461,7 +508,7 @@ function VideoRoomView({ user, session, onEnd }) {
       return remaining;
     };
 
-    updateTimer(); // Initial set
+    updateTimer();
 
     const startCall = async () => {
       try {
@@ -479,6 +526,7 @@ function VideoRoomView({ user, session, onEnd }) {
         pc.ontrack = (event) => {
           if (remoteVideoRef.current) {
              remoteVideoRef.current.srcObject = event.streams[0];
+             // FIX: Explicitly try to play video to handle autoplay policies
              remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
@@ -504,10 +552,12 @@ function VideoRoomView({ user, session, onEnd }) {
         ws.onopen = async () => {
           console.log("WS Open.");
           
+          // Flush local candidates generated while connecting
           while (localCandidatesQueue.current.length > 0) {
              ws.send(localCandidatesQueue.current.shift());
           }
 
+          // Send READY to announce presence. 
           ws.send(JSON.stringify({ type: 'ready' }));
         };
 
@@ -515,11 +565,14 @@ function VideoRoomView({ user, session, onEnd }) {
           const data = JSON.parse(msg.data);
           
           if (data.type === 'bye') {
+             console.log("Peer left. Ending call.");
+             // Ensure we cleanup before navigating away
              cleanupMedia();
              onEnd(); 
           }
           else if (data.type === 'ready') {
             if (user.id === session.user1_id && !negotiatingRef.current) {
+               console.log("Initiating Offer...");
                negotiatingRef.current = true;
                const offer = await pc.createOffer();
                await pc.setLocalDescription(offer);
@@ -527,6 +580,7 @@ function VideoRoomView({ user, session, onEnd }) {
             }
           }
           else if (data.type === 'offer') {
+            console.log("Received Offer");
             negotiatingRef.current = true;
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             processRemoteCandidates();
@@ -536,6 +590,7 @@ function VideoRoomView({ user, session, onEnd }) {
             ws.send(JSON.stringify({ type: 'answer', sdp: answer }));
           } 
           else if (data.type === 'answer') {
+            console.log("Received Answer");
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             processRemoteCandidates();
           } 
