@@ -592,22 +592,28 @@ function VideoRoomView({ user, session, onEnd }) {
         streamRef.current = stream; 
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
+        // Use multiple STUN servers for better connectivity
         const pc = new RTCPeerConnection({
-          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+          ]
         });
         
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-        // IMPROVED: Ensure persistent stream object for remote video
-        const remoteStream = new MediaStream();
-        if(remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream;
-
+        // Use standard track handling
         pc.ontrack = (event) => {
-          console.log("Track received:", event.track.kind);
-          remoteStream.addTrack(event.track);
+          // Robust stream handling: Prefer browser-grouped streams if available
+          const remoteStream = event.streams[0] || new MediaStream([event.track]);
           if (remoteVideoRef.current) {
+             remoteVideoRef.current.srcObject = remoteStream;
              // Force play to overcome autoplay policies
-             remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
+             const playPromise = remoteVideoRef.current.play();
+             if (playPromise !== undefined) {
+               playPromise.catch(e => console.log('Autoplay blocked (interaction needed):', e));
+             }
           }
         };
 
@@ -704,6 +710,13 @@ function VideoRoomView({ user, session, onEnd }) {
     };
 
     startCall();
+
+    // Force play remote video if metadata loads late
+    if(remoteVideoRef.current) {
+      remoteVideoRef.current.onloadedmetadata = () => {
+         remoteVideoRef.current.play().catch(e => console.log("Metadata play blocked", e));
+      };
+    }
 
     const timer = setInterval(() => {
       const remaining = updateTimer();
