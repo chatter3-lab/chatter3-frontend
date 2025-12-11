@@ -21,13 +21,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header { background: white; padding: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
-
-/* Header Logo (Small) */
-.header-logo-img { height: 400px; width: auto; object-fit: contain; }
-
-/* Auth Main Logo (Large 400px) */
-.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
-
+.auth-logo { height: 40px; width: auto; object-fit: contain; }
 .logo-text { font-size: 1.5rem; font-weight: bold; color: #333; }
 .user-info { display: flex; gap: 1rem; align-items: center; }
 .user-info span { font-weight: 500; }
@@ -36,7 +30,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 
 /* Auth */
 .auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; }
-.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; } /* Increased max-width for larger logo */
+.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; }
 .auth-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
 .auth-title { font-size: 1.5rem; font-weight: bold; color: #333; margin: 0.5rem 0; }
 .auth-subtitle { color: #666; margin-bottom: 0.5rem; font-size: 1.1rem; }
@@ -172,66 +166,66 @@ export default function App() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-    <div className="app-container">
-      <style>{STYLES}</style>
-      
-      {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
-      
-      {view !== 'auth' && (
-        <header className="app-header">
-          <div className="app-header-content">
-            <div className="logo-container">
-              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />              
-            </div>
-            {user && (
-              <div className="user-info">
-                <span>Welcome, {user.username}!</span>
-                <span style={{color: '#4285f4', fontWeight: 'bold'}}>{user.points} PTS</span>
-                <button onClick={handleLogout}>Logout</button>
+      <div className="app-container">
+        <style>{STYLES}</style>
+        
+        {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
+        
+        {view !== 'auth' && (
+          <header className="app-header">
+            <div className="app-header-content">
+              <div className="logo-container">
+                <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />                
               </div>
-            )}
-          </div>
-        </header>
-      )}
-
-      <main className="app-content">
-        {view === 'dashboard' && user && (
-          <DashboardView user={user} onNavigate={setView} />
+              {user && (
+                <div className="user-info">
+                  <span>Welcome, {user.username}!</span>
+                  <span style={{color: '#4285f4', fontWeight: 'bold'}}>{user.points} PTS</span>
+                  <button onClick={handleLogout}>Logout</button>
+                </div>
+              )}
+            </div>
+          </header>
         )}
 
-        {view === 'matching' && user && (
-          <MatchingView 
-            user={user} 
-            onCancel={() => setView('dashboard')}
-            onMatch={(session) => {
-              setCurrentSession(session);
-              setView('video');
-            }}
-          />
-        )}
+        <main className="app-content">
+          {view === 'dashboard' && user && (
+            <DashboardView user={user} onNavigate={setView} />
+          )}
 
-        {view === 'video' && user && currentSession && (
-          <VideoRoomView 
-            user={user} 
-            session={currentSession} 
-            onEnd={() => {
-              setCurrentSession(null);
-              refreshUserData(user.id); 
-              setView('dashboard');
-            }} 
-          />
-        )}
+          {view === 'matching' && user && (
+            <MatchingView 
+              user={user} 
+              onCancel={() => setView('dashboard')}
+              onMatch={(session) => {
+                setCurrentSession(session);
+                setView('video');
+              }}
+            />
+          )}
 
-        {view === 'profile' && user && (
-          <ProfileView 
-            user={user} 
-            onBack={() => setView('dashboard')} 
-            onUpdate={setUser}
-            onLogout={handleLogout}
-          />
-        )}
-      </main>
-    </div>
+          {view === 'video' && user && currentSession && (
+            <VideoRoomView 
+              user={user} 
+              session={currentSession} 
+              onEnd={() => {
+                setCurrentSession(null);
+                refreshUserData(user.id); 
+                setView('dashboard');
+              }} 
+            />
+          )}
+
+          {view === 'profile' && user && (
+            <ProfileView 
+              user={user} 
+              onBack={() => setView('dashboard')} 
+              onUpdate={setUser}
+              onLogout={handleLogout}
+            />
+          )}
+        </main>
+      </div>
     </GoogleOAuthProvider>
   );
 }
@@ -266,7 +260,6 @@ function AuthView({ onLogin }) {
     setLoading(true);
     setError('');
     try {
-      // CORS fix: Explicit mode and header
       const response = await fetch(`${API_URL}/api/auth/google`, {
         method: 'POST',
         mode: 'cors',
@@ -342,20 +335,7 @@ function AuthView({ onLogin }) {
         <div className="auth-divider">or</div>
 
         <div className="google-button-container">
-           {}
-           {<GoogleLogin
-             onSuccess={handleGoogleSuccess}
-             onError={handleGoogleError}
-             useOneTap
-             theme="filled_blue"
-             size="large"
-             width="100%"
-             text="continue_with"
-           />
-           }
-           
-           {}
-           
+           <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
         </div>
 
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>
@@ -406,17 +386,6 @@ function MatchingView({ user, onCancel, onMatch }) {
     // Heartbeat & Search function
     const performSearch = async () => {
       try {
-        // Check active session first
-        const sessRes = await fetch(`${API_URL}/api/matching/session/${user.id}`);
-        const sessData = await sessRes.json();
-        if (sessData.active_session) {
-          clearInterval(polling);
-          setStatus('Connecting...');
-          onMatch(sessData.session);
-          return;
-        }
-
-        // Join Queue (Heartbeat)
         const joinRes = await fetch(`${API_URL}/api/matching/join`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -426,7 +395,7 @@ function MatchingView({ user, onCancel, onMatch }) {
         
         if (joinData.matched) {
           setStatus('Partner found! Preparing session...');
-          // Confirm match
+          // Immediate session check if matched
           const res = await fetch(`${API_URL}/api/matching/session/${user.id}`);
           const data = await res.json();
           if (data.active_session) {
@@ -441,7 +410,10 @@ function MatchingView({ user, onCancel, onMatch }) {
       }
     };
 
+    // Initial Search
     performSearch();
+
+    // Heartbeat Interval (Every 30s re-join to keep queue entry fresh)
     polling = setInterval(performSearch, 30000);
 
     return () => clearInterval(polling);
@@ -483,20 +455,48 @@ function VideoRoomView({ user, session, onEnd }) {
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
 
+  // --- HARDWARE CLEANUP FUNCTION ---
   const cleanupMedia = () => {
+    // 1. Stop all tracks in the stream
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.stop();
       });
       streamRef.current = null;
     }
-    if (localVideoRef.current) localVideoRef.current.srcObject = null;
-    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
-    if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
-    if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
+
+    // 2. Clear video elements to detach DOM from stream
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+
+    // 3. Close peer connection
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+
+    // 4. Close signaling
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
   };
 
   useEffect(() => {
+    // Handle tab close / refresh
+    const handleBeforeUnload = (e) => {
+      // Send bye synchronously (if possible) or at least trigger cleanup
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+         wsRef.current.send(JSON.stringify({ type: 'bye' }));
+      }
+      // Note: 'fetch' might not complete on unload, but we try best effort
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     const startObj = new Date(session.created_at.endsWith('Z') ? session.created_at : session.created_at + 'Z');
     const totalDuration = session.english_level === 'beginner' ? 300 : 600;
     
@@ -544,34 +544,50 @@ function VideoRoomView({ user, session, onEnd }) {
         pc.onconnectionstatechange = () => console.log("Connection State:", pc.connectionState);
         pcRef.current = pc;
 
+        // Connect Signaling
         const ws = new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
         wsRef.current = ws;
 
         ws.onopen = async () => {
           console.log("WS Open.");
+          
           while (localCandidatesQueue.current.length > 0) {
              ws.send(localCandidatesQueue.current.shift());
           }
-          ws.send(JSON.stringify({ type: 'ready' }));
+
+          // SEND JOIN message to trigger handshake
+          ws.send(JSON.stringify({ type: 'join' }));
         };
 
         ws.onmessage = async (msg) => {
           const data = JSON.parse(msg.data);
           
           if (data.type === 'bye') {
+             console.log("Peer left. Ending call.");
              cleanupMedia();
              onEnd(); 
           }
-          else if (data.type === 'ready') {
-            // Initiate offer ONLY if I am user1 and we haven't started yet
+          // HANDSHAKE LOGIC START
+          else if (data.type === 'join') {
+            // Peer joined. If I am already here, I acknowledge them.
+            ws.send(JSON.stringify({ type: 'join_ack' }));
+            
+            // If I am user1 (initiator) and haven't offered yet, START NOW.
             if (user.id === session.user1_id && !negotiatingRef.current) {
-               console.log("Initiating Offer...");
-               negotiatingRef.current = true;
-               const offer = await pc.createOffer();
-               await pc.setLocalDescription(offer);
-               ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
+               console.log("Peer Joined. Initiating Offer...");
+               startNegotiation();
             }
           }
+          else if (data.type === 'join_ack') {
+             // I joined and someone was already there. 
+             // If I am user1 (initiator) and haven't offered yet, START NOW.
+             if (user.id === session.user1_id && !negotiatingRef.current) {
+                console.log("Peer Ack. Initiating Offer...");
+                startNegotiation();
+             }
+          }
+          // HANDSHAKE LOGIC END
+          
           else if (data.type === 'offer') {
             console.log("Received Offer");
             negotiatingRef.current = true;
@@ -595,6 +611,13 @@ function VideoRoomView({ user, session, onEnd }) {
                remoteCandidatesQueue.current.push(candidate);
             }
           }
+        };
+
+        const startNegotiation = async () => {
+           negotiatingRef.current = true;
+           const offer = await pc.createOffer();
+           await pc.setLocalDescription(offer);
+           ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
         };
 
       } catch (err) {
@@ -625,6 +648,7 @@ function VideoRoomView({ user, session, onEnd }) {
 
     return () => {
       clearInterval(timer);
+      window.removeEventListener('beforeunload', () => {}); // cleanup listener
       cleanupMedia();
     };
   }, []);
