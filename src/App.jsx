@@ -21,7 +21,13 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header { background: white; padding: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
-.auth-logo { height: 400px; width: auto; object-fit: contain; }
+
+/* Header Logo (Small) */
+.header-logo-img { height: 400px; width: auto; object-fit: contain; }
+
+/* Auth Main Logo (Large 400px) */
+.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
+
 .logo-text { font-size: 1.5rem; font-weight: bold; color: #333; }
 .user-info { display: flex; gap: 1rem; align-items: center; }
 .user-info span { font-weight: 500; }
@@ -67,6 +73,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 /* Local video PiP style */
 .video-element.local { position: absolute; bottom: 20px; right: 20px; width: 150px; height: 200px; border: 2px solid white; border-radius: 8px; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.5); object-fit: cover; background: #333; }
 .video-overlay { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px; color: white; display: flex; align-items: center; gap: 0.5rem; z-index: 5; }
+.status-overlay { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; z-index: 20; }
 .call-controls { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
 .control-btn { background: #f44336; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
 
@@ -75,10 +82,6 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4285f4; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 2rem; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .cancel-btn { margin-top: 2rem; padding: 10px 20px; background: transparent; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
-
-/* Custom Logo (400px width) */
-.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
-.header-logo-img { height: 400px; width: auto; object-fit: contain; }
 
 /* Pre-Call Lobby */
 .pre-call-lobby {
@@ -514,6 +517,7 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
 function VideoRoomView({ user, session, onEnd }) {
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
+  const [connectionStatus, setConnectionStatus] = useState('Initializing...');
   
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -574,19 +578,36 @@ function VideoRoomView({ user, session, onEnd }) {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' }
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' }
           ]
         });
+
+        // FORCE TRANSCEIVERS to ensure video section is always in SDP
+        pc.addTransceiver('video', { direction: 'sendrecv' });
+        pc.addTransceiver('audio', { direction: 'sendrecv' });
         
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
+        // Use standard track handling
         pc.ontrack = (event) => {
           console.log("Track received:", event.track.kind);
-          // Always add to persistent stream
-          remoteStreamRef.current.addTrack(event.track);
-          // Play attempt
+          // Prefer event.streams[0] if available for sync, fallback to manual
+          const streamToAdd = event.streams[0] || remoteStreamRef.current;
+          
+          if (event.streams[0] && remoteVideoRef.current) {
+             remoteVideoRef.current.srcObject = event.streams[0];
+          } else {
+             remoteStreamRef.current.addTrack(event.track);
+          }
+          
+          // Force play
           if (remoteVideoRef.current) {
-             remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
+             const playPromise = remoteVideoRef.current.play();
+             if (playPromise !== undefined) {
+               playPromise.catch(e => console.log('Autoplay blocked (interaction needed):', e));
+             }
           }
         };
 
@@ -601,7 +622,13 @@ function VideoRoomView({ user, session, onEnd }) {
           }
         };
 
-        pc.onconnectionstatechange = () => console.log("Connection State:", pc.connectionState);
+        pc.onconnectionstatechange = () => {
+            console.log("Connection State:", pc.connectionState);
+            setConnectionStatus(pc.connectionState);
+            if (pc.connectionState === 'failed') {
+               setError("Connection failed. Try refreshing or check firewall.");
+            }
+        };
         pcRef.current = pc;
 
         const ws = new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
@@ -609,9 +636,11 @@ function VideoRoomView({ user, session, onEnd }) {
 
         ws.onopen = async () => {
           console.log("WS Open.");
+          setConnectionStatus('Signal Connected');
           while (localCandidatesQueue.current.length > 0) {
              ws.send(localCandidatesQueue.current.shift());
           }
+          // Handshake trigger
           ws.send(JSON.stringify({ type: 'join' }));
         };
 
@@ -682,6 +711,13 @@ function VideoRoomView({ user, session, onEnd }) {
 
     startCall();
 
+    // Force play remote video if metadata loads late
+    if(remoteVideoRef.current) {
+      remoteVideoRef.current.onloadedmetadata = () => {
+         remoteVideoRef.current.play().catch(e => console.log("Metadata play blocked", e));
+      };
+    }
+
     const timer = setInterval(() => {
       const remaining = updateTimer();
       if (remaining <= 0) {
@@ -731,13 +767,38 @@ function VideoRoomView({ user, session, onEnd }) {
   return (
     <div className="video-call-interface">
       <div className="video-container">
-        <video ref={remoteVideoRef} autoPlay playsInline className="video-element" />
-        <video ref={localVideoRef} autoPlay playsInline muted className="video-element local" />
-        <div className="video-overlay"><Clock className="w-4 h-4" color="white" /><span>{formatTime(timeLeft)}</span></div>
+        {/* Remote Video (Large) */}
+        <video 
+          ref={remoteVideoRef} 
+          autoPlay 
+          playsInline 
+          className="video-element"
+        />
+        
+        {/* Local Video (PiP) */}
+        <video 
+          ref={localVideoRef} 
+          autoPlay 
+          playsInline 
+          muted
+          className="video-element local" 
+        />
+
+        <div className="video-overlay">
+          <Clock className="w-4 h-4" color="white" />
+          <span>{formatTime(timeLeft)}</span>
+        </div>
+        <div className="status-overlay">{connectionStatus}</div>
       </div>
+
       <div className="call-controls">
-        <div style={{textAlign: 'left'}}><p style={{fontSize: '0.9rem', color: '#666'}}>Talking to</p><p style={{fontWeight: 'bold', fontSize: '1.1rem'}}>{session.partner.username}</p></div>
-        <button onClick={handleEnd} className="control-btn"><PhoneOff className="w-5 h-5" /> End Call</button>
+        <div style={{textAlign: 'left'}}>
+          <p style={{fontSize: '0.9rem', color: '#666'}}>Talking to</p>
+          <p style={{fontWeight: 'bold', fontSize: '1.1rem'}}>{session.partner.username}</p>
+        </div>
+        <button onClick={handleEnd} className="control-btn">
+          <PhoneOff className="w-5 h-5" /> End Call
+        </button>
       </div>
     </div>
   );
@@ -745,15 +806,37 @@ function VideoRoomView({ user, session, onEnd }) {
 
 function ProfileView({ user, onBack, onUpdate, onLogout }) {
   const [bio, setBio] = useState(user.bio || '');
+
   return (
     <div className="dashboard-container">
-      <div className="auth-header"><h2 className="auth-title">My Profile</h2></div>
+      <div className="auth-header">
+         <h2 className="auth-title">My Profile</h2>
+      </div>
+      
       <div className="auth-box" style={{textAlign: 'left'}}>
-        <div className="form-group"><label>Username</label><input type="text" value={user.username} disabled style={{background: '#f5f5f5'}} /></div>
-        <div className="form-group"><label>Email</label><input type="text" value={user.email} disabled style={{background: '#f5f5f5'}} /></div>
-        <div className="form-group"><label>Bio</label><textarea value={bio} onChange={e => setBio(e.target.value)} style={{width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px'}} rows={4} /></div>
-        <button className="email-register-btn" style={{background: '#4285f4', color: 'white', border: 'none'}} onClick={() => { onUpdate({ ...user, bio }); onBack(); }}><Save className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Save Changes</button>
-        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}><ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back</button>
+        <div className="form-group">
+           <label>Username</label>
+           <input type="text" value={user.username} disabled style={{background: '#f5f5f5'}} />
+        </div>
+        <div className="form-group">
+           <label>Email</label>
+           <input type="text" value={user.email} disabled style={{background: '#f5f5f5'}} />
+        </div>
+        <div className="form-group">
+           <label>Bio</label>
+           <textarea 
+             value={bio} 
+             onChange={e => setBio(e.target.value)}
+             style={{width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px'}}
+             rows={4}
+           />
+        </div>
+        <button className="email-register-btn" style={{background: '#4285f4', color: 'white', border: 'none'}} onClick={() => { onUpdate({ ...user, bio }); onBack(); }}>
+           <Save className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Save Changes
+        </button>
+        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}>
+           <ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back
+        </button>
       </div>
     </div>
   );
