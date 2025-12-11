@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 // --- Configuration ---
@@ -160,6 +161,7 @@ export default function App() {
       const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
+        // Go to pre-call view first
         setView('precall');
       } else if (user && view === 'video') {
         refreshUserData(userId);
@@ -202,40 +204,40 @@ export default function App() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="app-container">
-        <style>{STYLES}</style>
-        
-        {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
-        
-        {view !== 'auth' && (
-          <header className="app-header">
-            <div className="app-header-content">
-              <div className="logo-container">
-                <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />                
-              </div>
-              {user && (
-                <div className="user-info">
-                  <span>Welcome, {user.username}!</span>
-                  <span style={{color: '#4285f4', fontWeight: 'bold'}}>{user.points} PTS</span>
-                  <button onClick={handleLogout}>Logout</button>
-                </div>
-              )}
+    <div className="app-container">
+      <style>{STYLES}</style>
+      
+      {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
+      
+      {view !== 'auth' && (
+        <header className="app-header">
+          <div className="app-header-content">
+            <div className="logo-container">
+              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />              
             </div>
-          </header>
+            {user && (
+              <div className="user-info">
+                <span>Welcome, {user.username}!</span>
+                <span style={{color: '#4285f4', fontWeight: 'bold'}}>{user.points} PTS</span>
+                <button onClick={handleLogout}>Logout</button>
+              </div>
+            )}
+          </div>
+        </header>
+      )}
+
+      <main className="app-content">
+        {view === 'dashboard' && user && (
+          <DashboardView user={user} onNavigate={setView} />
         )}
 
-        <main className="app-content">
-          {view === 'dashboard' && user && (
-            <DashboardView user={user} onNavigate={setView} />
-          )}
-
-          {view === 'matching' && user && (
-            <MatchingView 
-              user={user} 
-              onCancel={() => setView('dashboard')}
-              onMatch={(session) => {
-                setCurrentSession(session);
-                setView('precall'); 
+        {view === 'matching' && user && (
+          <MatchingView 
+            user={user} 
+            onCancel={() => setView('dashboard')}
+            onMatch={(session) => {
+              setCurrentSession(session);
+              setView('precall'); // Go to lobby first
             }}
           />
         )}
@@ -280,6 +282,7 @@ export default function App() {
 
 // --- Views ---
 
+// ... (AuthView, DashboardView kept the same as previous) ...
 function AuthView({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -322,10 +325,6 @@ function AuthView({ onLogin }) {
     finally { setLoading(false); }
   };
 
-  const handleGoogleError = () => {
-    setError('Google Sign In was unsuccessful.');
-  };
-
   return (
     <div className="auth-container">
       <div className="auth-box">
@@ -347,7 +346,11 @@ function AuthView({ onLogin }) {
         </form>
         <div className="auth-divider">or</div>
         <div className="google-button-container">
-           <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+           {}
+           {<GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError('Login failed')} useOneTap theme="filled_blue" size="large" width="100%" text="continue_with" />}
+           
+           {}
+           
         </div>
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>{isRegistering ? 'Already have an account? Sign In' : 'New to Chatter3? Create Account'}</button>
       </div>
@@ -411,7 +414,10 @@ function MatchingView({ user, onCancel, onMatch }) {
       }
     };
 
+    // Initial Search
     performSearch();
+
+    // Fast polling (3s) to catch match immediately
     polling = setInterval(performSearch, 3000);
 
     return () => clearInterval(polling);
@@ -443,6 +449,9 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
   const [statusText, setStatusText] = useState("Connecting to partner...");
   const [incomingCall, setIncomingCall] = useState(false);
   const wsRef = useRef(null);
+
+  // Identify roles based on session data
+  // user1 = initiator (Start Call), user2 = receiver (Wait for call)
   const isInitiator = user.id === session.user1_id;
 
   useEffect(() => {
@@ -455,20 +464,25 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
 
     ws.onmessage = (msg) => {
       const data = JSON.parse(msg.data);
+      
       if (data.type === 'ring') {
          setIncomingCall(true);
          setStatusText(`${session.partner.username} is calling...`);
       }
       else if (data.type === 'accept_call') {
+         // Both sides enter video room now
          onStartCall();
       }
       else if (data.type === 'decline_call') {
          alert("Partner declined the call.");
-         handleDecline();
+         handleDecline(); // Go back to dashboard
       }
     };
 
-    return () => { ws.close(); };
+    return () => {
+       // Don't close WS here, we might need it? No, VideoRoom opens new one.
+       ws.close();
+    };
   }, []);
 
   const handleStart = () => {
@@ -485,6 +499,8 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
        wsRef.current.send(JSON.stringify({ type: 'decline_call' }));
     }
+    // Also tell backend session ended/failed?
+    // For now just exit locally
     onCancel();
   };
 
@@ -496,17 +512,23 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
         </div>
         <h2 style={{color: '#333'}}>Match Found!</h2>
         <p style={{fontSize: '1.2rem', marginBottom: '1rem'}}>You are matched with <strong>{session.partner.username}</strong></p>
+        
         <p style={{color: '#666', fontStyle: 'italic'}}>{statusText}</p>
+
         <div className="pre-call-actions">
            {isInitiator && !incomingCall && (
-              <button className="start-matching-btn" onClick={handleStart} style={{display: 'flex', alignItems: 'center', gap: '8px'}}><Phone className="w-5 h-5"/> Start Video Call</button>
+              <button className="start-matching-btn" onClick={handleStart} style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                 <Phone className="w-5 h-5"/> Start Video Call
+              </button>
            )}
+
            {incomingCall && (
               <>
                 <button className="accept-btn" onClick={handleAccept}>Accept Call</button>
                 <button className="cancel-btn" onClick={handleDecline} style={{borderColor: 'red', color: 'red'}}>Decline</button>
               </>
            )}
+           
            {!incomingCall && (
               <button className="cancel-btn" onClick={handleDecline}>Cancel Match</button>
            )}
@@ -520,13 +542,11 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
 function VideoRoomView({ user, session, onEnd }) {
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
-  const [connectionStatus, setConnectionStatus] = useState('Initializing...');
   
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
-  const remoteStreamRef = useRef(null);
   
   const localCandidatesQueue = useRef([]); 
   const remoteCandidatesQueue = useRef([]); 
@@ -569,13 +589,8 @@ function VideoRoomView({ user, session, onEnd }) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         streamRef.current = stream; 
+        
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-
-        // Initialize persistent remote stream
-        remoteStreamRef.current = new MediaStream();
-        if (remoteVideoRef.current) {
-             remoteVideoRef.current.srcObject = remoteStreamRef.current;
-        }
 
         const pc = new RTCPeerConnection({
           iceServers: [
@@ -590,21 +605,10 @@ function VideoRoomView({ user, session, onEnd }) {
         // Use standard track handling
         pc.ontrack = (event) => {
           console.log("Track received:", event.track.kind);
-          // Prefer event.streams[0] if available for sync, fallback to manual
-          const streamToAdd = event.streams[0] || remoteStreamRef.current;
-          
-          if (event.streams[0] && remoteVideoRef.current) {
-             remoteVideoRef.current.srcObject = event.streams[0];
-          } else {
-             remoteStreamRef.current.addTrack(event.track);
-          }
-          
-          // Force play
+          // Standard: Use event.streams[0]
           if (remoteVideoRef.current) {
-             const playPromise = remoteVideoRef.current.play();
-             if (playPromise !== undefined) {
-               playPromise.catch(e => console.log('Autoplay blocked (interaction needed):', e));
-             }
+             remoteVideoRef.current.srcObject = event.streams[0];
+             remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
 
@@ -619,13 +623,7 @@ function VideoRoomView({ user, session, onEnd }) {
           }
         };
 
-        pc.onconnectionstatechange = () => {
-            console.log("Connection State:", pc.connectionState);
-            setConnectionStatus(pc.connectionState);
-            if (pc.connectionState === 'failed') {
-               setError("Connection failed. Try refreshing or check firewall.");
-            }
-        };
+        pc.onconnectionstatechange = () => console.log("Connection State:", pc.connectionState);
         pcRef.current = pc;
 
         const ws = new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
@@ -633,44 +631,46 @@ function VideoRoomView({ user, session, onEnd }) {
 
         ws.onopen = async () => {
           console.log("WS Open.");
-          setConnectionStatus('Signal Connected');
+          
+          // Flush local candidates generated while connecting
           while (localCandidatesQueue.current.length > 0) {
              ws.send(localCandidatesQueue.current.shift());
           }
-          // Handshake trigger
-          ws.send(JSON.stringify({ type: 'join' }));
+
+          // Send READY to announce presence. 
+          ws.send(JSON.stringify({ type: 'ready' }));
         };
 
         ws.onmessage = async (msg) => {
           const data = JSON.parse(msg.data);
           
           if (data.type === 'bye') {
+             console.log("Peer left. Ending call.");
+             // Ensure we cleanup before navigating away
              cleanupMedia();
              onEnd(); 
           }
-          // HANDSHAKE: Ensure connection only starts when both are present in Video View
-          else if (data.type === 'join') {
-            ws.send(JSON.stringify({ type: 'join_ack' }));
+          else if (data.type === 'ready') {
             if (user.id === session.user1_id && !negotiatingRef.current) {
-               console.log("Peer Joined. Initiating Offer...");
-               startNegotiation();
+               console.log("Initiating Offer...");
+               negotiatingRef.current = true;
+               const offer = await pc.createOffer();
+               await pc.setLocalDescription(offer);
+               ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
             }
           }
-          else if (data.type === 'join_ack') {
-             if (user.id === session.user1_id && !negotiatingRef.current) {
-                console.log("Peer Ack. Initiating Offer...");
-                startNegotiation();
-             }
-          }
           else if (data.type === 'offer') {
+            console.log("Received Offer");
             negotiatingRef.current = true;
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             processRemoteCandidates();
+            
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
             ws.send(JSON.stringify({ type: 'answer', sdp: answer }));
           } 
           else if (data.type === 'answer') {
+            console.log("Received Answer");
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             processRemoteCandidates();
           } 
@@ -682,13 +682,6 @@ function VideoRoomView({ user, session, onEnd }) {
                remoteCandidatesQueue.current.push(candidate);
             }
           }
-        };
-
-        const startNegotiation = async () => {
-           negotiatingRef.current = true;
-           const offer = await pc.createOffer();
-           await pc.setLocalDescription(offer);
-           ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
         };
 
       } catch (err) {
@@ -708,13 +701,6 @@ function VideoRoomView({ user, session, onEnd }) {
     };
 
     startCall();
-
-    // Force play remote video if metadata loads late
-    if(remoteVideoRef.current) {
-      remoteVideoRef.current.onloadedmetadata = () => {
-         remoteVideoRef.current.play().catch(e => console.log("Metadata play blocked", e));
-      };
-    }
 
     const timer = setInterval(() => {
       const remaining = updateTimer();
@@ -786,7 +772,6 @@ function VideoRoomView({ user, session, onEnd }) {
           <Clock className="w-4 h-4" color="white" />
           <span>{formatTime(timeLeft)}</span>
         </div>
-        <div className="status-overlay">{connectionStatus}</div>
       </div>
 
       <div className="call-controls">
