@@ -212,8 +212,7 @@ export default function App() {
         <header className="app-header">
           <div className="app-header-content">
             <div className="logo-container">
-              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />
-              <span className="logo-text">Chatter3</span>
+              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />              
             </div>
             {user && (
               <div className="user-info">
@@ -350,7 +349,7 @@ function AuthView({ onLogin }) {
            {<GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError('Login failed')} useOneTap theme="filled_blue" size="large" width="100%" text="continue_with" />}
            
            {}
-           <GoogleLogin onSuccess={handleGoogleSuccess} />
+           
         </div>
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>{isRegistering ? 'Already have an account? Sign In' : 'New to Chatter3? Create Account'}</button>
       </div>
