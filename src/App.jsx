@@ -82,6 +82,10 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .cancel-btn { margin-top: 2rem; padding: 10px 20px; background: transparent; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
 
+/* Custom Logo */
+.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
+.header-logo-img { height: 40px; width: auto; object-fit: contain; }
+
 @media (max-width: 768px) {
   .app-header-content { flex-direction: column; gap: 1rem; }
   .user-info { flex-direction: column; }
@@ -178,8 +182,7 @@ export default function App() {
         <header className="app-header">
           <div className="app-header-content">
             <div className="logo-container">
-              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />
-              <span className="logo-text">Chatter3</span>
+              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />              
             </div>
             {user && (
               <div className="user-info">
@@ -214,7 +217,7 @@ export default function App() {
             session={currentSession} 
             onEnd={() => {
               setCurrentSession(null);
-              refreshUserData(user.id); // Refresh points
+              refreshUserData(user.id); 
               setView('dashboard');
             }} 
           />
