@@ -23,7 +23,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
 
 /* Header Logo (Small) */
-.header-logo-img { height: 300px; width: auto; object-fit: contain; }
+.header-logo-img { height: 400px; width: auto; object-fit: contain; }
 
 /* Auth Main Logo (Large 400px) */
 .auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
@@ -84,7 +84,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 
 /* Custom Logo */
 .auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
-.header-logo-img { height: 40px; width: auto; object-fit: contain; }
+.header-logo-img { height: 400px; width: auto; object-fit: contain; }
 
 @media (max-width: 768px) {
   .app-header-content { flex-direction: column; gap: 1rem; }
