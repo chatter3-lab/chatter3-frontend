@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 // --- Configuration ---
@@ -74,6 +73,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 /* Local video PiP style */
 .video-element.local { position: absolute; bottom: 20px; right: 20px; width: 150px; height: 200px; border: 2px solid white; border-radius: 8px; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.5); object-fit: cover; background: #333; }
 .video-overlay { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px; color: white; display: flex; align-items: center; gap: 0.5rem; z-index: 5; }
+.status-overlay { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; z-index: 20; }
 .call-controls { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
 .control-btn { background: #f44336; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
 
@@ -237,7 +237,7 @@ export default function App() {
             onCancel={() => setView('dashboard')}
             onMatch={(session) => {
               setCurrentSession(session);
-              setView('precall'); // Go to lobby first
+              setView('precall'); 
             }}
           />
         )}
@@ -448,44 +448,86 @@ function MatchingView({ user, onCancel, onMatch }) {
 function PreCallView({ user, session, onStartCall, onCancel }) {
   const [statusText, setStatusText] = useState("Connecting to partner...");
   const [incomingCall, setIncomingCall] = useState(false);
+  const [presenceChecked, setPresenceChecked] = useState(false);
   const wsRef = useRef(null);
+  const timerRef = useRef(null);
 
   // Identify roles based on session data
-  // user1 = initiator (Start Call), user2 = receiver (Wait for call)
   const isInitiator = user.id === session.user1_id;
+
+  // Function to actually end session in DB
+  const forceEndSession = async () => {
+     try {
+       await fetch(`${API_URL}/api/matching/end`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ session_id: session.id, user_id: user.id })
+       });
+     } catch (e) {}
+  };
+
+  const handleCancel = () => {
+    forceEndSession();
+    onCancel();
+  };
 
   useEffect(() => {
     const ws = new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
     wsRef.current = ws;
 
+    // Timeout: If no activity in 15s, assume ghost and kill session
+    timerRef.current = setTimeout(() => {
+      if (!presenceChecked && !incomingCall) {
+         alert("Partner is not responding. Canceling match.");
+         handleCancel();
+      }
+    }, 15000);
+
     ws.onopen = () => {
-      setStatusText(isInitiator ? "Ready to start call." : "Waiting for partner to start...");
+      // Send Presence Ping
+      ws.send(JSON.stringify({ type: 'lobby_ping' }));
     };
 
     ws.onmessage = (msg) => {
       const data = JSON.parse(msg.data);
       
-      if (data.type === 'ring') {
+      // PRESENCE CHECK
+      if (data.type === 'lobby_ping') {
+         ws.send(JSON.stringify({ type: 'lobby_pong' }));
+         setPresenceChecked(true); 
+         if (isInitiator) setStatusText("Partner online. Ready to start.");
+      }
+      else if (data.type === 'lobby_pong') {
+         setPresenceChecked(true);
+         if (isInitiator) setStatusText("Partner online. Ready to start.");
+      }
+      
+      // CALL LOGIC
+      else if (data.type === 'ring') {
          setIncomingCall(true);
          setStatusText(`${session.partner.username} is calling...`);
+         clearTimeout(timerRef.current); // Stop timeout if call starts
       }
       else if (data.type === 'accept_call') {
-         // Both sides enter video room now
          onStartCall();
       }
       else if (data.type === 'decline_call') {
          alert("Partner declined the call.");
-         handleDecline(); // Go back to dashboard
+         handleCancel();
       }
     };
 
     return () => {
-       // Don't close WS here, we might need it? No, VideoRoom opens new one.
        ws.close();
+       clearTimeout(timerRef.current);
     };
   }, []);
 
   const handleStart = () => {
+    if (!presenceChecked) {
+       alert("Waiting for partner to connect...");
+       return;
+    }
     setStatusText("Calling...");
     wsRef.current.send(JSON.stringify({ type: 'ring' }));
   };
@@ -499,9 +541,7 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
        wsRef.current.send(JSON.stringify({ type: 'decline_call' }));
     }
-    // Also tell backend session ended/failed?
-    // For now just exit locally
-    onCancel();
+    handleCancel();
   };
 
   return (
@@ -517,7 +557,7 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
 
         <div className="pre-call-actions">
            {isInitiator && !incomingCall && (
-              <button className="start-matching-btn" onClick={handleStart} style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <button className="start-matching-btn" onClick={handleStart} style={{display: 'flex', alignItems: 'center', gap: '8px', opacity: presenceChecked ? 1 : 0.5}} disabled={!presenceChecked}>
                  <Phone className="w-5 h-5"/> Start Video Call
               </button>
            )}
@@ -530,7 +570,7 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
            )}
            
            {!incomingCall && (
-              <button className="cancel-btn" onClick={handleDecline}>Cancel Match</button>
+              <button className="cancel-btn" onClick={handleCancel}>Cancel Match</button>
            )}
         </div>
       </div>
@@ -542,11 +582,13 @@ function PreCallView({ user, session, onStartCall, onCancel }) {
 function VideoRoomView({ user, session, onEnd }) {
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
+  const [connectionStatus, setConnectionStatus] = useState('Initializing...');
   
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
+  const remoteStreamRef = useRef(null);
   
   const localCandidatesQueue = useRef([]); 
   const remoteCandidatesQueue = useRef([]); 
@@ -592,6 +634,12 @@ function VideoRoomView({ user, session, onEnd }) {
         
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
+        // Initialize persistent remote stream
+        remoteStreamRef.current = new MediaStream();
+        if (remoteVideoRef.current) {
+             remoteVideoRef.current.srcObject = remoteStreamRef.current;
+        }
+
         const pc = new RTCPeerConnection({
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -623,7 +671,13 @@ function VideoRoomView({ user, session, onEnd }) {
           }
         };
 
-        pc.onconnectionstatechange = () => console.log("Connection State:", pc.connectionState);
+        pc.onconnectionstatechange = () => {
+            console.log("Connection State:", pc.connectionState);
+            setConnectionStatus(pc.connectionState);
+            if (pc.connectionState === 'failed') {
+               setError("Connection failed. Try refreshing or check firewall.");
+            }
+        };
         pcRef.current = pc;
 
         const ws = new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
@@ -631,46 +685,44 @@ function VideoRoomView({ user, session, onEnd }) {
 
         ws.onopen = async () => {
           console.log("WS Open.");
-          
-          // Flush local candidates generated while connecting
+          setConnectionStatus('Signal Connected');
           while (localCandidatesQueue.current.length > 0) {
              ws.send(localCandidatesQueue.current.shift());
           }
-
-          // Send READY to announce presence. 
-          ws.send(JSON.stringify({ type: 'ready' }));
+          // Handshake trigger
+          ws.send(JSON.stringify({ type: 'join' }));
         };
 
         ws.onmessage = async (msg) => {
           const data = JSON.parse(msg.data);
           
           if (data.type === 'bye') {
-             console.log("Peer left. Ending call.");
-             // Ensure we cleanup before navigating away
              cleanupMedia();
              onEnd(); 
           }
-          else if (data.type === 'ready') {
+          // HANDSHAKE: Ensure connection only starts when both are present in Video View
+          else if (data.type === 'join') {
+            ws.send(JSON.stringify({ type: 'join_ack' }));
             if (user.id === session.user1_id && !negotiatingRef.current) {
-               console.log("Initiating Offer...");
-               negotiatingRef.current = true;
-               const offer = await pc.createOffer();
-               await pc.setLocalDescription(offer);
-               ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
+               console.log("Peer Joined. Initiating Offer...");
+               startNegotiation();
             }
           }
+          else if (data.type === 'join_ack') {
+             if (user.id === session.user1_id && !negotiatingRef.current) {
+                console.log("Peer Ack. Initiating Offer...");
+                startNegotiation();
+             }
+          }
           else if (data.type === 'offer') {
-            console.log("Received Offer");
             negotiatingRef.current = true;
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             processRemoteCandidates();
-            
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
             ws.send(JSON.stringify({ type: 'answer', sdp: answer }));
           } 
           else if (data.type === 'answer') {
-            console.log("Received Answer");
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             processRemoteCandidates();
           } 
@@ -682,6 +734,13 @@ function VideoRoomView({ user, session, onEnd }) {
                remoteCandidatesQueue.current.push(candidate);
             }
           }
+        };
+
+        const startNegotiation = async () => {
+           negotiatingRef.current = true;
+           const offer = await pc.createOffer();
+           await pc.setLocalDescription(offer);
+           ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
         };
 
       } catch (err) {
@@ -701,6 +760,13 @@ function VideoRoomView({ user, session, onEnd }) {
     };
 
     startCall();
+
+    // Force play remote video if metadata loads late
+    if(remoteVideoRef.current) {
+      remoteVideoRef.current.onloadedmetadata = () => {
+         remoteVideoRef.current.play().catch(e => console.log("Metadata play blocked", e));
+      };
+    }
 
     const timer = setInterval(() => {
       const remaining = updateTimer();
@@ -772,6 +838,7 @@ function VideoRoomView({ user, session, onEnd }) {
           <Clock className="w-4 h-4" color="white" />
           <span>{formatTime(timeLeft)}</span>
         </div>
+        <div className="status-overlay">{connectionStatus}</div>
       </div>
 
       <div className="call-controls">
