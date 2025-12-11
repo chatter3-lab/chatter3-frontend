@@ -23,7 +23,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
 
 /* Header Logo (Small) */
-.header-logo-img { height: 40px; width: auto; object-fit: contain; }
+.header-logo-img { height: 300px; width: auto; object-fit: contain; }
 
 /* Auth Main Logo (Large 400px) */
 .auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
@@ -171,7 +171,6 @@ export default function App() {
   };
 
   return (
-    
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <div className="app-container">
       <style>{STYLES}</style>
@@ -407,6 +406,17 @@ function MatchingView({ user, onCancel, onMatch }) {
     // Heartbeat & Search function
     const performSearch = async () => {
       try {
+        // Check active session first
+        const sessRes = await fetch(`${API_URL}/api/matching/session/${user.id}`);
+        const sessData = await sessRes.json();
+        if (sessData.active_session) {
+          clearInterval(polling);
+          setStatus('Connecting...');
+          onMatch(sessData.session);
+          return;
+        }
+
+        // Join Queue (Heartbeat)
         const joinRes = await fetch(`${API_URL}/api/matching/join`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -416,7 +426,7 @@ function MatchingView({ user, onCancel, onMatch }) {
         
         if (joinData.matched) {
           setStatus('Partner found! Preparing session...');
-          // Immediate session check if matched
+          // Confirm match
           const res = await fetch(`${API_URL}/api/matching/session/${user.id}`);
           const data = await res.json();
           if (data.active_session) {
@@ -431,10 +441,7 @@ function MatchingView({ user, onCancel, onMatch }) {
       }
     };
 
-    // Initial Search
     performSearch();
-
-    // Heartbeat Interval (Every 30s re-join to keep queue entry fresh)
     polling = setInterval(performSearch, 30000);
 
     return () => clearInterval(polling);
@@ -471,41 +478,22 @@ function VideoRoomView({ user, session, onEnd }) {
   const pcRef = useRef(null);
   const wsRef = useRef(null);
   
-  // Track candidates arriving before remote description is set
-  const localCandidatesQueue = useRef([]); // Candidates generated locally
-  const remoteCandidatesQueue = useRef([]); // Candidates received from peer
+  const localCandidatesQueue = useRef([]); 
+  const remoteCandidatesQueue = useRef([]); 
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
 
-  // --- HARDWARE CLEANUP FUNCTION ---
   const cleanupMedia = () => {
-    // 1. Stop all tracks in the stream
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.stop();
       });
       streamRef.current = null;
     }
-
-    // 2. Clear video elements to detach DOM from stream
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = null;
-    }
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = null;
-    }
-
-    // 3. Close peer connection
-    if (pcRef.current) {
-      pcRef.current.close();
-      pcRef.current = null;
-    }
-
-    // 4. Close signaling
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
+    if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+    if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
+    if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
   };
 
   useEffect(() => {
@@ -538,7 +526,6 @@ function VideoRoomView({ user, session, onEnd }) {
         pc.ontrack = (event) => {
           if (remoteVideoRef.current) {
              remoteVideoRef.current.srcObject = event.streams[0];
-             // FIX: Explicitly try to play video to handle autoplay policies
              remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
@@ -557,19 +544,14 @@ function VideoRoomView({ user, session, onEnd }) {
         pc.onconnectionstatechange = () => console.log("Connection State:", pc.connectionState);
         pcRef.current = pc;
 
-        // Connect Signaling
         const ws = new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
         wsRef.current = ws;
 
         ws.onopen = async () => {
           console.log("WS Open.");
-          
-          // Flush local candidates generated while connecting
           while (localCandidatesQueue.current.length > 0) {
              ws.send(localCandidatesQueue.current.shift());
           }
-
-          // Send READY to announce presence. 
           ws.send(JSON.stringify({ type: 'ready' }));
         };
 
@@ -577,12 +559,11 @@ function VideoRoomView({ user, session, onEnd }) {
           const data = JSON.parse(msg.data);
           
           if (data.type === 'bye') {
-             console.log("Peer left. Ending call.");
-             // Ensure we cleanup before navigating away
              cleanupMedia();
              onEnd(); 
           }
           else if (data.type === 'ready') {
+            // Initiate offer ONLY if I am user1 and we haven't started yet
             if (user.id === session.user1_id && !negotiatingRef.current) {
                console.log("Initiating Offer...");
                negotiatingRef.current = true;
