@@ -40,7 +40,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
 
-/* Header Logo (Large 400px) */
+/* Header Logo (Large) */
 .header-logo-img { height: 400px; width: auto; object-fit: contain; }
 
 /* Auth Main Logo (Large 400px) */
@@ -101,39 +101,6 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .cancel-btn { margin-top: 2rem; padding: 10px 20px; background: transparent; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
 
-/* Pre-Call Lobby */
-.pre-call-lobby {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  text-align: center;
-  max-width: 500px;
-  width: 100%;
-  margin: 0 auto;
-}
-.pre-call-avatar {
-  width: 100px;
-  height: 100px;
-  background: #e0e7ff;
-  color: #4f46e5;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin: 0 auto 1.5rem;
-}
-.pre-call-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 2rem;
-}
-.accept-btn { background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1rem; }
-.accept-btn:hover { background: #059669; }
-
 @media (max-width: 768px) {
   .app-header-content { flex-direction: column; gap: 1rem; }
   .user-info { flex-direction: column; }
@@ -179,8 +146,8 @@ export default function App() {
       const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
-        // Go to pre-call view first
-        setView('precall');
+        // Automatically go to video if session exists
+        setView('video');
       } else if (user && view === 'video') {
         refreshUserData(userId);
       }
@@ -221,6 +188,7 @@ export default function App() {
   };
 
   return (
+    
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <div className="app-container">
       <style>{STYLES}</style>
@@ -256,22 +224,7 @@ export default function App() {
             onMatch={(session) => {
               playSound('match');
               setCurrentSession(session);
-              setView('precall'); 
-            }}
-          />
-        )}
-
-        {view === 'precall' && user && currentSession && (
-          <PreCallView 
-            user={user}
-            session={currentSession}
-            onStartCall={() => {
-               playSound('start');
-               setView('video');
-            }}
-            onCancel={() => {
-              setCurrentSession(null);
-              setView('dashboard');
+              setView('video'); // DIRECT TO VIDEO, NO LOBBY
             }}
           />
         )}
@@ -357,9 +310,7 @@ function AuthView({ onLogin }) {
           <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" />
           <p className="auth-subtitle">Master English with native speakers</p>
         </div>
-
         {error && <div className="error-message">{error}</div>}
-        
         <form onSubmit={handleSubmit} className="register-form">
           {isRegistering && (
             <>
@@ -371,9 +322,7 @@ function AuthView({ onLogin }) {
           <div className="form-group"><label>Password</label><input type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required /></div>
           <button type="submit" disabled={loading}>{loading ? 'Loading...' : (isRegistering ? 'Create Account' : 'Sign In')}</button>
         </form>
-
         <div className="auth-divider">or</div>
-
         <div className="google-button-container">
            {}
            {<GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />}
@@ -381,7 +330,6 @@ function AuthView({ onLogin }) {
            {}
            
         </div>
-
         <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>{isRegistering ? 'Already have an account? Sign In' : 'New to Chatter3? Create Account'}</button>
       </div>
     </div>
@@ -412,8 +360,6 @@ function MatchingView({ user, onCancel, onMatch }) {
 
   useEffect(() => {
     let polling;
-    
-    // Heartbeat & Search function
     const performSearch = async () => {
       try {
         if (!isMatched) {
@@ -443,7 +389,6 @@ function MatchingView({ user, onCancel, onMatch }) {
         setStatus('Connection error. Retrying...'); 
       }
     };
-
     performSearch();
     polling = setInterval(performSearch, 3000);
     return () => clearInterval(polling);
@@ -466,153 +411,6 @@ function MatchingView({ user, onCancel, onMatch }) {
       <h2 style={{fontSize: '1.5rem', marginBottom: '1rem', color: '#333'}}>{status}</h2>
       <p style={{color: '#666'}}>Matching you with {user.english_level} speakers</p>
       <button onClick={handleCancelSearch} className="cancel-btn">Cancel Search</button>
-    </div>
-  );
-}
-
-// --- PRE-CALL LOBBY (New View) ---
-function PreCallView({ user, session, onStartCall, onCancel }) {
-  const [statusText, setStatusText] = useState("Connecting to partner...");
-  const [incomingCall, setIncomingCall] = useState(false);
-  const [presenceChecked, setPresenceChecked] = useState(false);
-  const wsRef = useRef(null);
-  const timerRef = useRef(null);
-  const pingInterval = useRef(null);
-
-  // Identify roles based on session data
-  const isInitiator = user.id === session.user1_id;
-
-  // Function to actually end session in DB
-  const forceEndSession = async (reason) => {
-     try {
-       await fetch(`${API_URL}/api/matching/end`, {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ session_id: session.id, user_id: user.id, reason: reason })
-       });
-     } catch (e) {}
-  };
-
-  const handleCancel = () => {
-    forceEndSession('cancelled');
-    onCancel();
-  };
-
-  useEffect(() => {
-    const ws = new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
-    wsRef.current = ws;
-
-    // Timeout: If no activity in 15s, assume ghost and kill session
-    timerRef.current = setTimeout(() => {
-      if (!presenceChecked && !incomingCall) {
-         alert("Partner is not responding. Canceling match.");
-         handleCancel();
-      }
-    }, 15000);
-
-    ws.onopen = () => {
-      // Send Presence Ping repeatedly until acked
-      pingInterval.current = setInterval(() => {
-         if(ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'lobby_ping' }));
-         }
-      }, 1000);
-    };
-
-    ws.onmessage = (msg) => {
-      const data = JSON.parse(msg.data);
-      
-      // PRESENCE CHECK
-      if (data.type === 'lobby_ping') {
-         ws.send(JSON.stringify({ type: 'lobby_pong' }));
-         if (!presenceChecked) {
-             setPresenceChecked(true); 
-             if (isInitiator) setStatusText("Partner online. Ready to start.");
-             clearInterval(pingInterval.current);
-         }
-      }
-      else if (data.type === 'lobby_pong') {
-         if (!presenceChecked) {
-             setPresenceChecked(true);
-             if (isInitiator) setStatusText("Partner online. Ready to start.");
-             clearInterval(pingInterval.current);
-         }
-      }
-      
-      // CALL LOGIC
-      else if (data.type === 'ring') {
-         setIncomingCall(true);
-         setStatusText(`${session.partner.username} is calling...`);
-         playSound('start'); // Ringing sound
-         clearTimeout(timerRef.current); // Stop timeout if call starts
-      }
-      else if (data.type === 'accept_call') {
-         onStartCall();
-      }
-      else if (data.type === 'decline_call') {
-         alert("Partner declined the call.");
-         handleCancel();
-      }
-    };
-
-    return () => {
-       ws.close();
-       clearTimeout(timerRef.current);
-       clearInterval(pingInterval.current);
-    };
-  }, []);
-
-  const handleStart = () => {
-    if (!presenceChecked) {
-       alert("Waiting for partner to connect...");
-       return;
-    }
-    setStatusText("Calling...");
-    wsRef.current.send(JSON.stringify({ type: 'ring' }));
-  };
-
-  const handleAccept = () => {
-    wsRef.current.send(JSON.stringify({ type: 'accept_call' }));
-    onStartCall();
-  };
-
-  const handleDecline = () => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-       wsRef.current.send(JSON.stringify({ type: 'decline_call' }));
-    }
-    handleCancel();
-  };
-
-  return (
-    <div className="dashboard-container">
-      <div className="pre-call-lobby">
-        <div className="pre-call-avatar">
-           {session.partner.username.charAt(0).toUpperCase()}
-        </div>
-        <h2 style={{color: '#333'}}>Match Found!</h2>
-        <p style={{fontSize: '1.2rem', marginBottom: '1rem'}}>You are matched with <strong>{session.partner.username}</strong></p>
-        
-        <p style={{color: '#666', fontStyle: 'italic'}}>{statusText}</p>
-
-        <div className="pre-call-actions">
-           {isInitiator && !incomingCall && (
-              <button className="start-matching-btn" onClick={handleStart} style={{display: 'flex', alignItems: 'center', gap: '8px', opacity: presenceChecked ? 1 : 0.5}} disabled={!presenceChecked}>
-                 <Phone className="w-5 h-5"/> Start Video Call
-              </button>
-           )}
-
-           {incomingCall && (
-              <>
-                <button className="accept-btn" onClick={handleAccept}>Accept Call</button>
-                <button className="cancel-btn" onClick={handleDecline} style={{borderColor: 'red', color: 'red'}}>Decline</button>
-              </>
-           )}
-           
-           {!incomingCall && (
-              <button className="cancel-btn" onClick={handleCancel}>Cancel Match</button>
-           )}
-        </div>
-      </div>
     </div>
   );
 }
@@ -702,6 +500,7 @@ function VideoRoomView({ user, session, onEnd }) {
             setConnectionStatus(pc.connectionState);
             if (pc.connectionState === 'connected') {
                 hasConnectedRef.current = true;
+                playSound('start'); // Connected sound
             }
             if (pc.connectionState === 'failed') {
                setError("Connection failed. Try refreshing or check firewall.");
