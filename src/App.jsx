@@ -8,7 +8,7 @@ const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.goo
 
 // --- SOUND ASSETS ---
 const SOUNDS = {
-  match: 'https://assets.mixkit.co/active_storage/sfx/2366/2366-preview.mp3', // Ding
+  match: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Ding
   start: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Connect
   end: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',   // Disconnect
   points: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3' // Coin/Reward
