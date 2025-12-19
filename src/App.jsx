@@ -54,7 +54,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 
 /* Auth */
 .auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; }
-.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; }
+.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; } 
 .auth-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
 .auth-title { font-size: 1.5rem; font-weight: bold; color: #333; margin: 0.5rem 0; }
 .auth-subtitle { color: #666; margin-bottom: 0.5rem; font-size: 1.1rem; }
@@ -472,6 +472,7 @@ function VideoRoomView({ user, session, onEnd }) {
   const remoteCandidatesQueue = useRef([]); 
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
+  const hasConnectedRef = useRef(false); 
 
   const cleanupMedia = () => {
     if (streamRef.current) {
@@ -539,6 +540,7 @@ function VideoRoomView({ user, session, onEnd }) {
             console.log("Connection State:", pc.connectionState);
             setConnectionStatus(pc.connectionState);
             if (pc.connectionState === 'connected') {
+                hasConnectedRef.current = true;
                 playSound('start'); // Connected sound
             }
             if (pc.connectionState === 'failed') {
@@ -697,6 +699,14 @@ function VideoRoomView({ user, session, onEnd }) {
     // but rate logic handles transaction.
     // Just exit
     // CLEAR SESSION to prevent rating screen loop
+    try {
+      await fetch(`${API_URL}/api/matching/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: session.id, user_id: user.id, reason: 'rated' })
+      });
+    } catch(e) {}
+
     onEnd();
   };
 
