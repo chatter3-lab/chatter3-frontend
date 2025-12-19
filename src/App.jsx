@@ -6,7 +6,7 @@ const API_URL = 'https://api.chatter3.com';
 const WS_URL = 'wss://api.chatter3.com';
 const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com";
 
-// --- SOUND ASSETS (Restored) ---
+// --- SOUND ASSETS ---
 const SOUNDS = {
   match: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Ding
   start: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Connect
@@ -40,7 +40,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
 
-/* Header Logo (Small) */
+/* Header Logo (Large) */
 .header-logo-img { height: 400px; width: auto; object-fit: contain; }
 
 /* Auth Main Logo (Large 400px) */
@@ -54,7 +54,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 
 /* Auth */
 .auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; }
-.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; } /* Increased max-width for larger logo */
+.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; }
 .auth-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
 .auth-title { font-size: 1.5rem; font-weight: bold; color: #333; margin: 0.5rem 0; }
 .auth-subtitle { color: #666; margin-bottom: 0.5rem; font-size: 1.1rem; }
@@ -135,7 +135,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 
 /* Custom Logo */
 .auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
-.header-logo-img { height: 40px; width: auto; object-fit: contain; }
+.header-logo-img { height: 400px; width: auto; object-fit: contain; }
 
 @media (max-width: 768px) {
   .app-header-content { flex-direction: column; gap: 1rem; }
@@ -183,6 +183,7 @@ export default function App() {
       const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
+        // Automatically go to video if session exists
         setView('video');
       } else if (user && view === 'video') {
         refreshUserData(userId);
@@ -224,7 +225,6 @@ export default function App() {
   };
 
   return (
-    
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <div className="app-container">
       <style>{STYLES}</style>
@@ -293,7 +293,6 @@ export default function App() {
 
 // --- Views ---
 
-// ... (AuthView, DashboardView kept the same as previous) ...
 function AuthView({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -473,7 +472,6 @@ function VideoRoomView({ user, session, onEnd }) {
   const remoteCandidatesQueue = useRef([]); 
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
-  const hasConnectedRef = useRef(false); 
 
   const cleanupMedia = () => {
     if (streamRef.current) {
@@ -541,7 +539,6 @@ function VideoRoomView({ user, session, onEnd }) {
             console.log("Connection State:", pc.connectionState);
             setConnectionStatus(pc.connectionState);
             if (pc.connectionState === 'connected') {
-                hasConnectedRef.current = true;
                 playSound('start'); // Connected sound
             }
             if (pc.connectionState === 'failed') {
@@ -699,6 +696,7 @@ function VideoRoomView({ user, session, onEnd }) {
     // Explicitly call /end to clean up if not already done by rate logic
     // but rate logic handles transaction.
     // Just exit
+    // CLEAR SESSION to prevent rating screen loop
     onEnd();
   };
 
