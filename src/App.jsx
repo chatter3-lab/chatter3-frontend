@@ -6,7 +6,7 @@ const API_URL = 'https://api.chatter3.com';
 const WS_URL = 'wss://api.chatter3.com';
 const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com";
 
-// --- SOUND ASSETS ---
+// --- SOUND ASSETS (Restored) ---
 const SOUNDS = {
   match: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Ding
   start: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Connect
@@ -40,8 +40,8 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
 
-/* Header Logo (Large) */
-.header-logo-img { height: 400px; width: auto; object-fit: contain; }
+/* Header Logo (Small) */
+.header-logo-img { height: 40px; width: auto; object-fit: contain; }
 
 /* Auth Main Logo (Large 400px) */
 .auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
@@ -54,7 +54,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 
 /* Auth */
 .auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; }
-.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; }
+.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; } /* Increased max-width for larger logo */
 .auth-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
 .auth-title { font-size: 1.5rem; font-weight: bold; color: #333; margin: 0.5rem 0; }
 .auth-subtitle { color: #666; margin-bottom: 0.5rem; font-size: 1.1rem; }
@@ -84,7 +84,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .stat-item:last-child { border-bottom: none; }
 
 /* Video Call Interface */
-.video-call-interface { display: flex; flex-direction: column; height: 80vh; gap: 1rem; padding: 1rem; }
+.video-call-interface { display: flex; flex-direction: column; height: 80vh; gap: 1rem; padding: 1rem; position: relative; }
 .video-container { position: relative; flex: 1; background: #1a1a1a; border-radius: 12px; overflow: hidden; min-height: 400px; display: flex; justify-content: center; align-items: center; }
 
 .video-element { width: 100%; height: 100%; object-fit: cover; }
@@ -95,11 +95,47 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .call-controls { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
 .control-btn { background: #f44336; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
 
+/* Rating Modal */
+.rating-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  border-radius: 12px;
+  color: white;
+  text-align: center;
+}
+.rating-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.rating-btn {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.rating-btn.good { background: #10b981; color: white; }
+.rating-btn.meh { background: #6b7280; color: white; }
+.rating-btn:hover { transform: scale(1.05); }
+
+
 /* Matching & Misc */
 .matching-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; }
 .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4285f4; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 2rem; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .cancel-btn { margin-top: 2rem; padding: 10px 20px; background: transparent; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+
+/* Custom Logo */
+.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
+.header-logo-img { height: 40px; width: auto; object-fit: contain; }
 
 @media (max-width: 768px) {
   .app-header-content { flex-direction: column; gap: 1rem; }
@@ -123,6 +159,7 @@ const LogOut = (props) => <Icon {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 
 const Clock = (props) => <Icon {...props}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Icon>;
 const Loader2 = (props) => <Icon {...props}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></Icon>;
 const Phone = (props) => <Icon {...props}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></Icon>;
+const Star = (props) => <Icon {...props}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></Icon>;
 
 // --- Main App Component ---
 export default function App() {
@@ -146,7 +183,6 @@ export default function App() {
       const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
-        // Automatically go to video if session exists
         setView('video');
       } else if (user && view === 'video') {
         refreshUserData(userId);
@@ -224,7 +260,7 @@ export default function App() {
             onMatch={(session) => {
               playSound('match');
               setCurrentSession(session);
-              setView('video'); // DIRECT TO VIDEO, NO LOBBY
+              setView('video'); 
             }}
           />
         )}
@@ -257,6 +293,7 @@ export default function App() {
 
 // --- Views ---
 
+// ... (AuthView, DashboardView kept the same as previous) ...
 function AuthView({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -360,6 +397,8 @@ function MatchingView({ user, onCancel, onMatch }) {
 
   useEffect(() => {
     let polling;
+    
+    // Heartbeat & Search function
     const performSearch = async () => {
       try {
         if (!isMatched) {
@@ -389,6 +428,7 @@ function MatchingView({ user, onCancel, onMatch }) {
         setStatus('Connection error. Retrying...'); 
       }
     };
+
     performSearch();
     polling = setInterval(performSearch, 3000);
     return () => clearInterval(polling);
@@ -420,6 +460,8 @@ function VideoRoomView({ user, session, onEnd }) {
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
   const [connectionStatus, setConnectionStatus] = useState('Initializing...');
+  const [showRating, setShowRating] = useState(false);
+  const [waitingForPartner, setWaitingForPartner] = useState(false);
   
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -525,9 +567,10 @@ function VideoRoomView({ user, session, onEnd }) {
           const data = JSON.parse(msg.data);
           
           if (data.type === 'bye') {
+             // Partner ended call - SHOW RATING
              cleanupMedia();
-             onEnd(); 
              playSound('end'); // Play end sound
+             setShowRating(true); 
           }
           else if (data.type === 'join') {
             ws.send(JSON.stringify({ type: 'join_ack' }));
@@ -611,39 +654,51 @@ function VideoRoomView({ user, session, onEnd }) {
     const timer = setInterval(() => {
       const remaining = updateTimer();
       if (remaining <= 0) {
-        cleanupMedia();
-        handleEnd();
+        // Time up - end call and show rating
+        handleHangup();
       }
     }, 1000);
 
     return () => {
       clearInterval(timer);
       window.removeEventListener('beforeunload', () => {});
-      cleanupMedia();
+      // Only clean up if not showing rating (persists logic for rating view if needed, but here we just cleanup)
+      // Actually cleanup is safe as long as we don't need the stream for rating screen bg
     };
   }, []);
 
-  const handleEnd = async () => {
+  const handleHangup = () => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
        wsRef.current.send(JSON.stringify({ type: 'bye' }));
     }
+    playSound('end');
+    cleanupMedia();
+    setShowRating(true);
+  };
 
-    const reason = hasConnectedRef.current ? 'call_completed' : 'connection_failed';
-
+  const handleRate = async (rating) => {
     try {
-      await fetch(`${API_URL}/api/matching/end`, {
+      setWaitingForPartner(true);
+      const res = await fetch(`${API_URL}/api/matching/rate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: session.id, user_id: user.id, reason: reason })
+        body: JSON.stringify({ session_id: session.id, user_id: user.id, rating })
       });
+      const data = await res.json();
+      
+      // If we got points, it means both rated
+      if (data.points_awarded) {
+         playSound('points');
+         alert(`You earned ${data.points_awarded} points!`);
+      } else {
+         // Partner hasn't rated yet
+         alert("Rating submitted. Points will be awarded when your partner rates you.");
+      }
     } catch (e) {}
-
-    playSound('end');
-    if (reason === 'call_completed') {
-        setTimeout(() => playSound('points'), 500);
-    }
     
-    cleanupMedia();
+    // Explicitly call /end to clean up if not already done by rate logic
+    // but rate logic handles transaction.
+    // Just exit
     onEnd();
   };
 
@@ -664,76 +719,44 @@ function VideoRoomView({ user, session, onEnd }) {
   return (
     <div className="video-call-interface">
       <div className="video-container">
-        {/* Remote Video (Large) */}
-        <video 
-          ref={remoteVideoRef} 
-          autoPlay 
-          playsInline 
-          className="video-element"
-        />
-        
-        {/* Local Video (PiP) */}
-        <video 
-          ref={localVideoRef} 
-          autoPlay 
-          playsInline 
-          muted
-          className="video-element local" 
-        />
-
-        <div className="video-overlay">
-          <Clock className="w-4 h-4" color="white" />
-          <span>{formatTime(timeLeft)}</span>
-        </div>
+        <video ref={remoteVideoRef} autoPlay playsInline className="video-element" />
+        <video ref={localVideoRef} autoPlay playsInline muted className="video-element local" />
+        <div className="video-overlay"><Clock className="w-4 h-4" color="white" /><span>{formatTime(timeLeft)}</span></div>
         <div className="status-overlay">{connectionStatus}</div>
       </div>
+      
+      {showRating && (
+         <div className="rating-overlay">
+           <h2>Rate your partner</h2>
+           <p>How was your conversation with {session.partner.username}?</p>
+           <div className="rating-buttons">
+              <button className="rating-btn good" onClick={() => handleRate('good')}><Star className="w-6 h-6 inline"/> Good</button>
+              <button className="rating-btn meh" onClick={() => handleRate('meh')}>Meh</button>
+           </div>
+         </div>
+      )}
 
-      <div className="call-controls">
-        <div style={{textAlign: 'left'}}>
-          <p style={{fontSize: '0.9rem', color: '#666'}}>Talking to</p>
-          <p style={{fontWeight: 'bold', fontSize: '1.1rem'}}>{session.partner.username}</p>
+      {!showRating && (
+        <div className="call-controls">
+            <div style={{textAlign: 'left'}}><p style={{fontSize: '0.9rem', color: '#666'}}>Talking to</p><p style={{fontWeight: 'bold', fontSize: '1.1rem'}}>{session.partner.username}</p></div>
+            <button onClick={handleHangup} className="control-btn"><PhoneOff className="w-5 h-5" /> End Call</button>
         </div>
-        <button onClick={handleEnd} className="control-btn">
-          <PhoneOff className="w-5 h-5" /> End Call
-        </button>
-      </div>
+      )}
     </div>
   );
 }
 
 function ProfileView({ user, onBack, onUpdate, onLogout }) {
   const [bio, setBio] = useState(user.bio || '');
-
   return (
     <div className="dashboard-container">
-      <div className="auth-header">
-         <h2 className="auth-title">My Profile</h2>
-      </div>
-      
+      <div className="auth-header"><h2 className="auth-title">My Profile</h2></div>
       <div className="auth-box" style={{textAlign: 'left'}}>
-        <div className="form-group">
-           <label>Username</label>
-           <input type="text" value={user.username} disabled style={{background: '#f5f5f5'}} />
-        </div>
-        <div className="form-group">
-           <label>Email</label>
-           <input type="text" value={user.email} disabled style={{background: '#f5f5f5'}} />
-        </div>
-        <div className="form-group">
-           <label>Bio</label>
-           <textarea 
-             value={bio} 
-             onChange={e => setBio(e.target.value)}
-             style={{width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px'}}
-             rows={4}
-           />
-        </div>
-        <button className="email-register-btn" style={{background: '#4285f4', color: 'white', border: 'none'}} onClick={() => { onUpdate({ ...user, bio }); onBack(); }}>
-           <Save className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Save Changes
-        </button>
-        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}>
-           <ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back
-        </button>
+        <div className="form-group"><label>Username</label><input type="text" value={user.username} disabled style={{background: '#f5f5f5'}} /></div>
+        <div className="form-group"><label>Email</label><input type="text" value={user.email} disabled style={{background: '#f5f5f5'}} /></div>
+        <div className="form-group"><label>Bio</label><textarea value={bio} onChange={e => setBio(e.target.value)} style={{width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px'}} rows={4} /></div>
+        <button className="email-register-btn" style={{background: '#4285f4', color: 'white', border: 'none'}} onClick={() => { onUpdate({ ...user, bio }); onBack(); }}><Save className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Save Changes</button>
+        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}><ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back</button>
       </div>
     </div>
   );
