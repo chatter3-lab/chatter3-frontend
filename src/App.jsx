@@ -141,6 +141,14 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
   .app-header-content { flex-direction: column; gap: 1rem; }
   .user-info { flex-direction: column; }
   .auth-box { margin: 1rem; }
+  
+  /* Mobile PiP Sizing */
+  .video-element.local { 
+    width: 100px; 
+    height: 133px; 
+    bottom: 10px; 
+    right: 10px; 
+  }
 }
 `;
 
@@ -183,7 +191,6 @@ export default function App() {
       const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
-        // Automatically go to video if session exists
         setView('video');
       } else if (user && view === 'video') {
         refreshUserData(userId);
