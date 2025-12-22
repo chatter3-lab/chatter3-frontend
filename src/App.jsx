@@ -40,7 +40,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
 
-/* Header Logo (Small) */
+/* Header Logo (Large) */
 .header-logo-img { height: 400px; width: auto; object-fit: contain; }
 
 /* Auth Main Logo (Large 400px) */
@@ -141,14 +141,6 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
   .app-header-content { flex-direction: column; gap: 1rem; }
   .user-info { flex-direction: column; }
   .auth-box { margin: 1rem; }
-  
-  /* Mobile PiP Sizing */
-  .video-element.local { 
-    width: 100px; 
-    height: 133px; 
-    bottom: 10px; 
-    right: 10px; 
-  }
 }
 `;
 
@@ -191,6 +183,7 @@ export default function App() {
       const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
+        // Automatically go to video if session exists
         setView('video');
       } else if (user && view === 'video') {
         refreshUserData(userId);
@@ -520,24 +513,14 @@ function VideoRoomView({ user, session, onEnd }) {
 
         const pc = new RTCPeerConnection({ iceServers });
         
-        // Force transceivers for video/audio even if stream is delayed
-        pc.addTransceiver('video', { direction: 'sendrecv' });
-        pc.addTransceiver('audio', { direction: 'sendrecv' });
-        
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
         // Use standard track handling
         pc.ontrack = (event) => {
           console.log("Track received:", event.track.kind);
           // Standard: Use event.streams[0]
-          // Prefer the browser's grouped stream (syncs audio/video automatically)
-          const streamToAdd = event.streams && event.streams[0] ? event.streams[0] : remoteStreamRef.current;
-          if (!event.streams || !event.streams[0]) {
-             remoteStreamRef.current.addTrack(event.track);
-          }
-          
           if (remoteVideoRef.current) {
-             remoteVideoRef.current.srcObject = streamToAdd;
+             remoteVideoRef.current.srcObject = event.streams[0];
              remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
@@ -782,9 +765,7 @@ function ProfileView({ user, onBack, onUpdate, onLogout }) {
         <div className="form-group"><label>Email</label><input type="text" value={user.email} disabled style={{background: '#f5f5f5'}} /></div>
         <div className="form-group"><label>Bio</label><textarea value={bio} onChange={e => setBio(e.target.value)} style={{width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px'}} rows={4} /></div>
         <button className="email-register-btn" style={{background: '#4285f4', color: 'white', border: 'none'}} onClick={() => { onUpdate({ ...user, bio }); onBack(); }}><Save className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Save Changes</button>
-        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}>
-           <ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back
-        </button>
+        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}><ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back</button>
       </div>
     </div>
   );
