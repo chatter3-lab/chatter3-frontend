@@ -8,7 +8,7 @@ const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.goo
 
 // --- SOUND ASSETS ---
 const SOUNDS = {
-  match: 'https://assets.mixkit.co/active_storage/sfx/22358/2358-preview.mp3', // Ding
+  match: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Ding
   start: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Connect
   end: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',   // Disconnect
   points: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3' // Coin/Reward
@@ -146,8 +146,8 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
   .video-element.local { 
     width: 100px !important; 
     height: 133px !important; 
-    bottom: 100px !important; 
-    right: 15px !important;
+    bottom: 10px !important; 
+    right: 10px !important;
   }
 }
 `;
@@ -267,7 +267,7 @@ export default function App() {
             onMatch={(session) => {
               playSound('match');
               setCurrentSession(session);
-              setView('video'); 
+              setView('video'); // DIRECT TO VIDEO, NO LOBBY
             }}
           />
         )}
