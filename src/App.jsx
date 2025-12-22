@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
-
-
 // --- Configuration ---
 const API_URL = 'https://api.chatter3.com'; 
 const WS_URL = 'wss://api.chatter3.com';
@@ -10,9 +8,9 @@ const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.goo
 
 // --- SOUND ASSETS ---
 const SOUNDS = {
-  match: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3', // Ding
+  match: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Ding
   start: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Connect
-  end: 'https://assets.mixkit.co/active_storage/sfx/2366/2366-preview.mp3',   // Disconnect
+  end: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',   // Disconnect
   points: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3' // Coin/Reward
 };
 
@@ -42,7 +40,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
 
-/* Header Logo (Large) */
+/* Header Logo (Small) */
 .header-logo-img { height: 400px; width: auto; object-fit: contain; }
 
 /* Auth Main Logo (Large 400px) */
@@ -137,7 +135,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 
 /* Custom Logo */
 .auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
-.header-logo-img { height: 40px; width: auto; object-fit: contain; }
+.header-logo-img { height: 400px; width: auto; object-fit: contain; }
 
 @media (max-width: 768px) {
   .app-header-content { flex-direction: column; gap: 1rem; }
@@ -532,14 +530,14 @@ function VideoRoomView({ user, session, onEnd }) {
         pc.ontrack = (event) => {
           console.log("Track received:", event.track.kind);
           // Standard: Use event.streams[0]
+          // Prefer the browser's grouped stream (syncs audio/video automatically)
+          const streamToAdd = event.streams && event.streams[0] ? event.streams[0] : remoteStreamRef.current;
+          if (!event.streams || !event.streams[0]) {
+             remoteStreamRef.current.addTrack(event.track);
+          }
+          
           if (remoteVideoRef.current) {
-             // Prefer the browser's grouped stream (syncs audio/video automatically)
-             if (event.streams && event.streams[0]) {
-               remoteVideoRef.current.srcObject = event.streams[0];
-             } else {
-               // Fallback for some browsers: Add track manually to our container
-               remoteStreamRef.current.addTrack(event.track);
-             }
+             remoteVideoRef.current.srcObject = streamToAdd;
              remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
@@ -784,7 +782,9 @@ function ProfileView({ user, onBack, onUpdate, onLogout }) {
         <div className="form-group"><label>Email</label><input type="text" value={user.email} disabled style={{background: '#f5f5f5'}} /></div>
         <div className="form-group"><label>Bio</label><textarea value={bio} onChange={e => setBio(e.target.value)} style={{width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px'}} rows={4} /></div>
         <button className="email-register-btn" style={{background: '#4285f4', color: 'white', border: 'none'}} onClick={() => { onUpdate({ ...user, bio }); onBack(); }}><Save className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Save Changes</button>
-        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}><ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back</button>
+        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}>
+           <ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back
+        </button>
       </div>
     </div>
   );
