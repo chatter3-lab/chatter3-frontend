@@ -8,7 +8,7 @@ const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.goo
 
 // --- SOUND ASSETS ---
 const SOUNDS = {
-  match: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Ding
+  match: 'https://assets.mixkit.co/active_storage/sfx/22358/2358-preview.mp3', // Ding
   start: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Connect
   end: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',   // Disconnect
   points: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3' // Coin/Reward
@@ -141,6 +141,14 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
   .app-header-content { flex-direction: column; gap: 1rem; }
   .user-info { flex-direction: column; }
   .auth-box { margin: 1rem; }
+  
+  /* Mobile PiP Sizing */
+  .video-element.local { 
+    width: 100px !important; 
+    height: 133px !important; 
+    bottom: 100px !important; 
+    right: 15px !important;
+  }
 }
 `;
 
@@ -183,7 +191,6 @@ export default function App() {
       const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
-        // Automatically go to video if session exists
         setView('video');
       } else if (user && view === 'video') {
         refreshUserData(userId);
@@ -519,8 +526,14 @@ function VideoRoomView({ user, session, onEnd }) {
         pc.ontrack = (event) => {
           console.log("Track received:", event.track.kind);
           // Standard: Use event.streams[0]
+          // Prefer the browser's grouped stream (syncs audio/video automatically)
+          const streamToAdd = event.streams && event.streams[0] ? event.streams[0] : remoteStreamRef.current;
+          if (!event.streams || !event.streams[0]) {
+             remoteStreamRef.current.addTrack(event.track);
+          }
+          
           if (remoteVideoRef.current) {
-             remoteVideoRef.current.srcObject = event.streams[0];
+             remoteVideoRef.current.srcObject = streamToAdd;
              remoteVideoRef.current.play().catch(e => console.log('Autoplay blocked:', e));
           }
         };
@@ -765,7 +778,9 @@ function ProfileView({ user, onBack, onUpdate, onLogout }) {
         <div className="form-group"><label>Email</label><input type="text" value={user.email} disabled style={{background: '#f5f5f5'}} /></div>
         <div className="form-group"><label>Bio</label><textarea value={bio} onChange={e => setBio(e.target.value)} style={{width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px'}} rows={4} /></div>
         <button className="email-register-btn" style={{background: '#4285f4', color: 'white', border: 'none'}} onClick={() => { onUpdate({ ...user, bio }); onBack(); }}><Save className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Save Changes</button>
-        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}><ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back</button>
+        <button className="back-button" onClick={onBack} style={{marginTop: '1rem'}}>
+           <ArrowLeft className="w-4 h-4" style={{display: 'inline', marginRight: '5px'}}/> Back
+        </button>
       </div>
     </div>
   );
