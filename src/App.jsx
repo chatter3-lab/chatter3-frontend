@@ -26,7 +26,7 @@ const playSound = (type) => {
 
 // --- INLINE STYLES ---
 const STYLES = `
-/* Global Reset */
+/* Reset */
 * { box-sizing: border-box; }
 body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background-color: #f5f5f5; }
 #root { width: 100%; margin: 0; padding: 0; }
@@ -39,33 +39,61 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header { background: white; padding: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
+
+/* Header Logo (Small) */
 .header-logo-img { height: 400px; width: auto; object-fit: contain; }
+
+/* Auth Main Logo (Large 400px) */
+.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
+
 .logo-text { font-size: 1.5rem; font-weight: bold; color: #333; }
 .user-info { display: flex; gap: 1rem; align-items: center; }
 .user-info span { font-weight: 500; }
 .user-info button { padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background 0.3s; }
 .user-info button:hover { background: #d32f2f; }
 
-/* Dashboard & Common */
-.dashboard-container { padding: 2rem 1rem; text-align: center; width: 100%; }
+/* Auth */
+.auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; }
+.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; }
+.auth-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
+.auth-title { font-size: 1.5rem; font-weight: bold; color: #333; margin: 0.5rem 0; }
+.auth-subtitle { color: #666; margin-bottom: 0.5rem; font-size: 1.1rem; }
+.auth-divider { margin: 1.5rem 0; color: #999; position: relative; }
+.auth-divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #eee; }
+.google-button-container { display: flex; justify-content: center; margin: 1rem 0; width: 100%; }
+.auth-link { color: #4285f4; background: none; border: none; cursor: pointer; text-decoration: none; margin-top: 1rem; display: block; width: 100%; }
+.auth-link:hover { text-decoration: underline; }
+.error-message { background: #ffebee; color: #c62828; padding: 10px; border-radius: 4px; margin-bottom: 1rem; border-left: 4px solid #c62828; text-align: left; }
+
+/* Forms */
+.register-form { text-align: left; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; color: #333; font-weight: 500; }
+.form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; box-sizing: border-box; }
+.register-form button[type="submit"], .email-register-btn { width: 100%; padding: 12px; background: #4285f4; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 1rem; }
+.back-button { width: 100%; padding: 12px; background: white; color: #4285f4; border: 2px solid #4285f4; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 0.5rem; }
+
+/* Dashboard */
+.dashboard-container { padding: 2rem 1rem; text-align: center; }
 .welcome-message h2 { color: #333; margin-bottom: 1rem; font-size: 2rem; }
 .welcome-message p { color: #666; font-size: 1.2rem; margin-bottom: 2rem; }
 .start-matching-btn { padding: 12px 24px; background: #4285f4; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
 .user-stats { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 2rem auto; max-width: 600px; text-align: left; }
+.user-stats h3 { margin-bottom: 1rem; color: #333; }
 .stat-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+.stat-item:last-child { border-bottom: none; }
 
 /* Profile View Styles */
 .profile-section { max-width: 600px; margin: 0 auto; text-align: left; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
 .profile-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
 .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; object-fit: cover; margin: 0 auto 1.5rem; }
-.form-group { margin-bottom: 1rem; }
-.form-group label { display: block; margin-bottom: 0.5rem; color: #333; font-weight: 500; }
-.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; box-sizing: border-box; }
+.upload-btn { background: #eee; border: 1px solid #ddd; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; display: inline-block; }
 .save-btn { background: #10b981; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 1rem; }
 .save-btn:hover { background: #059669; }
 .history-list { margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
 .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #eee; }
 .history-avatar { width: 40px; height: 40px; border-radius: 50%; background: #eee; margin-right: 10px; object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; font-size: 1.2rem; }
+
 
 /* Video & Matching */
 .video-call-interface { display: flex; flex-direction: column; height: 80vh; gap: 1rem; padding: 1rem; position: relative; }
@@ -77,17 +105,36 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .call-controls { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
 .control-btn { background: #f44336; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
 
-/* Auth Box */
-.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; margin: 0 auto; }
-.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
-.google-button-container { display: flex; justify-content: center; margin: 1rem 0; width: 100%; }
-
-/* Rating */
-.rating-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; border-radius: 12px; color: white; text-align: center; }
-.rating-buttons { display: flex; gap: 1rem; margin-top: 2rem; }
-.rating-btn { padding: 1rem 2rem; font-size: 1.2rem; border-radius: 8px; border: none; cursor: pointer; transition: transform 0.2s; }
+/* Rating Modal */
+.rating-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  border-radius: 12px;
+  color: white;
+  text-align: center;
+}
+.rating-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.rating-btn {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
 .rating-btn.good { background: #10b981; color: white; }
 .rating-btn.meh { background: #6b7280; color: white; }
+.rating-btn:hover { transform: scale(1.05); }
 
 /* Mobile Optimizations */
 @media (max-width: 768px) {
@@ -117,6 +164,7 @@ const Clock = (props) => <Icon {...props}><circle cx="12" cy="12" r="10"/><polyl
 const Loader2 = (props) => <Icon {...props}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></Icon>;
 const Phone = (props) => <Icon {...props}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></Icon>;
 const Star = (props) => <Icon {...props}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></Icon>;
+const Upload = (props) => <Icon {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></Icon>;
 
 // --- Main App Component ---
 export default function App() {
@@ -726,6 +774,7 @@ function ProfileView({ user, onBack, onUpdate, onLogout }) {
     avatar_url: user.avatar_url || '' 
   });
   const [history, setHistory] = useState([]);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     // Fetch History
@@ -737,6 +786,21 @@ function ProfileView({ user, onBack, onUpdate, onLogout }) {
     .then(res => res.json())
     .then(data => { if(data.success) setHistory(data.history); });
   }, []);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 500000) { 
+        alert("File is too large. Please select an image under 500KB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, avatar_url: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = async () => {
     const res = await fetch(`${API_URL}/api/user/update`, {
@@ -769,9 +833,17 @@ function ProfileView({ user, onBack, onUpdate, onLogout }) {
             )}
          </div>
 
-         <div className="form-group">
-            <label>Avatar URL (Image Link)</label>
-            <input value={formData.avatar_url} onChange={e => setFormData({...formData, avatar_url: e.target.value})} placeholder="https://example.com/me.jpg" />
+         <div className="form-group" style={{textAlign: 'center', marginBottom: '20px'}}>
+             <input 
+               type="file" 
+               accept="image/*" 
+               onChange={handleFileChange} 
+               style={{display: 'none'}} 
+               ref={fileInputRef}
+             />
+             <button type="button" className="upload-btn" onClick={() => fileInputRef.current.click()}>
+               <Upload className="w-4 h-4 inline" style={{marginRight:'5px'}}/> Upload Picture
+             </button>
          </div>
 
          <div className="form-group">
