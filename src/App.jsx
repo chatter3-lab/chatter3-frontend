@@ -8,10 +8,10 @@ const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.goo
 
 // --- SOUND ASSETS ---
 const SOUNDS = {
-  match: 'https://assets.mixkit.co/active_storage/sfx/1393/1393-preview.mp3', // Cheerful Bell
+  match: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3', // Cheerful Bell
   start: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Connection Swish
-  end: 'https://assets.mixkit.co/active_storage/sfx/2366/2366-preview.mp3',   // Soft Disconnect
-  points: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3' // Win/Success
+  end: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3',   // Soft Disconnect
+  points: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3' // Win/Success
 };
 
 const playSound = (type) => {
