@@ -47,7 +47,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .user-info button:hover { background: #d32f2f; }
 
 /* Dashboard & Common */
-.dashboard-container { padding: 2rem 1rem; text-align: center; }
+.dashboard-container { padding: 2rem 1rem; text-align: center; width: 100%; }
 .welcome-message h2 { color: #333; margin-bottom: 1rem; font-size: 2rem; }
 .welcome-message p { color: #666; font-size: 1.2rem; margin-bottom: 2rem; }
 .start-matching-btn { padding: 12px 24px; background: #4285f4; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
@@ -55,16 +55,17 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .stat-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
 
 /* Profile View Styles */
-.profile-section { max-width: 600px; margin: 0 auto; text-align: left; }
+.profile-section { max-width: 600px; margin: 0 auto; text-align: left; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
 .profile-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
-.profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; object-fit: cover; }
+.profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; object-fit: cover; margin: 0 auto 1.5rem; }
 .form-group { margin-bottom: 1rem; }
 .form-group label { display: block; margin-bottom: 0.5rem; color: #333; font-weight: 500; }
 .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; box-sizing: border-box; }
-.save-btn { background: #10b981; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-size: 16px; cursor: pointer; }
+.save-btn { background: #10b981; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 1rem; }
+.save-btn:hover { background: #059669; }
 .history-list { margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
 .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #eee; }
-.history-avatar { width: 40px; height: 40px; border-radius: 50%; background: #eee; margin-right: 10px; object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; }
+.history-avatar { width: 40px; height: 40px; border-radius: 50%; background: #eee; margin-right: 10px; object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; font-size: 1.2rem; }
 
 /* Video & Matching */
 .video-call-interface { display: flex; flex-direction: column; height: 80vh; gap: 1rem; padding: 1rem; position: relative; }
@@ -88,7 +89,14 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .rating-btn.good { background: #10b981; color: white; }
 .rating-btn.meh { background: #6b7280; color: white; }
 
+/* Mobile Optimizations */
 @media (max-width: 768px) {
+  .app-header-content { flex-direction: column; gap: 1rem; }
+  .user-info { flex-direction: column; }
+  .auth-box { margin: 1rem; width: auto; }
+  .profile-section { padding: 1.5rem; width: auto; margin: 1rem; }
+  
+  /* Mobile PiP Sizing */
   .video-element.local { width: 100px !important; height: 133px !important; bottom: 100px !important; right: 15px !important; }
 }
 `;
@@ -132,7 +140,6 @@ export default function App() {
       const data = await res.json();
       if (data.active_session) {
         setCurrentSession(data.session);
-        // Automatically go to video if session exists (No Lobby)
         setView('video');
       } else if (user && view === 'video') {
         refreshUserData(userId);
@@ -209,7 +216,7 @@ export default function App() {
             onMatch={(session) => {
               playSound('match');
               setCurrentSession(session);
-              setView('video'); // Direct to video
+              setView('video'); 
             }}
           />
         )}
@@ -230,7 +237,10 @@ export default function App() {
           <ProfileView 
             user={user} 
             onBack={() => setView('dashboard')} 
-            onUpdate={setUser}
+            onUpdate={(updated) => {
+                setUser(updated);
+                localStorage.setItem('chatter3_user', JSON.stringify(updated));
+            }}
             onLogout={handleLogout}
           />
         )}
@@ -374,7 +384,6 @@ function MatchingView({ user, onCancel, onMatch }) {
         setStatus('Connection error. Retrying...'); 
       }
     };
-
     performSearch();
     polling = setInterval(performSearch, 3000);
     return () => clearInterval(polling);
@@ -407,7 +416,6 @@ function VideoRoomView({ user, session, onEnd }) {
   const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
   const [connectionStatus, setConnectionStatus] = useState('Initializing...');
   const [showRating, setShowRating] = useState(false);
-  const [waitingForPartner, setWaitingForPartner] = useState(false);
   
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -640,7 +648,6 @@ function VideoRoomView({ user, session, onEnd }) {
 
   const handleRate = async (rating) => {
     try {
-      setWaitingForPartner(true);
       const res = await fetch(`${API_URL}/api/matching/rate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
