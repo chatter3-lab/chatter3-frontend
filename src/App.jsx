@@ -188,8 +188,8 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
     width: 100px !important; 
     height: 133px !important; 
     top: auto !important;
-    bottom: 120px !important; /* Above call controls */
-    right: 15px !important;
+    bottom: 10px !important; /* Above call controls */
+    right: 10px !important;
   }
 }
 `;
