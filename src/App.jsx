@@ -6,27 +6,58 @@ const API_URL = 'https://api.chatter3.com';
 const WS_URL = 'wss://api.chatter3.com';
 const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com";
 
-// --- SOUND ASSETS (Upbeat & Positive) ---
-const SOUNDS = {
-  match: 'https://assets.mixkit.co/active_storage/sfx/1393/1393-preview.mp3', // Cheerful Bell (Match Found)
-  start: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3', // Connection Swish (Call Start)
-  end: 'https://assets.mixkit.co/active_storage/sfx/2366/2366-preview.mp3',   // Soft Disconnect (Call End)
-  points: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3' // Win/Success (Points Awarded)
-};
-
+// --- SOUND ASSETS ---
+// Switched to Web Audio API for reliability (no external fetch needed)
 const playSound = (type) => {
-  try {
-    const audio = new Audio(SOUNDS[type]);
-    audio.volume = 0.5;
-    audio.play().catch(e => console.log('Audio play blocked/failed', e));
-  } catch (e) {
-    console.error("Sound error", e);
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  if (type === 'match') {
+    // Cheerful "Ding"
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+    osc.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + 0.1); // C6
+    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+  } else if (type === 'start') {
+    // Connection "Swish"
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(200, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } else if (type === 'end') {
+    // Disconnect "Boop"
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(400, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
+  } else if (type === 'points') {
+    // Coin "Ching"
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1200, ctx.currentTime);
+    osc.frequency.setValueAtTime(1600, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
   }
 };
 
 // --- INLINE STYLES ---
 const STYLES = `
-/* Global Reset */
+/* Reset */
 * { box-sizing: border-box; }
 body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background-color: #f5f5f5; }
 #root { width: 100%; margin: 0; padding: 0; }
@@ -39,70 +70,126 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
 .app-header { background: white; padding: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 .app-header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 .logo-container { display: flex; align-items: center; gap: 0.5rem; }
+
+/* Header Logo (Small) */
 .header-logo-img { height: 400px; width: auto; object-fit: contain; }
+
+/* Auth Main Logo (Large 400px) */
+.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
+
 .logo-text { font-size: 1.5rem; font-weight: bold; color: #333; }
 .user-info { display: flex; gap: 1rem; align-items: center; }
 .user-info span { font-weight: 500; }
 .user-info button { padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background 0.3s; }
 .user-info button:hover { background: #d32f2f; }
 
-/* Dashboard & Common */
-.dashboard-container { padding: 2rem 1rem; text-align: center; width: 100%; }
+/* Auth */
+.auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; }
+.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; }
+.auth-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
+.auth-title { font-size: 1.5rem; font-weight: bold; color: #333; margin: 0.5rem 0; }
+.auth-subtitle { color: #666; margin-bottom: 0.5rem; font-size: 1.1rem; }
+.auth-divider { margin: 1.5rem 0; color: #999; position: relative; }
+.auth-divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #eee; }
+.google-button-container { display: flex; justify-content: center; margin: 1rem 0; width: 100%; }
+.auth-link { color: #4285f4; background: none; border: none; cursor: pointer; text-decoration: none; margin-top: 1rem; display: block; width: 100%; }
+.auth-link:hover { text-decoration: underline; }
+.error-message { background: #ffebee; color: #c62828; padding: 10px; border-radius: 4px; margin-bottom: 1rem; border-left: 4px solid #c62828; text-align: left; }
+
+/* Forms */
+.register-form { text-align: left; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; color: #333; font-weight: 500; }
+.form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; box-sizing: border-box; }
+.register-form button[type="submit"], .email-register-btn { width: 100%; padding: 12px; background: #4285f4; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 1rem; }
+.back-button { width: 100%; padding: 12px; background: white; color: #4285f4; border: 2px solid #4285f4; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 0.5rem; }
+
+/* Dashboard */
+.dashboard-container { padding: 2rem 1rem; text-align: center; }
 .welcome-message h2 { color: #333; margin-bottom: 1rem; font-size: 2rem; }
 .welcome-message p { color: #666; font-size: 1.2rem; margin-bottom: 2rem; }
 .start-matching-btn { padding: 12px 24px; background: #4285f4; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
 .user-stats { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 2rem auto; max-width: 600px; text-align: left; }
+.user-stats h3 { margin-bottom: 1rem; color: #333; }
 .stat-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+.stat-item:last-child { border-bottom: none; }
 
 /* Profile View Styles */
 .profile-section { max-width: 600px; margin: 0 auto; text-align: left; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-.profile-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
 .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; object-fit: cover; margin: 0 auto 1.5rem; }
-.form-group { margin-bottom: 1rem; }
-.form-group label { display: block; margin-bottom: 0.5rem; color: #333; font-weight: 500; }
-.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; box-sizing: border-box; }
 .save-btn { background: #10b981; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 1rem; }
 .save-btn:hover { background: #059669; }
 .history-list { margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
 .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #eee; }
 .history-avatar { width: 40px; height: 40px; border-radius: 50%; background: #eee; margin-right: 10px; object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; font-size: 1.2rem; }
 
-/* Video & Matching */
+
+/* Video Call Interface */
 .video-call-interface { display: flex; flex-direction: column; height: 80vh; gap: 1rem; padding: 1rem; position: relative; }
 .video-container { position: relative; flex: 1; background: #1a1a1a; border-radius: 12px; overflow: hidden; min-height: 400px; display: flex; justify-content: center; align-items: center; }
+
 .video-element { width: 100%; height: 100%; object-fit: cover; }
-.video-element.local { position: absolute; bottom: 20px; right: 20px; width: 150px; height: 200px; border: 2px solid white; border-radius: 8px; z-index: 10; object-fit: cover; background: #333; }
+/* Local video PiP style */
+.video-element.local { position: absolute; bottom: 20px; right: 20px; width: 150px; height: 200px; border: 2px solid white; border-radius: 8px; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.5); object-fit: cover; background: #333; }
 .video-overlay { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px; color: white; display: flex; align-items: center; gap: 0.5rem; z-index: 5; }
 .status-overlay { position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; z-index: 20; }
 .call-controls { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
 .control-btn { background: #f44336; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
 
-/* Auth Box */
-.auth-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 500px; margin: 0 auto; }
-.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
-.google-button-container { display: flex; justify-content: center; margin: 1rem 0; width: 100%; }
-
-/* Rating */
-.rating-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; border-radius: 12px; color: white; text-align: center; }
-.rating-buttons { display: flex; gap: 1rem; margin-top: 2rem; }
-.rating-btn { padding: 1rem 2rem; font-size: 1.2rem; border-radius: 8px; border: none; cursor: pointer; transition: transform 0.2s; }
+/* Rating Modal */
+.rating-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  border-radius: 12px;
+  color: white;
+  text-align: center;
+}
+.rating-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.rating-btn {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
 .rating-btn.good { background: #10b981; color: white; }
 .rating-btn.meh { background: #6b7280; color: white; }
+.rating-btn:hover { transform: scale(1.05); }
 
-/* Mobile Optimizations */
+
+/* Matching & Misc */
+.matching-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; }
+.loader { border: 4px solid #f3f3f3; border-top: 4px solid #4285f4; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 2rem; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.cancel-btn { margin-top: 2rem; padding: 10px 20px; background: transparent; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+
+/* Custom Logo */
+.auth-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; margin-bottom: 1rem; }
+.header-logo-img { height: 400px; width: auto; object-fit: contain; }
+
 @media (max-width: 768px) {
   .app-header-content { flex-direction: column; gap: 1rem; }
   .user-info { flex-direction: column; }
   .auth-box { margin: 1rem; width: auto; }
-  .profile-section { padding: 1.5rem; width: auto; margin: 1rem; }
   
-  /* Mobile PiP Sizing - Top Right to avoid controls */
+  /* Mobile PiP Sizing - Bottom Right */
   .video-element.local { 
-    width: 90px !important; 
-    height: 120px !important; 
-    top: 80px !important; 
+    width: 100px !important; 
+    height: 133px !important; 
+    top: auto !important;
+    bottom: 120px !important; /* Above call controls */
     right: 15px !important;
-    bottom: auto !important;
   }
 }
 `;
@@ -359,8 +446,6 @@ function MatchingView({ user, onCancel, onMatch }) {
 
   useEffect(() => {
     let polling;
-    
-    // Heartbeat & Search function
     const performSearch = async () => {
       try {
         if (!isMatched) {
