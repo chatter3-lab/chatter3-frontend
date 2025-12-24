@@ -96,8 +96,14 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
   .auth-box { margin: 1rem; width: auto; }
   .profile-section { padding: 1.5rem; width: auto; margin: 1rem; }
   
-  /* Mobile PiP Sizing */
-  .video-element.local { width: 100px !important; height: 133px !important; bottom: 100px !important; right: 15px !important; }
+  /* Mobile PiP Sizing - Top Right to avoid controls */
+  .video-element.local { 
+    width: 90px !important; 
+    height: 120px !important; 
+    top: 80px !important; 
+    right: 15px !important;
+    bottom: auto !important;
+  }
 }
 `;
 
@@ -237,10 +243,7 @@ export default function App() {
           <ProfileView 
             user={user} 
             onBack={() => setView('dashboard')} 
-            onUpdate={(updated) => {
-                setUser(updated);
-                localStorage.setItem('chatter3_user', JSON.stringify(updated));
-            }}
+            onUpdate={setUser}
             onLogout={handleLogout}
           />
         )}
@@ -343,6 +346,7 @@ function DashboardView({ user, onNavigate }) {
           <div className="stat-item"><span>Balance</span><span style={{fontWeight: 'bold', color: '#4285f4'}}>{user.points} PTS</span></div>
           <div className="stat-item"><span>Level</span><span style={{fontWeight: 'bold', textTransform: 'capitalize'}}>{user.english_level}</span></div>
           <div className="stat-item"><span>Call Duration</span><span>{user.english_level === 'beginner' ? '5 mins' : '10 mins'}</span></div>
+          <button onClick={() => onNavigate('profile')} style={{marginTop:'1rem', padding:'10px', width:'100%', background:'#f5f5f5', border:'1px solid #ddd', borderRadius:'4px', cursor:'pointer'}}>Edit Profile</button>
         </div>
       </div>
     </div>
@@ -355,6 +359,8 @@ function MatchingView({ user, onCancel, onMatch }) {
 
   useEffect(() => {
     let polling;
+    
+    // Heartbeat & Search function
     const performSearch = async () => {
       try {
         if (!isMatched) {
@@ -384,6 +390,7 @@ function MatchingView({ user, onCancel, onMatch }) {
         setStatus('Connection error. Retrying...'); 
       }
     };
+
     performSearch();
     polling = setInterval(performSearch, 3000);
     return () => clearInterval(polling);
@@ -416,6 +423,7 @@ function VideoRoomView({ user, session, onEnd }) {
   const [timeLeft, setTimeLeft] = useState(session.english_level === 'beginner' ? 300 : 600);
   const [connectionStatus, setConnectionStatus] = useState('Initializing...');
   const [showRating, setShowRating] = useState(false);
+  const [waitingForPartner, setWaitingForPartner] = useState(false);
   
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -648,6 +656,7 @@ function VideoRoomView({ user, session, onEnd }) {
 
   const handleRate = async (rating) => {
     try {
+      setWaitingForPartner(true);
       const res = await fetch(`${API_URL}/api/matching/rate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
