@@ -144,7 +144,7 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: -apple-system, Bli
   .profile-section { padding: 1.5rem; width: auto; margin: 1rem; }
   
   /* Mobile PiP Sizing - Bottom Right */
-  .video-element.local { width: 100px !important; height: 133px !important; top: auto !important; bottom: 10px !important; right: 10px !important; }
+  .video-element.local { width: 50px !important; height: 50px !important; top: auto !important; bottom: 10px !important; right: 10px !important; }
 }
 `;
 
