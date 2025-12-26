@@ -388,7 +388,7 @@ function DashboardView({ user, onNavigate }) {
           <div className="stat-item"><span>Balance</span><span style={{fontWeight: 'bold', color: '#4285f4'}}>{user.points} PTS</span></div>
           <div className="stat-item"><span>Level</span><span style={{fontWeight: 'bold', textTransform: 'capitalize'}}>{user.english_level}</span></div>
           <div className="stat-item"><span>Call Duration</span><span>{user.english_level === 'beginner' ? '5 mins' : '10 mins'}</span></div>
-          <button onClick={() => onNavigate('profile')} style={{marginTop:'1rem', padding:'10px', width:'100%', background:'#f5f5f5', border:'1px solid #ddd', borderRadius:'4px', cursor:'pointer'}}>Profile and Conversations</button>
+          <button onClick={() => onNavigate('profile')} style={{marginTop:'1rem', padding:'10px', width:'100%', background:'#f5f5f5', border:'1px solid #ddd', borderRadius:'4px', cursor:'pointer'}}>Profile and Conversation History</button>
         </div>
       </div>
     </div>
