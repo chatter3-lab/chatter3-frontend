@@ -347,7 +347,7 @@ function AuthView({ onLogin }) {
     <div className="auth-container">
       <div className="auth-box">
         <div className="auth-header">
-          <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="auth-logo" />
+          <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="auth-logo" />
           <p className="auth-subtitle">Master English with native speakers</p>
         </div>
         {error && <div className="error-message">{error}</div>}
