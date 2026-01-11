@@ -239,7 +239,7 @@ export default function App() {
         <header className="app-header">
           <div className="app-header-content">
             <div className="logo-container">
-              <img src="https://i.postimg.cc/RhMnVSCY/Catter3logo-transparent-5.png" alt="Chatter3" className="header-logo-img" />              
+              <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="header-logo-img" />              
             </div>
             {user && (
               <div className="user-info">
