@@ -307,7 +307,7 @@ function AuthView({ onLogin }) {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
+    const endpoint = isRegistering ? '/api/auth/google' : '/api/auth/login';
     try {
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
