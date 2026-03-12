@@ -32,18 +32,29 @@ export default function App() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div style={{ fontFamily: 'Arial, sans-serif', minHeight: '100vh', backgroundColor: '#f9f9f9', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {/* Outer wrapper: Ensures everything is centered in the viewport */}
+      <div style={{ 
+        fontFamily: 'Arial, sans-serif', 
+        minHeight: '100vh', 
+        width: '100vw', 
+        backgroundColor: '#f9f9f9', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center',
+        margin: 0,
+        padding: 0,
+        overflowX: 'hidden'
+      }}>
         
         {/* HEADER / LOGO */}
         {user && view !== 'call' && (
           <header style={{ width: '100%', backgroundColor: 'white', borderBottom: '1px solid #eee', padding: '10px 0', marginBottom: '20px' }}>
             <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '32px', height: '32px', backgroundColor: '#4285f4', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', fontWeight: 'bold' }}>C3</div>
+                <img src="https://i.postimg.cc/Z5qYw3Hs/service-logo.png" alt="Chatter3" style={{ height: '40px' }} />
                 <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#333' }}>Chatter3</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <span style={{ color: '#666' }}>{user.username}</span>
                 <span style={{ color: '#4285f4', fontWeight: 'bold' }}>{user.points} PTS</span>
                 <button onClick={handleLogout} style={{ background: 'none', border: '1px solid #ddd', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Logout</button>
               </div>
@@ -51,7 +62,8 @@ export default function App() {
           </header>
         )}
 
-        <main style={{ width: '100%', maxWidth: '500px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {/* Main Content Area: Centered horizontally */}
+        <main style={{ width: '100%', maxWidth: '450px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxSizing: 'border-box' }}>
           {view === 'auth' && <AuthView onLogin={handleLogin} />}
           {view === 'dashboard' && <DashboardView user={user} onNavigate={setView} />}
           {view === 'matching' && <MatchingView user={user} onCancel={() => setView('dashboard')} onMatch={(s) => { setSession(s); setView('call'); }} />}
@@ -63,7 +75,6 @@ export default function App() {
   );
 }
 
-// --- AUTH VIEW (RE-ADDED GOOGLE LOGIN) ---
 function AuthView({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -73,7 +84,7 @@ function AuthView({ onLogin }) {
   const handleGoogleSuccess = async (credentialResponse) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, { // Use register endpoint as it handles "INSERT OR SELECT"
+      const res = await fetch(`${API_URL}/api/auth/register`, { 
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, email: 'google_user', google_token: credentialResponse.credential }) 
       });
@@ -100,20 +111,24 @@ function AuthView({ onLogin }) {
   };
 
   return (
-    <div style={{ background: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', width: '100%', textAlign: 'center' }}>
-      <h2 style={{ marginBottom: '10px' }}>{isRegistering ? 'Join Chatter3' : 'Welcome Back'}</h2>
+    <div style={{ background: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', width: '100%', textAlign: 'center', boxSizing: 'border-box' }}>
+      
+      {/* SERVICE LOGO REPLACED HERE */}
+      <img src="https://i.postimg.cc/Z5qYw3Hs/service-logo.png" alt="Chatter3" style={{ height: '80px', marginBottom: '15px' }} />
+      
+      <h2 style={{ marginBottom: '10px', fontSize: '1.5rem' }}>{isRegistering ? 'Join Chatter3' : 'Welcome Back'}</h2>
       <p style={{ color: '#666', marginBottom: '20px' }}>Connect, Speak, Earn.</p>
 
-      {error && <div style={{ color: '#d93025', backgroundColor: '#fdecea', padding: '10px', borderRadius: '4px', marginBottom: '15px' }}>{error}</div>}
+      {error && <div style={{ color: '#d93025', backgroundColor: '#fdecea', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '0.9rem' }}>{error}</div>}
       
       <form onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
         {isRegistering && (
           <>
-            <div style={{ marginBottom: '12px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>Username</label><input type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} required style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd' }}/></div>
-            <div style={{ marginBottom: '12px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>Country</label><input type="text" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} required style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd' }} placeholder="e.g. Japan"/></div>
-            <div style={{ marginBottom: '12px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>Native Language</label><input type="text" value={formData.native_language} onChange={e => setFormData({...formData, native_language: e.target.value})} required style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd' }} placeholder="e.g. Japanese"/></div>
+            <div style={{ marginBottom: '12px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>Username</label><input type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} required style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }}/></div>
+            <div style={{ marginBottom: '12px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>Country</label><input type="text" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} required style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }}/></div>
+            <div style={{ marginBottom: '12px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>Native Language</label><input type="text" value={formData.native_language} onChange={e => setFormData({...formData, native_language: e.target.value})} required style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }}/></div>
             <div style={{ marginBottom: '12px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>English Level</label>
-               <select value={formData.english_level} onChange={e => setFormData({...formData, english_level: e.target.value})} style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd' }}>
+               <select value={formData.english_level} onChange={e => setFormData({...formData, english_level: e.target.value})} style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }}>
                  <option value="beginner">Beginner</option>
                  <option value="intermediate">Intermediate</option>
                  <option value="advanced">Advanced</option>
@@ -121,11 +136,11 @@ function AuthView({ onLogin }) {
             </div>
           </>
         )}
-        <div style={{ marginBottom: '12px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>Email</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd' }}/></div>
-        <div style={{ marginBottom: '20px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>Password</label><input type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd' }}/></div>
+        <div style={{ marginBottom: '12px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>Email</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }}/></div>
+        <div style={{ marginBottom: '20px' }}><label style={{ fontSize: '0.9rem', color: '#555' }}>Password</label><input type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }}/></div>
         
         <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', background: '#4285f4', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
-          {loading ? 'Please wait...' : (isRegistering ? 'Create Account' : 'Sign In')}
+          {loading ? 'Processing...' : (isRegistering ? 'Create Account' : 'Sign In')}
         </button>
       </form>
 
@@ -145,30 +160,3 @@ function AuthView({ onLogin }) {
     </div>
   );
 }
-
-function DashboardView({ user, onNavigate }) {
-  return (
-    <div style={{ textAlign: 'center', width: '100%' }}>
-      <h2 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>Ready to practice?</h2>
-      <p style={{ color: '#666', marginBottom: '30px' }}>Match with a partner and improve your English.</p>
-      
-      <button onClick={() => onNavigate('matching')} style={{ width: '100%', padding: '15px', background: '#4285f4', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(66, 133, 244, 0.3)', marginBottom: '15px' }}>
-        Find a Conversation Partner
-      </button>
-      
-      <button onClick={() => onNavigate('profile')} style={{ width: '100%', padding: '12px', background: 'white', border: '1px solid #ddd', borderRadius: '12px', color: '#555', cursor: 'pointer' }}>
-        Profile and Conversation History
-      </button>
-
-      <div style={{ marginTop: '40px', padding: '20px', backgroundColor: 'white', borderRadius: '12px', textAlign: 'left', border: '1px solid #eee' }}>
-        <h4 style={{ margin: '0 0 10px 0' }}>Your Stats</h4>
-        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666' }}>
-          <span>Level: <b style={{color: '#333'}}>{user.english_level}</b></span>
-          <span>Balance: <b style={{color: '#4285f4'}}>{user.points} PTS</b></span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ... Rest of the sub-components (MatchingView, VideoRoomView, ProfileView) remain the same as previous logic but with better styling
