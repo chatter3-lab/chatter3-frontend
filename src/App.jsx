@@ -355,6 +355,8 @@ function AuthView({ onLogin }) {
           {isRegistering && (
             <>
               <div className="form-group"><label>Username</label><input type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} required /></div>
+			  <div className="form-group"><label>Country of Origin</label><input type="text" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} required style={{width:'100%', padding:'8px', margin:'5px 0'}}/></div>
+              <div className="form-group"><label>Native Language</label><input type="text" value={formData.native_language} onChange={e => setFormData({...formData, native_language: e.target.value})} required style={{width:'100%', padding:'8px', margin:'5px 0'}}/></div>
               <div className="form-group"><label>English Level</label><select value={formData.english_level} onChange={e => setFormData({...formData, english_level: e.target.value})}><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></div>
             </>
           )}
