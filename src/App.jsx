@@ -325,7 +325,7 @@ function AuthView({ onLogin }) {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`${API_URL}/api/auth/google`, {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         mode: 'cors',
         headers: { 'Content-Type': 'application/json' },
