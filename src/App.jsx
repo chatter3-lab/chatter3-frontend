@@ -47,9 +47,9 @@ const ONBOARDING_SLIDES = [
     emoji: '⭐',
     accentColor: '#059669',
     headline: 'Your conversations earn value.',
-    body: 'Speak, get feedback, and earn points. Use them to keep talking — or unlock future rewards.',
+    body: 'Speak, get feedback, and earn points. Use them to keep talking.',
     tag: 'EARN',
-    note: 'Points are awarded as standard in-app points for now.',
+    note: 'Points are awarded as standard in-app points.',
   },
 ];
 
