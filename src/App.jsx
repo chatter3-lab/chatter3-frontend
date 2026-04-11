@@ -121,6 +121,71 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: 'DM Sans', -apple-
 .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #eee; }
 .history-avatar { width: 40px; height: 40px; border-radius: 50%; background: #eee; margin-right: 10px; object-fit: cover; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; font-size: 1.2rem; }
 
+/* Points earned badge in history */
+.history-points {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 9px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #15803d;
+  margin-top: 4px;
+}
+
+/* Terms checkbox row */
+.terms-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0.75rem 0 0;
+  text-align: left;
+}
+.terms-row input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: #4285f4;
+  cursor: pointer;
+}
+.terms-row label {
+  font-size: 0.82rem;
+  color: #6b7280;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.terms-row a {
+  color: #4285f4;
+  text-decoration: underline;
+}
+
+/* Dashboard online pill */
+.dashboard-online-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #15803d;
+  margin-bottom: 1.25rem;
+}
+.dashboard-online-pill .live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: onlinePulse 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
 /* ============================================================
    ONBOARDING SLIDER
    ============================================================ */
@@ -1043,11 +1108,16 @@ export default function App() {
 function AuthView({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '', username: '', english_level: 'beginner', country: '', native_language: '' });
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isRegistering && !termsAccepted) {
+      setError('Please accept the Terms of Service, Privacy Policy, and Refund Policy to continue.');
+      return;
+    }
     setLoading(true); setError('');
     try {
       const res = await fetch(`${API_URL}${isRegistering ? '/api/auth/register' : '/api/auth/login'}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
@@ -1063,6 +1133,12 @@ function AuthView({ onLogin }) {
       const data = await res.json();
       if (data.success) onLogin(data.user); else setError(data.error || 'Google auth failed');
     } catch { setError('Network error during Google Login'); } finally { setLoading(false); }
+  };
+
+  const handleToggleMode = () => {
+    setIsRegistering(v => !v);
+    setError('');
+    setTermsAccepted(false);
   };
 
   return (
@@ -1088,13 +1164,36 @@ function AuthView({ onLogin }) {
           )}
           <div className="form-group"><label>Email</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required /></div>
           <div className="form-group"><label>Password</label><input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required /></div>
-          <button type="submit" disabled={loading}>{loading ? 'Loading...' : (isRegistering ? 'Create Account' : 'Sign In')}</button>
+          {isRegistering && (
+            <div className="terms-row">
+              <input
+                type="checkbox"
+                id="terms-checkbox"
+                checked={termsAccepted}
+                onChange={e => setTermsAccepted(e.target.checked)}
+              />
+              <label htmlFor="terms-checkbox">
+                I have read and agree to the{' '}
+                <a href="https://chatter3.com/terms-of-service" target="_blank" rel="noopener noreferrer">Terms of Service</a>,{' '}
+                <a href="https://chatter3.com/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>,{' '}
+                and{' '}
+                <a href="https://chatter3.com/refund-policy" target="_blank" rel="noopener noreferrer">Refund Policy</a>.
+              </label>
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={loading || (isRegistering && !termsAccepted)}
+            style={{ opacity: (isRegistering && !termsAccepted) ? 0.55 : 1, cursor: (isRegistering && !termsAccepted) ? 'not-allowed' : 'pointer' }}
+          >
+            {loading ? 'Loading...' : (isRegistering ? 'Create Account' : 'Sign In')}
+          </button>
         </form>
         <div className="auth-divider">or</div>
         <div className="google-button-container">
           <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError('Google Sign In was unsuccessful.')} />
         </div>
-        <button className="auth-link" onClick={() => setIsRegistering(!isRegistering)}>
+        <button className="auth-link" onClick={handleToggleMode}>
           {isRegistering ? 'Already have an account? Sign In' : 'New to Chatter3? Create Account'}
         </button>
       </div>
@@ -1106,12 +1205,34 @@ function AuthView({ onLogin }) {
 // DASHBOARD VIEW
 // ============================================================
 function DashboardView({ user, onNavigate, onFindPartner }) {
+  const [onlineStats, setOnlineStats] = useState({ searching: 0, in_call: 0 });
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/stats/online`)
+      .then(r => r.json())
+      .then(d => setOnlineStats({ searching: d.searching || 0, in_call: d.in_call || 0 }))
+      .catch(() => {});
+  }, []);
+
+  const totalOnline = onlineStats.searching + onlineStats.in_call;
+
   return (
     <div className="dashboard-container">
       <div className="welcome-message">
         <h2>Ready to start a conversation?</h2>
         <p>Your English practice journey begins here!</p>
-        <button onClick={onFindPartner} className="start-matching-btn">Find a Conversation Partner</button>
+
+        {totalOnline > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
+            <span className="dashboard-online-pill">
+              <span className="live-dot" />
+              {totalOnline === 1 ? '1 person online now' : `${totalOnline} people online now`}
+              {onlineStats.searching > 0 && <span style={{ opacity: 0.7, fontWeight: 400 }}>&nbsp;· {onlineStats.searching} searching</span>}
+            </span>
+          </div>
+        )}
+
+        <button onClick={onFindPartner} className="start-matching-btn" style={{ marginTop: '0.5rem' }}>Find a Conversation Partner</button>
         <div className="user-stats">
           <h3>Your Stats</h3>
           <div className="stat-item"><span>Balance</span><span style={{ fontWeight: 'bold', color: '#4285f4' }}>{user.points} PTS</span></div>
@@ -1570,15 +1691,24 @@ function ProfileView({ user, onBack, onUpdate, onLogout, onShowOnboarding }) {
         {history.length === 0 && <p style={{ color: '#999' }}>No calls yet. Find a partner to get started!</p>}
         {history.map(h => (
           <div key={h.id} className="history-item">
-            <div>
-              <strong>{h.partner_name || 'Unknown'}</strong><br />
-              <span style={{ fontSize: '0.8rem', color: '#666' }}>{new Date(h.created_at).toLocaleDateString()}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+              <div className="history-avatar" style={{ margin: 0, flexShrink: 0 }}>
+                {h.partner_avatar
+                  ? <img src={h.partner_avatar} style={{ width: '100%', height: '100%', borderRadius: '50%' }} alt="" />
+                  : (h.partner_name || '?').charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <strong>{h.partner_name || 'Unknown'}</strong>
+                <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '1px' }}>
+                  {new Date(h.created_at).toLocaleDateString()}
+                </div>
+                {h.points_earned != null && (
+                  <span className="history-points">⭐ +{h.points_earned} PTS</span>
+                )}
+              </div>
             </div>
-            <div style={{ textAlign: 'center', fontSize: '0.85rem', color: '#666' }}>
-              {h.duration ? Math.floor(h.duration / 60) + 'm' : 'Incomplete'}
-            </div>
-            <div className="history-avatar">
-              {h.partner_avatar ? <img src={h.partner_avatar} style={{ width: '100%', height: '100%', borderRadius: '50%' }} alt="" /> : (h.partner_name || '?').charAt(0).toUpperCase()}
+            <div style={{ textAlign: 'right', fontSize: '0.85rem', color: '#6b7280', flexShrink: 0 }}>
+              {h.duration ? Math.floor(h.duration / 60) + 'm ' + (h.duration % 60) + 's' : 'Incomplete'}
             </div>
           </div>
         ))}
