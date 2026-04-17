@@ -11,7 +11,28 @@ const SOUNDS = {
   match: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3',
   start: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3',
   end: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3',
-  points: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'
+  points: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3',
+  ringing: 'https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3',
+};
+
+// Looping ringing audio — returns a stop function
+const startRinging = () => {
+  let stopped = false;
+  let audio = null;
+  const play = () => {
+    if (stopped) return;
+    try {
+      audio = new Audio(SOUNDS.ringing);
+      audio.volume = 0.45;
+      audio.onended = () => { if (!stopped) setTimeout(play, 600); };
+      audio.play().catch(() => {});
+    } catch (e) {}
+  };
+  play();
+  return () => {
+    stopped = true;
+    if (audio) { try { audio.pause(); audio.src = ''; } catch(e){} }
+  };
 };
 
 const playSound = (type) => {
@@ -724,6 +745,32 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: 'DM Sans', -apple-
 .rating-btn.meh { background: #6b7280; color: white; }
 .rating-btn:hover { transform: scale(1.05); }
 
+/* Report/Block modal */
+.report-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.report-card { background: white; border-radius: 16px; padding: 1.75rem 1.5rem; width: 100%; max-width: 380px; animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1); }
+.report-card h3 { font-family: 'Sora', sans-serif; font-size: 1.1rem; font-weight: 800; color: #1a1a2e; margin: 0 0 0.35rem; }
+.report-card p { color: #6b7280; font-size: 0.85rem; margin: 0 0 1.25rem; }
+.report-reason-btn { display: block; width: 100%; padding: 10px 14px; margin-bottom: 8px; background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.88rem; text-align: left; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; color: #374151; }
+.report-reason-btn:hover { border-color: #ef4444; color: #ef4444; background: #fff5f5; }
+.report-reason-btn.selected { border-color: #ef4444; background: #fff5f5; color: #ef4444; font-weight: 600; }
+.report-submit-btn { width: 100%; padding: 11px; background: #ef4444; color: white; border: none; border-radius: 8px; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 4px; transition: background 0.2s; }
+.report-submit-btn:hover { background: #dc2626; }
+.report-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.report-cancel-btn { width: 100%; padding: 9px; background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 0.85rem; margin-top: 6px; font-family: 'DM Sans', sans-serif; }
+.report-success { text-align: center; padding: 1rem 0; }
+.report-success .report-success-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+.report-success h3 { font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 700; color: #1a1a2e; }
+.report-success p { color: #6b7280; font-size: 0.85rem; }
+
+/* Report button in call controls */
+.report-btn { background: none; border: 1px solid #e5e7eb; color: #9ca3af; padding: 7px 12px; border-radius: 7px; font-size: 0.78rem; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+.report-btn:hover { border-color: #ef4444; color: #ef4444; background: #fff5f5; }
+
+/* Compact video header — shown only during call */
+.video-compact-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 1rem; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.08); flex-shrink: 0; }
+.video-compact-header img { height: 36px; width: auto; }
+.video-compact-pts { font-size: 0.8rem; font-weight: 700; color: #4285f4; }
+
 /* Mobile */
 @media (max-width: 768px) {
   .app-header-content { flex-direction: column; gap: 1rem; }
@@ -1063,7 +1110,7 @@ export default function App() {
 
         {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
 
-        {view !== 'auth' && (
+        {view !== 'auth' && view !== 'video' && view !== 'precall' && (
           <header className="app-header">
             <div className="app-header-content">
               <div className="logo-container">
@@ -1248,12 +1295,101 @@ function DashboardView({ user, onNavigate, onFindPartner }) {
 }
 
 // ============================================================
+// REPORT / BLOCK MODAL
+// ============================================================
+const REPORT_REASONS = [
+  'Inappropriate or offensive language',
+  'Harassment or bullying',
+  'Spam or scam behavior',
+  'Explicit or adult content',
+  'Impersonation',
+  'Other',
+];
+
+function ReportModal({ targetUser, sessionId, reporterUserId, onClose }) {
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(null); // 'reported' | 'blocked' | 'both'
+
+  const submit = async (action) => {
+    if (action !== 'block' && !reason) return;
+    setSubmitting(true);
+    try {
+      if (action === 'report' || action === 'both') {
+        await fetch(`${API_URL}/api/report`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reporter_id: reporterUserId, reported_id: targetUser.id, session_id: sessionId, reason }),
+        });
+      }
+      if (action === 'block' || action === 'both') {
+        await fetch(`${API_URL}/api/block`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blocker_id: reporterUserId, blocked_id: targetUser.id }),
+        });
+      }
+      setDone(action);
+    } catch (e) {
+      setDone(action); // still show success — don't leave user hanging
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const name = targetUser?.nickname || targetUser?.username || 'this user';
+
+  if (done) return (
+    <div className="report-overlay" onClick={onClose}>
+      <div className="report-card" onClick={e => e.stopPropagation()}>
+        <div className="report-success">
+          <div className="report-success-icon">✅</div>
+          <h3>{done === 'block' ? `${name} has been blocked.` : done === 'both' ? `${name} reported & blocked.` : `Report submitted.`}</h3>
+          <p style={{ marginTop: '0.5rem' }}>{done === 'block' ? 'You won't be matched with them again.' : 'Our team will review this. Thank you for keeping Chatter3 safe.'}</p>
+          <button className="report-submit-btn" style={{ marginTop: '1.25rem' }} onClick={onClose}>Done</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="report-overlay" onClick={onClose}>
+      <div className="report-card" onClick={e => e.stopPropagation()}>
+        <h3>Report or Block</h3>
+        <p>Reporting {name}. Select a reason, then choose an action.</p>
+        {REPORT_REASONS.map(r => (
+          <button key={r} className={`report-reason-btn ${reason === r ? 'selected' : ''}`} onClick={() => setReason(r)}>{r}</button>
+        ))}
+        <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+          <button
+            className="report-submit-btn"
+            style={{ flex: 1, background: '#6b7280' }}
+            disabled={!reason || submitting}
+            onClick={() => submit('block')}
+          >
+            🚫 Block
+          </button>
+          <button
+            className="report-submit-btn"
+            style={{ flex: 1 }}
+            disabled={!reason || submitting}
+            onClick={() => submit('both')}
+          >
+            ⚑ Report & Block
+          </button>
+        </div>
+        <button className="report-cancel-btn" onClick={onClose}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // MATCHING VIEW — sonar animation + online count
 // ============================================================
 function MatchingView({ user, onCancel, onMatch }) {
   const [status, setStatus] = useState('Looking for a partner...');
   const [isMatched, setIsMatched] = useState(false);
   const [onlineStats, setOnlineStats] = useState({ searching: 0, in_call: 0 });
+  const stopRingingRef = useRef(null);
 
   // Fetch online stats once on mount
   useEffect(() => {
@@ -1261,6 +1397,10 @@ function MatchingView({ user, onCancel, onMatch }) {
       .then(r => r.json())
       .then(d => setOnlineStats({ searching: d.searching || 0, in_call: d.in_call || 0 }))
       .catch(() => {});
+
+    // Start ringing sound loop
+    stopRingingRef.current = startRinging();
+    return () => { stopRingingRef.current?.(); };
   }, []);
 
   useEffect(() => {
@@ -1273,7 +1413,11 @@ function MatchingView({ user, onCancel, onMatch }) {
             body: JSON.stringify({ user_id: user.id, english_level: user.english_level })
           });
           const joinData = await joinRes.json();
-          if (joinData.matched) { setIsMatched(true); setStatus('Partner found!'); }
+          if (joinData.matched) {
+            setIsMatched(true);
+            setStatus('Partner found!');
+            stopRingingRef.current?.(); // stop ringing on match
+          }
         }
         const sessRes = await fetch(`${API_URL}/api/matching/session/${user.id}`);
         const sessData = await sessRes.json();
@@ -1290,6 +1434,7 @@ function MatchingView({ user, onCancel, onMatch }) {
   }, [isMatched]);
 
   const handleCancel = async () => {
+    stopRingingRef.current?.();
     try {
       await fetch(`${API_URL}/api/matching/leave`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: user.id }) });
     } catch {}
@@ -1336,6 +1481,7 @@ function VideoRoomView({ user, session, callStartedAt, onEnd }) {
   const [connectionStatus, setConnectionStatus] = useState('new');
   const [showRating, setShowRating] = useState(false);
   const [showDisconnect, setShowDisconnect] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const [error, setError] = useState('');
 
   const localVideoRef = useRef(null);
@@ -1542,6 +1688,21 @@ function VideoRoomView({ user, session, callStartedAt, onEnd }) {
 
   return (
     <div className="video-call-interface">
+      {/* Compact header — replaces full nav during call */}
+      <div className="video-compact-header">
+        <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" />
+        <span className="video-compact-pts">⭐ {user.points} PTS</span>
+      </div>
+
+      {showReport && (
+        <ReportModal
+          targetUser={session.partner}
+          sessionId={session.id}
+          reporterUserId={user.id}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+
       <div className="video-container">
         <video ref={remoteVideoRef} autoPlay playsInline className="video-element" />
         <video ref={localVideoRef} autoPlay playsInline muted className="video-element local" />
@@ -1593,6 +1754,7 @@ function VideoRoomView({ user, session, callStartedAt, onEnd }) {
                 {getFlag(session.partner.country)} {session.partner.country}
               </p>
             )}
+            <button className="report-btn" style={{ marginTop: '6px' }} onClick={() => setShowReport(true)}>⚑ Report</button>
           </div>
           <button onClick={handleHangup} className="control-btn">
             <PhoneOff style={{ width: 18, height: 18 }} /> End Call
