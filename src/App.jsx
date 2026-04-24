@@ -47,7 +47,7 @@ const playSound = (type) => {
 const ONBOARDING_SLIDES = [
   { id: 1, emoji: '🌐', accentColor: '#4f8ef7', headline: 'Connect with real people, instantly.', body: 'Get matched 1-on-1 with learners around the world. No scheduling. No profiles to browse.', tag: 'CONNECT' },
   { id: 2, emoji: '🗣️', accentColor: '#7c3aed', headline: 'Just speak. That\'s how you learn.', body: 'Short, real conversations build real confidence. No lessons. No teachers. Just practice.', tag: 'SPEAK' },
-  { id: 3, emoji: '⭐', accentColor: '#059669', headline: 'Your conversations earn value.', body: 'Speak, get feedback, and earn points. Use them to keep talking.', tag: 'EARN', note: 'Points are awarded as standard points.' },
+  { id: 3, emoji: '⭐', accentColor: '#059669', headline: 'Your conversations earn value.', body: 'Speak, get feedback, and earn points. Use them to keep talking', tag: 'EARN', note: 'Points are awarded as standard points.' },
 ];
 
 // --- Country → Flag emoji ---
@@ -69,9 +69,52 @@ const COUNTRY_FLAGS = {
   'iran': '🇮🇷', 'iraq': '🇮🇶', 'israel': '🇮🇱', 'nepal': '🇳🇵',
   'sri lanka': '🇱🇰', 'myanmar': '🇲🇲', 'cambodia': '🇰🇭',
 };
+
+// Common typo / alternate spelling aliases → canonical key
+const COUNTRY_ALIASES = {
+  'japon': 'japan', 'jpn': 'japan', 'jp': 'japan',
+  'corea': 'korea', 'corea del sur': 'south korea', 'kr': 'korea',
+  'cn': 'china', 'zhongguo': 'china',
+  'états-unis': 'united states', 'etats unis': 'united states', 'eeuu': 'united states',
+  'estados unidos': 'united states', 'u.s.a': 'united states', 'u.s': 'united states',
+  'u.k': 'uk', 'great britain': 'uk', 'england': 'uk', 'britain': 'uk',
+  'deutschland': 'germany', 'allemagne': 'germany',
+  'россия': 'russia', 'rusija': 'russia',
+  'türkiye': 'turkey', 'turkiye': 'turkey',
+  'pilipinas': 'philippines', 'filipinas': 'philippines',
+  'viet nam': 'vietnam', 'việt nam': 'vietnam',
+  'brasil': 'brazil',
+  'espana': 'spain', 'españa': 'spain',
+  'italia': 'italy',
+  'indie': 'india',
+  'österreich': 'austria', 'osterreich': 'austria',
+  'schweiz': 'switzerland', 'suisse': 'switzerland',
+  'belgique': 'belgium',
+  'polska': 'poland',
+  'nederland': 'netherlands', 'hollande': 'netherlands', 'holland': 'netherlands',
+  'hellas': 'greece', 'grecia': 'greece',
+  'україна': 'ukraine', 'ukraina': 'ukraine',
+  'marokko': 'morocco', 'maroc': 'morocco',
+  'ísrael': 'israel', 'israil': 'israel',
+  'myanma': 'myanmar', 'burma': 'myanmar',
+};
+
+// Normalise free-text country input: strip whitespace, apply alias map,
+// then try exact key lookup, then prefix match as last resort.
+const normalizeCountry = (raw) => {
+  if (!raw) return '';
+  const s = raw.trim().toLowerCase().replace(/\s+/g, ' ');
+  if (COUNTRY_ALIASES[s]) return COUNTRY_ALIASES[s];
+  if (COUNTRY_FLAGS[s]) return s;
+  // prefix match: "united st" → "united states"
+  const keys = Object.keys(COUNTRY_FLAGS);
+  const prefix = keys.find(k => k.startsWith(s) || s.startsWith(k));
+  return prefix || s;
+};
+
 const getFlag = (country) => {
   if (!country) return '🌍';
-  return COUNTRY_FLAGS[country.trim().toLowerCase()] || '🌍';
+  return COUNTRY_FLAGS[normalizeCountry(country)] || '🌍';
 };
 
 // Conversation starter tips
@@ -737,6 +780,27 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: 'DM Sans', -apple-
 }
 .disconnect-end-btn:hover { background: #dc2626; }
 
+/* Partner-ended + network-ended intermediate screen */
+.call-ended-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 45;
+  border-radius: 12px;
+  text-align: center;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease;
+  color: white;
+}
+.call-ended-overlay .ended-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+.call-ended-overlay h3 { font-family: 'Sora', sans-serif; font-size: 1.2rem; font-weight: 700; margin: 0 0 0.5rem; }
+.call-ended-overlay p { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin: 0; }
+
 /* Rating Modal */
 .rating-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; border-radius: 12px; color: white; text-align: center; }
 .rating-buttons { display: flex; gap: 1rem; margin-top: 2rem; }
@@ -744,6 +808,24 @@ body, html { margin: 0; padding: 0; width: 100%; font-family: 'DM Sans', -apple-
 .rating-btn.good { background: #10b981; color: white; }
 .rating-btn.meh { background: #6b7280; color: white; }
 .rating-btn:hover { transform: scale(1.05); }
+
+/* Daily limit gate modal */
+.daily-limit-overlay { position: fixed; inset: 0; z-index: 8800; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.daily-limit-card { background: white; border-radius: 20px; padding: 2rem 1.75rem; width: 100%; max-width: 380px; animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1); text-align: center; }
+.daily-limit-card .limit-icon { font-size: 2.8rem; margin-bottom: 0.75rem; }
+.daily-limit-card h2 { font-family: 'Sora', sans-serif; font-size: 1.25rem; font-weight: 800; color: #1a1a2e; margin: 0 0 0.4rem; }
+.daily-limit-card p { color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin: 0 0 1.5rem; }
+.limit-pts-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; }
+.limit-pts-box .pts-balance { font-family: 'Sora', sans-serif; font-size: 1.5rem; font-weight: 800; color: #15803d; }
+.limit-pts-box .pts-label { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
+.limit-spend-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #4f8ef7, #7c3aed); color: white; border: none; border-radius: 10px; font-family: 'Sora', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; margin-bottom: 8px; }
+.limit-spend-btn:hover { opacity: 0.9; }
+.limit-spend-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.limit-cancel-btn { width: 100%; padding: 10px; background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 0.85rem; font-family: 'DM Sans', sans-serif; }
+.daily-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 1.25rem; }
+.daily-dot { width: 32px; height: 8px; border-radius: 4px; }
+.daily-dot.used { background: #4f8ef7; }
+.daily-dot.free { background: #e5e7eb; }
 
 /* Report/Block modal */
 .report-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 1rem; }
@@ -1001,6 +1083,8 @@ export default function App() {
   const [callStartedAt, setCallStartedAt] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProfileGate, setShowProfileGate] = useState(false);
+  const [showDailyLimit, setShowDailyLimit] = useState(false);
+  const [dailyStatus, setDailyStatus] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('chatter3_user');
@@ -1059,9 +1143,32 @@ export default function App() {
     setView('auth');
   };
 
-  const handleFindPartner = () => {
+  const handleFindPartner = async () => {
     if (!user) return;
+    // Profile gate — must have country + native language
     if (!user.country || !user.native_language) { setShowProfileGate(true); return; }
+    // Daily limit check
+    try {
+      const res = await fetch(`${API_URL}/api/user/daily-status?user_id=${user.id}`);
+      const status = await res.json();
+      if (status.needs_points) {
+        setDailyStatus(status);
+        setShowDailyLimit(true);
+        return;
+      }
+    } catch {
+      // If the check fails, let them through — don't block on a network error
+    }
+    setView('matching');
+  };
+
+  const handleDailySpend = (newBalance) => {
+    // Update local user balance after spending points
+    const updated = { ...user, points: newBalance };
+    setUser(updated);
+    localStorage.setItem('chatter3_user', JSON.stringify(updated));
+    setShowDailyLimit(false);
+    setDailyStatus(null);
     setView('matching');
   };
 
@@ -1106,6 +1213,15 @@ export default function App() {
 
         {showProfileGate && user && (
           <ProfileCompletionModal user={user} onComplete={handleProfileGateComplete} onDismiss={() => setShowProfileGate(false)} />
+        )}
+
+        {showDailyLimit && user && dailyStatus && (
+          <DailyLimitModal
+            user={user}
+            dailyStatus={dailyStatus}
+            onSpendAndContinue={handleDailySpend}
+            onDismiss={() => { setShowDailyLimit(false); setDailyStatus(null); }}
+          />
         )}
 
         {view === 'auth' && <AuthView onLogin={handleLoginSuccess} />}
@@ -1251,17 +1367,28 @@ function AuthView({ onLogin }) {
 // ============================================================
 // DASHBOARD VIEW
 // ============================================================
+const DAILY_FREE_LIMIT_DISPLAY = 3; // mirrors backend DAILY_FREE_LIMIT
+
 function DashboardView({ user, onNavigate, onFindPartner }) {
   const [onlineStats, setOnlineStats] = useState({ searching: 0, in_call: 0 });
+  const [dailyInfo, setDailyInfo] = useState(null); // { calls_today, calls_remaining, needs_points }
 
   useEffect(() => {
     fetch(`${API_URL}/api/stats/online`)
       .then(r => r.json())
       .then(d => setOnlineStats({ searching: d.searching || 0, in_call: d.in_call || 0 }))
       .catch(() => {});
-  }, []);
+
+    fetch(`${API_URL}/api/user/daily-status?user_id=${user.id}`)
+      .then(r => r.json())
+      .then(d => setDailyInfo(d))
+      .catch(() => {});
+  }, [user.id]);
 
   const totalOnline = onlineStats.searching + onlineStats.in_call;
+  const callsRemaining = dailyInfo?.calls_remaining ?? DAILY_FREE_LIMIT_DISPLAY;
+  const callsToday = dailyInfo?.calls_today ?? 0;
+  const needsPoints = dailyInfo?.needs_points ?? false;
 
   return (
     <div className="dashboard-container">
@@ -1280,15 +1407,121 @@ function DashboardView({ user, onNavigate, onFindPartner }) {
         )}
 
         <button onClick={onFindPartner} className="start-matching-btn" style={{ marginTop: '0.5rem' }}>Find a Conversation Partner</button>
+
         <div className="user-stats">
           <h3>Your Stats</h3>
           <div className="stat-item"><span>Balance</span><span style={{ fontWeight: 'bold', color: '#4285f4' }}>{user.points} PTS</span></div>
           <div className="stat-item"><span>Level</span><span style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>{user.english_level}</span></div>
           <div className="stat-item"><span>Call Duration</span><span>{user.english_level === 'beginner' ? '5 mins' : '10 mins'}</span></div>
+
+          {/* Daily call counter */}
+          <div className="stat-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <span>Free calls today</span>
+              <span style={{ fontWeight: 'bold', color: needsPoints ? '#f59e0b' : '#10b981' }}>
+                {needsPoints ? `0 / ${DAILY_FREE_LIMIT_DISPLAY} used` : `${callsRemaining} left`}
+              </span>
+            </div>
+            {/* Dot indicator row */}
+            <div style={{ display: 'flex', gap: 6, width: '100%' }}>
+              {Array.from({ length: DAILY_FREE_LIMIT_DISPLAY }).map((_, i) => (
+                <div key={i} style={{
+                  flex: 1, height: 6, borderRadius: 3,
+                  background: i < callsToday ? '#4f8ef7' : '#e5e7eb',
+                  transition: 'background 0.3s'
+                }} />
+              ))}
+            </div>
+            {needsPoints && (
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#f59e0b' }}>
+                ⚡ Extra calls cost {dailyInfo?.extra_call_cost ?? 5} PTS each — resets at midnight UTC.
+              </p>
+            )}
+          </div>
+
           <button onClick={() => onNavigate('profile')} style={{ marginTop: '1rem', padding: '10px', width: '100%', background: '#f5f5f5', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer' }}>
             Profile and Conversation History
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// DAILY LIMIT MODAL
+// ============================================================
+const DAILY_FREE_LIMIT = 3;
+const EXTRA_CALL_COST = 5;
+
+function DailyLimitModal({ user, dailyStatus, onSpendAndContinue, onDismiss }) {
+  const [spending, setSpending] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSpend = async () => {
+    setSpending(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_URL}/api/user/spend-for-call`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onSpendAndContinue(data.new_balance);
+      } else {
+        setError(data.error || 'Could not deduct points. Please try again.');
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setSpending(false);
+    }
+  };
+
+  const { calls_today = 0, can_afford = false, points_balance = 0 } = dailyStatus || {};
+
+  return (
+    <div className="daily-limit-overlay">
+      <div className="daily-limit-card">
+        <div className="limit-icon">📅</div>
+        <h2>Daily limit reached</h2>
+
+        {/* Dot indicators — show calls used vs free */}
+        <div className="daily-dots">
+          {Array.from({ length: DAILY_FREE_LIMIT }).map((_, i) => (
+            <div key={i} className={`daily-dot ${i < calls_today ? 'used' : 'free'}`} />
+          ))}
+        </div>
+
+        <p>
+          You've used your {DAILY_FREE_LIMIT} free calls for today. Each additional call costs{' '}
+          <strong>{EXTRA_CALL_COST} points</strong>.
+        </p>
+
+        <div className="limit-pts-box">
+          <div className="pts-balance">⭐ {points_balance} PTS</div>
+          <div className="pts-label">Your current balance</div>
+        </div>
+
+        {error && <div className="error-message" style={{ marginBottom: '1rem', textAlign: 'left' }}>{error}</div>}
+
+        {can_afford ? (
+          <>
+            <button className="limit-spend-btn" onClick={handleSpend} disabled={spending}>
+              {spending ? 'Processing…' : `Use ${EXTRA_CALL_COST} PTS to continue`}
+            </button>
+            <p style={{ fontSize: '0.78rem', color: '#9ca3af', margin: '0 0 4px' }}>
+              You'll have {points_balance - EXTRA_CALL_COST} PTS remaining.
+            </p>
+          </>
+        ) : (
+          <button className="limit-spend-btn" disabled style={{ background: '#e5e7eb', color: '#9ca3af' }}>
+            Not enough points ({EXTRA_CALL_COST} PTS needed)
+          </button>
+        )}
+
+        <button className="limit-cancel-btn" onClick={onDismiss}>Maybe later</button>
       </div>
     </div>
   );
@@ -1343,7 +1576,7 @@ function ReportModal({ targetUser, sessionId, reporterUserId, onClose }) {
         <div className="report-success">
           <div className="report-success-icon">✅</div>
           <h3>{done === 'block' ? `${name} has been blocked.` : done === 'both' ? `${name} reported & blocked.` : `Report submitted.`}</h3>
-          <p style={{ marginTop: '0.5rem' }}>{done === 'block' ? 'You will not be matched with them again.' : 'Our team will review this. Thank you for keeping Chatter3 safe.'}</p>
+          <p style={{ marginTop: '0.5rem' }}>{done === 'block' ? 'You won't be matched with them again.' : 'Our team will review this. Thank you for keeping Chatter3 safe.'}</p>
           <button className="report-submit-btn" style={{ marginTop: '1.25rem' }} onClick={onClose}>Done</button>
         </div>
       </div>
@@ -1383,40 +1616,67 @@ function ReportModal({ targetUser, sessionId, reporterUserId, onClose }) {
 }
 
 // ============================================================
-// MATCHING VIEW — sonar animation + online count
+// MATCHING VIEW — sonar animation + online count + timeout
 // ============================================================
+const MATCH_TIMEOUT_SECS = 90; // give up after 90 seconds
+
 function MatchingView({ user, onCancel, onMatch }) {
   const [status, setStatus] = useState('Looking for a partner...');
   const [isMatched, setIsMatched] = useState(false);
-  const [onlineStats, setOnlineStats] = useState({ searching: 0, in_call: 0 });
+  const [onlineStats, setOnlineStats] = useState({ searching: 0, in_call: 0, by_level: {} });
+  const [timedOut, setTimedOut] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const stopRingingRef = useRef(null);
+  const startTimeRef = useRef(Date.now());
 
-  // Fetch online stats once on mount
+  // Fetch online stats — poll every 10s so counts stay fresh
   useEffect(() => {
-    fetch(`${API_URL}/api/stats/online`)
-      .then(r => r.json())
-      .then(d => setOnlineStats({ searching: d.searching || 0, in_call: d.in_call || 0 }))
-      .catch(() => {});
+    const fetchStats = () => {
+      fetch(`${API_URL}/api/stats/online`)
+        .then(r => r.json())
+        .then(d => setOnlineStats({ searching: d.searching || 0, in_call: d.in_call || 0, by_level: d.by_level || {} }))
+        .catch(() => {});
+    };
+    fetchStats();
+    const statsTimer = setInterval(fetchStats, 10000);
 
     // Start ringing sound loop
     stopRingingRef.current = startRinging();
-    return () => { stopRingingRef.current?.(); };
+
+    return () => {
+      clearInterval(statsTimer);
+      stopRingingRef.current?.();
+    };
+  }, []);
+
+  // Elapsed counter — used for timeout check + display
+  useEffect(() => {
+    const tick = setInterval(() => {
+      const secs = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      setElapsed(secs);
+      if (secs >= MATCH_TIMEOUT_SECS) {
+        setTimedOut(true);
+        stopRingingRef.current?.();
+      }
+    }, 1000);
+    return () => clearInterval(tick);
   }, []);
 
   useEffect(() => {
+    if (timedOut) return; // don't keep searching after timeout
     let polling;
     const performSearch = async () => {
       try {
         if (!isMatched) {
           const joinRes = await fetch(`${API_URL}/api/matching/join`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: user.id, english_level: user.english_level })
+            body: JSON.stringify({ user_id: user.id, english_level: user.english_level, country: normalizeCountry(user.country), native_language: user.native_language?.trim().toLowerCase() || '' })
           });
           const joinData = await joinRes.json();
           if (joinData.matched) {
             setIsMatched(true);
             setStatus('Partner found!');
-            stopRingingRef.current?.(); // stop ringing on match
+            stopRingingRef.current?.();
           }
         }
         const sessRes = await fetch(`${API_URL}/api/matching/session/${user.id}`);
@@ -1431,7 +1691,7 @@ function MatchingView({ user, onCancel, onMatch }) {
     performSearch();
     polling = setInterval(performSearch, 3000);
     return () => clearInterval(polling);
-  }, [isMatched]);
+  }, [isMatched, timedOut]);
 
   const handleCancel = async () => {
     stopRingingRef.current?.();
@@ -1442,6 +1702,25 @@ function MatchingView({ user, onCancel, onMatch }) {
   };
 
   const totalOnline = onlineStats.searching + onlineStats.in_call;
+  const sameLevel = onlineStats.by_level?.[user.english_level] || 0;
+  // reason for no match: others online but wrong level
+  const noLevelMatch = totalOnline > 0 && sameLevel <= 1; // <=1 because the user themselves may be counted
+
+  // --- TIMED OUT STATE ---
+  if (timedOut) {
+    return (
+      <div className="matching-screen">
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>😔</div>
+        <p className="matching-status-text">No match found</p>
+        <p className="matching-sub-text" style={{ maxWidth: 320, textAlign: 'center' }}>
+          {noLevelMatch
+            ? `There are ${totalOnline} user${totalOnline !== 1 ? 's' : ''} online, but none at the ${user.english_level} level right now. Try again in a little while — new users join throughout the day.`
+            : "Unfortunately, we couldn't find a match right now. Please try again later — new users join throughout the day."}
+        </p>
+        <button onClick={handleCancel} className="start-matching-btn" style={{ marginTop: '1.5rem' }}>Back to Dashboard</button>
+      </div>
+    );
+  }
 
   return (
     <div className="matching-screen">
@@ -1460,12 +1739,28 @@ function MatchingView({ user, onCancel, onMatch }) {
         📊 {user.english_level} · {user.english_level === 'beginner' ? '5 min' : '10 min'} sessions
       </div>
 
+      {/* Total online count — always show regardless of level */}
       {totalOnline > 0 && (
         <div className="online-badge">
           <span className="online-dot" />
-          {onlineStats.searching > 1 ? `${onlineStats.searching} people searching now` : onlineStats.in_call > 0 ? `${totalOnline} people online` : 'Searching…'}
+          {totalOnline === 1 ? '1 person online now' : `${totalOnline} people online now`}
         </div>
       )}
+
+      {/* Level mismatch hint — show after 15s if no same-level users */}
+      {elapsed >= 15 && noLevelMatch && (
+        <p style={{ fontSize: '0.8rem', color: '#f59e0b', maxWidth: 280, textAlign: 'center', margin: '0.5rem 0' }}>
+          ⚠️ No {user.english_level}-level users available right now. Continuing to search…
+        </p>
+      )}
+
+      {/* Timeout progress bar */}
+      <div style={{ width: 200, height: 3, background: '#e5e7eb', borderRadius: 2, margin: '1rem 0 0.5rem', overflow: 'hidden' }}>
+        <div style={{ height: '100%', background: elapsed > 60 ? '#f59e0b' : '#4f8ef7', borderRadius: 2, width: `${Math.min(100, (elapsed / MATCH_TIMEOUT_SECS) * 100)}%`, transition: 'width 1s linear, background 0.3s' }} />
+      </div>
+      <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: '0 0 1rem' }}>
+        {MATCH_TIMEOUT_SECS - elapsed}s remaining
+      </p>
 
       <button onClick={handleCancel} className="cancel-btn">Cancel Search</button>
     </div>
@@ -1482,6 +1777,8 @@ function VideoRoomView({ user, session, callStartedAt, onEnd }) {
   const [showRating, setShowRating] = useState(false);
   const [showDisconnect, setShowDisconnect] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [callEndReason, setCallEndReason] = useState(null); // null | 'partner' | 'network' | 'normal'
+  const [partnerEndedScreen, setPartnerEndedScreen] = useState(false);
   const [error, setError] = useState('');
 
   const localVideoRef = useRef(null);
@@ -1494,6 +1791,7 @@ function VideoRoomView({ user, session, callStartedAt, onEnd }) {
   const negotiatingRef = useRef(false);
   const streamRef = useRef(null);
   const disconnectTimerRef = useRef(null);
+  const autoEndTimerRef = useRef(null); // auto-end after sustained network failure
 
   const cleanupMedia = () => {
     if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
@@ -1545,11 +1843,24 @@ function VideoRoomView({ user, session, callStartedAt, onEnd }) {
           if (state === 'connected') {
             playSound('start');
             clearTimeout(disconnectTimerRef.current);
+            clearTimeout(autoEndTimerRef.current);
             setShowDisconnect(false);
           }
           if (state === 'disconnected' || state === 'failed') {
-            // Show disconnect overlay after 3s grace period
+            // Show "reconnecting" overlay after 3s grace period
             disconnectTimerRef.current = setTimeout(() => setShowDisconnect(true), 3000);
+            // Auto-end the call after 15s of sustained disconnect — no manual action needed
+            autoEndTimerRef.current = setTimeout(async () => {
+              setCallEndReason('network');
+              setShowDisconnect(false);
+              await fetch(`${API_URL}/api/matching/end`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: session.id, user_id: user.id, reason: 'network_disconnect' })
+              }).catch(() => {});
+              cleanupMedia();
+              playSound('end');
+              setShowRating(true);
+            }, 15000);
           }
         };
         pcRef.current = pc;
@@ -1565,7 +1876,14 @@ function VideoRoomView({ user, session, callStartedAt, onEnd }) {
 
         ws.onmessage = async (msg) => {
           const data = JSON.parse(msg.data);
-          if (data.type === 'bye') { cleanupMedia(); playSound('end'); setShowRating(true); }
+          if (data.type === 'bye') {
+            cleanupMedia();
+            playSound('end');
+            setCallEndReason('partner');
+            setPartnerEndedScreen(true);
+            // Give the user 3 seconds to read the message, then show rating
+            setTimeout(() => { setPartnerEndedScreen(false); setShowRating(true); }, 3000);
+          }
           else if (data.type === 'join') {
             ws.send(JSON.stringify({ type: 'join_ack' }));
             if (user.id === session.user1_id && !negotiatingRef.current) startNegotiation();
@@ -1632,6 +1950,7 @@ function VideoRoomView({ user, session, callStartedAt, onEnd }) {
     return () => {
       clearInterval(timer);
       clearTimeout(disconnectTimerRef.current);
+      clearTimeout(autoEndTimerRef.current);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
@@ -1719,19 +2038,38 @@ function VideoRoomView({ user, session, callStartedAt, onEnd }) {
           {statusInfo.label}
         </div>
 
-        {/* Disconnection overlay */}
-        {showDisconnect && !showRating && (
+        {/* Partner ended call — intermediate message before rating */}
+        {partnerEndedScreen && (
+          <div className="call-ended-overlay">
+            <div className="ended-icon">📵</div>
+            <h3>Your partner ended the call</h3>
+            <p>Taking you to the rating screen in a moment…</p>
+          </div>
+        )}
+
+        {/* Disconnection overlay — shown while reconnecting */}
+        {showDisconnect && !showRating && !partnerEndedScreen && (
           <div className="disconnect-overlay">
             <div className="reconnect-spinner" />
             <h3>Connection Lost</h3>
-            <p>Trying to reconnect to your partner…</p>
-            <button className="disconnect-end-btn" onClick={handleHangup}>End Call</button>
+            <p>Trying to reconnect… the call will end automatically if this persists.</p>
+            <button className="disconnect-end-btn" onClick={handleHangup}>End Call Now</button>
           </div>
         )}
 
         {/* Rating overlay */}
         {showRating && (
           <div className="rating-overlay">
+            {callEndReason === 'network' && (
+              <p style={{ color: '#fbbf24', fontSize: '0.85rem', marginBottom: '0.75rem', background: 'rgba(251,191,36,0.15)', padding: '6px 14px', borderRadius: 8 }}>
+                ⚠️ The call ended due to a network issue.
+              </p>
+            )}
+            {callEndReason === 'partner' && (
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+                Your partner ended the call.
+              </p>
+            )}
             <h2>Rate your partner</h2>
             <p>How was your conversation with {session.partner?.username}?</p>
             <div className="rating-buttons">
