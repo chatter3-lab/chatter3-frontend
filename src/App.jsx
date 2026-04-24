@@ -1576,7 +1576,7 @@ function ReportModal({ targetUser, sessionId, reporterUserId, onClose }) {
         <div className="report-success">
           <div className="report-success-icon">✅</div>
           <h3>{done === 'block' ? `${name} has been blocked.` : done === 'both' ? `${name} reported & blocked.` : `Report submitted.`}</h3>
-          <p style={{ marginTop: '0.5rem' }}>{done === 'block' ? 'You won't be matched with them again.' : 'Our team will review this. Thank you for keeping Chatter3 safe.'}</p>
+          <p style={{ marginTop: '0.5rem' }}>{done === 'block' ? 'You will not be matched with them again.' : 'Our team will review this. Thank you for keeping Chatter3 safe.'}</p>
           <button className="report-submit-btn" style={{ marginTop: '1.25rem' }} onClick={onClose}>Done</button>
         </div>
       </div>
