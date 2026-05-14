@@ -46,8 +46,8 @@ const playSound = (type) => {
 // --- ONBOARDING SLIDES ---
 const ONBOARDING_SLIDES = [
   { id: 1, emoji: '🌐', accentColor: '#4f8ef7', headline: 'Connect with real people, instantly.', body: 'Get matched 1-on-1 with learners around the world. No scheduling. No profiles to browse.', tag: 'CONNECT' },
-  { id: 2, emoji: '🗣️', accentColor: '#7c3aed', headline: 'Just speak. That\'s how you learn.', body: 'Short, real conversations build real confidence. No lessons. No teachers. Just practice.', tag: 'SPEAK' },
-  { id: 3, emoji: '⭐', accentColor: '#059669', headline: 'Your conversations earn value.', body: 'Speak, get feedback, and earn points. Use them to keep talking', tag: 'EARN', note: 'Points are awarded as standard points.' },
+  { id: 2, emoji: '🗣️', accentColor: '#7c3aed', headline: 'Just speak. That is how you learn.', body: 'Short, real conversations build real confidence. No lessons. No teachers. Just practice.', tag: 'SPEAK' },
+  { id: 3, emoji: '⭐', accentColor: '#059669', headline: 'Your conversations earn value.', body: 'Speak, get feedback, and earn points. Use them to keep talking', tag: 'EARN', note: 'Currently, Chatter3 uses standard in-app points during the beta phase. In the future, these points may transition to a Web3-based token called C3T (Chatter3 Token).' },
 ];
 
 // --- Country → Flag emoji ---
