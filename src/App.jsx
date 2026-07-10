@@ -39,7 +39,7 @@ const STARTERS=[(p)=>`Ask ${p} what the most popular food is in their country!`,
 const SLIDES=[
   {id:1,emoji:'🌐',color:'#4f8ef7',tag:'CONNECT',headline:'Connect with real people, instantly.',body:'Get matched 1-on-1 with learners around the world. No scheduling. No profiles to browse.'},
   {id:2,emoji:'🗣️',color:'#7c3aed',tag:'SPEAK',headline:"Just speak. That is how you learn.",body:'Short, real conversations build real confidence. No lessons. No teachers. Just practice.'},
-  {id:3,emoji:'⭐',color:'#059669',tag:'EARN',headline:'Your conversations earn value.',body:'Complete conversations to earn Reward Points. Exchange them for more call time.',note:'Currently, Chatter3 uses standard in-app points during the beta phase. In the future, these points may transition to a Web3-based token called C3T (Chatter3 Token).'},
+  {id:3,emoji:'⭐',color:'#059669',tag:'EARN',headline:'Your conversations earn value.',body:'Complete conversations to earn Reward Points. Exchange them for more call time.',note:'RP may transition to C3T (Chatter3 Token) in the future.'},
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -63,6 +63,25 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .header-btn{padding:6px 14px;border:none;border-radius:6px;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;}
 .btn-logout{background:#fee2e2;color:#b91c1c;}
 .btn-admin{background:linear-gradient(135deg,#1e293b,#334155);color:white;}
+.btn-friends{background:#f0f4ff;color:#4f46e5;border:1px solid #c7d7fc;}
+.friend-item{display:flex;align-items:center;gap:9px;padding:10px;background:#f8fafc;border-radius:8px;margin-bottom:7px;border:1px solid #f1f5f9;}
+.friend-avatar{width:38px;height:38px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#4f46e5;overflow:hidden;flex-shrink:0;}
+.friend-info{flex:1;}.friend-name{font-weight:600;font-size:.88rem;color:#1a1a2e;}.friend-sub{font-size:.75rem;color:#94a3b8;margin-top:1px;}
+.friend-action-btn{padding:5px 11px;border:1.5px solid #e5e7eb;border-radius:6px;background:white;font-size:.77rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.friend-action-btn.accept{border-color:#bbf7d0;color:#15803d;}.friend-action-btn.decline{border-color:#fca5a5;color:#ef4444;}.friend-action-btn.remove{border-color:#e5e7eb;color:#9ca3af;}.friend-action-btn:hover{opacity:.8;}
+.invite-share-row{display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;}
+.invite-share-btn{flex:1;min-width:58px;padding:9px 5px;border:1.5px solid #e5e7eb;border-radius:8px;background:white;cursor:pointer;font-size:.75rem;font-family:'DM Sans',sans-serif;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px;}.invite-share-btn:hover{border-color:#4f8ef7;color:#4f46e5;}
+.invite-url-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:9px 12px;font-size:.78rem;color:#475569;word-break:break-all;margin:.75rem 0;font-family:monospace;}
+.modal-tab-row{display:flex;gap:.5rem;margin-bottom:1rem;}
+.modal-tab{flex:1;padding:8px;border:1.5px solid #e5e7eb;border-radius:7px;background:white;color:#6b7280;cursor:pointer;font-size:.83rem;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.modal-tab.active{background:#1e293b;color:white;border-color:#1e293b;}
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:.65rem 0;border-bottom:1px solid #f1f5f9;}.setting-row:last-child{border-bottom:none;}
+.setting-info{flex:1;}.setting-name{font-weight:600;font-size:.88rem;color:#1e293b;}.setting-desc{font-size:.75rem;color:#94a3b8;margin-top:2px;}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#e5e7eb;border-radius:12px;cursor:pointer;transition:background .2s;}.toggle-slider::before{content:'';position:absolute;height:18px;width:18px;left:3px;top:3px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.toggle input:checked+.toggle-slider{background:#4f8ef7;}.toggle input:checked+.toggle-slider::before{transform:translateX(20px);}
+.duration-input{width:80px;padding:6px 9px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:.85rem;font-family:'DM Sans',sans-serif;text-align:center;}
+.save-settings-btn{margin-top:1rem;padding:9px 20px;background:linear-gradient(135deg,#4f8ef7,#7c3aed);color:white;border:none;border-radius:7px;font-family:'Sora',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
 
 /* Auth */
 .auth-container{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:1rem;}
@@ -221,47 +240,176 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .precall-back-btn:hover{color:rgba(255,255,255,.55);}
 
 /* Video */
-.video-compact-header{display:flex;align-items:center;justify-content:space-between;padding:5px 1rem;background:white;box-shadow:0 1px 4px rgba(0,0,0,.08);flex-shrink:0;}
-.video-compact-header img{height:32px;width:auto;}
-.video-compact-pts{font-size:.79rem;font-weight:700;color:#4285f4;}
-.video-call-interface{display:flex;flex-direction:column;height:calc(100vh - 44px);gap:.75rem;padding:.75rem;position:relative;}
-.video-container{position:relative;flex:1;background:#1a1a1a;border-radius:12px;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:0;}
-.video-el{width:100%;height:100%;object-fit:cover;}
-.video-el.local{position:absolute;bottom:16px;right:14px;width:130px;height:175px;border:2px solid white;border-radius:8px;z-index:10;object-fit:cover;background:#333;}
-.timer-overlay{position:absolute;top:.875rem;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.65);backdrop-filter:blur(6px);padding:6px 16px;border-radius:22px;color:white;display:flex;align-items:center;gap:7px;z-index:5;border:1px solid rgba(255,255,255,.1);}
-.timer-display{font-family:'Sora',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.05em;transition:color .4s;}
-.timer-display.normal{color:#fff;}
-.timer-display.warning{color:#fbbf24;}
-.timer-display.critical{color:#f87171;animation:blink 1s ease-in-out infinite;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:.5;}}
-.status-badge{position:absolute;bottom:14px;left:14px;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:18px;font-size:.75rem;font-weight:600;z-index:20;backdrop-filter:blur(6px);border:1px solid transparent;}
-.status-badge.connected{background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.4);color:#6ee7b7;}
-.status-badge.connecting,.status-badge.checking{background:rgba(251,191,36,.2);border-color:rgba(251,191,36,.3);color:#fcd34d;}
-.status-badge.failed,.status-badge.disconnected{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.3);color:#fca5a5;}
-.status-badge.new,.status-badge.closed{background:rgba(156,163,175,.2);border-color:rgba(156,163,175,.2);color:#d1d5db;}
-.s-dot{width:6px;height:6px;border-radius:50%;}
-.status-badge.connected .s-dot{background:#10b981;}
-.status-badge.connecting .s-dot,.status-badge.checking .s-dot{background:#f59e0b;animation:pulse 1s infinite;}
-.status-badge.failed .s-dot,.status-badge.disconnected .s-dot{background:#ef4444;}
-.status-badge.new .s-dot,.status-badge.closed .s-dot{background:#9ca3af;}
-.call-controls{background:white;padding:1.1rem 1.25rem;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
-.control-btn-end{background:#ef4444;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:.93rem;display:flex;align-items:center;gap:.4rem;font-family:'DM Sans',sans-serif;}
-.report-btn{background:none;border:1px solid #e5e7eb;color:#9ca3af;padding:5px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;margin-top:5px;}
-.report-btn:hover{border-color:#ef4444;color:#ef4444;background:#fff5f5;}
-.ended-overlay,.disconnect-overlay,.rating-overlay{position:absolute;inset:0;background:rgba(0,0,0,.87);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;border-radius:12px;text-align:center;padding:2rem;color:white;animation:fadeIn .3s ease;}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-.ended-overlay h3,.disconnect-overlay h3{font-family:'Sora',sans-serif;font-size:1.15rem;font-weight:700;margin:.75rem 0 .4rem;}
-.ended-overlay p,.disconnect-overlay p{color:rgba(255,255,255,.58);font-size:.87rem;margin:0 0 1.5rem;}
-.spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.15);border-top-color:#f59e0b;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:1rem;}
-.disc-end-btn{padding:9px 24px;background:#ef4444;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:.9rem;font-family:'DM Sans',sans-serif;}
-.rating-buttons{display:flex;gap:.875rem;margin-top:1.75rem;}
-.rating-btn{padding:.875rem 1.75rem;font-size:1.1rem;border-radius:8px;border:none;cursor:pointer;transition:transform .2s;}
-.rating-btn.good{background:#10b981;color:white;}
-.rating-btn.meh{background:#6b7280;color:white;}
-.rating-btn:hover{transform:scale(1.05);}
-.context-note{font-size:.82rem;margin-bottom:.75rem;padding:5px 13px;border-radius:7px;}
-.context-note.warning{color:#fbbf24;background:rgba(251,191,36,.15);}
-.context-note.muted{color:rgba(255,255,255,.45);}
+.video-compact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 1.5rem; /* Slightly more padding for a cleaner look */
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  flex-shrink: 0;
+}
+.video-compact-header img {
+  height: 36px; /* Slightly larger header logo */
+  width: auto;
+}
+.video-compact-pts {
+  font-size: .85rem;
+  font-weight: 700;
+  color: #1a73e8; /* Google Meet blue */
+}
+
+/* Main Layout: Takes up the full available viewport height */
+.video-call-interface {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px); /* Adjusted for the new header height */
+  gap: 1rem;
+  padding: 1rem;
+  position: relative;
+  background-color: #202124; /* Google Meet dark background */
+}
+
+/* Video Container: Maximized to fill all vertical and horizontal space */
+.video-container {
+  position: relative;
+  flex: 1;
+  background: #131314; /* Deeper dark for the video well */
+  border-radius: 16px; /* Modern, softer corners */
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  width: 100%;
+}
+
+/* Video Element: Changed to 'contain' to respect camera aspect ratios without clipping, 
+   or 'cover' with a centered position if you want it completely borderless. */
+.video-el {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Prevents the video from being cropped into a narrow strip */
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Floating Picture-in-Picture (Local Camera) */
+.video-el.local {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 160px; /* Increased size slightly for readability */
+  height: 100px; /* Golden wide aspect ratio (16:9 look) instead of a narrow box */
+  border-radius: 10px;
+  z-index: 10;
+  object-fit: cover;
+  background: #3c4043;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  border: none; /* Cleaner borderless floating window */
+}
+
+/* Overlays & Badges */
+.timer-overlay {
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(32, 33, 36, 0.75);
+  backdrop-filter: blur(10px);
+  padding: 8px 20px;
+  border-radius: 24px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 5;
+  border: 1px solid rgba(255,255,255,.1);
+}
+.timer-display {
+  font-family: 'Sora', sans-serif;
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  transition: color .4s;
+}
+.timer-display.normal { color: #fff; }
+.timer-display.warning { color: #fdd835; }
+.timer-display.critical { color: #f28b82; animation: blink 1s ease-in-out infinite; }
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+.status-badge {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: .8rem;
+  font-weight: 600;
+  z-index: 20;
+  backdrop-filter: blur(10px);
+}
+.status-badge.connected { background: rgba(129, 201, 149, 0.15); border: 1px solid rgba(129, 201, 149, 0.3); color: #81c795; }
+.status-badge.connecting, .status-badge.checking { background: rgba(253, 216, 53, 0.15); border: 1px solid rgba(253, 216, 53, 0.3); color: #fdd835; }
+.status-badge.failed, .status-badge.disconnected { background: rgba(242, 139, 130, 0.15); border: 1px solid rgba(242, 139, 130, 0.3); color: #f28b82; }
+
+.s-dot { width: 8px; height: 8px; border-radius: 50%; }
+.status-badge.connected .s-dot { background: #81c795; }
+.status-badge.connecting .s-dot, .status-badge.checking .s-dot { background: #fdd835; animation: pulse 1s infinite; }
+.status-badge.failed .s-dot, .status-badge.disconnected .s-dot { background: #f28b82; }
+
+/* Control Bar: Kept elegant and clean at the bottom */
+.call-controls {
+  background: #202124; /* Matches background for an integrated UI look */
+  padding: 0.75rem 1.5rem;
+  border-radius: 0; 
+  box-shadow: none;
+  display: flex;
+  justify-content: center; /* Centers controls like Google Meet */
+  align-items: center;
+  gap: 2rem;
+  flex-shrink: 0;
+}
+.control-btn-end {
+  background: #ea4335; /* Google Meet red hangup button */
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 24px; /* Pill shaped button */
+  cursor: pointer;
+  font-size: .95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.2s;
+}
+.control-btn-end:hover {
+  background: #d93025;
+}
+
+/* End Call / Rating Overlays */
+.ended-overlay, .disconnect-overlay, .rating-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(32, 33, 36, 0.95);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  border-radius: 16px;
+  text-align: center;
+  padding: 2rem;
+  color: white;
+  animation: fadeIn .3s ease;
+}
 
 /* Report modal */
 .report-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:1rem;}
@@ -508,7 +656,221 @@ function ReportModal({targetUser,sessionId,reporterUserId,onClose}){
   );
 }
 
+// ── Friends + Invite Modal ─────────────────────────────────────
+function FriendsModal({user,onClose}){
+  const[tab,setTab]=useState('friends');
+  const[friends,setFriends]=useState([]);
+  const[pending,setPending]=useState([]);
+  const[searchQ,setSearchQ]=useState('');
+  const[searchRes,setSearchRes]=useState([]);
+  const[inviteUrl,setInviteUrl]=useState('');
+  const[copied,setCopied]=useState(false);
+  const[inviteStats,setInviteStats]=useState({total:0,used:0});
+  const[loading,setLoading]=useState(false);
+
+  const post=(p,b)=>fetch(`${API_URL}${p}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id,...b})}).then(r=>r.json());
+
+  useEffect(()=>{
+    post('/api/friends/list',{}).then(d=>{if(d.success){setFriends(d.friends||[]);setPending(d.pending_requests||[]);}});
+    post('/api/invite/stats',{}).then(d=>{if(d.success)setInviteStats(d);});
+    post('/api/invite/create',{}).then(d=>{if(d.success)setInviteUrl(d.invite_url);});
+  },[]);
+
+  const doSearch=async()=>{
+    if(!searchQ.trim())return;
+    setLoading(true);
+    const d=await post('/api/friends/search',{query:searchQ});
+    setSearchRes(d.users||[]);setLoading(false);
+  };
+
+  const sendRequest=async(rid)=>{
+    await fetch(`${API_URL}/api/friends/request`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sender_id:user.id,receiver_id:rid})});
+    setSearchRes(sr=>sr.filter(u=>u.id!==rid));
+    alert('Friend request sent!');
+  };
+
+  const respond=async(reqId,action)=>{
+    await post('/api/friends/respond',{request_id:reqId,action});
+    const d=await post('/api/friends/list',{});
+    if(d.success){setFriends(d.friends||[]);setPending(d.pending_requests||[]);}
+  };
+
+  const removeFriend=async(fid)=>{
+    await post('/api/friends/remove',{friend_id:fid});
+    setFriends(f=>f.filter(fr=>fr.id!==fid));
+  };
+
+  const copyLink=()=>{navigator.clipboard.writeText(inviteUrl).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);});};
+
+  const shareLink=async(platform)=>{
+    const msg=`Join me on Chatter3 — practice English with real people! ${inviteUrl}`;
+    if(platform==='native'&&navigator.share){await navigator.share({title:'Join Chatter3',text:msg,url:inviteUrl});return;}
+    const urls={whatsapp:`https://wa.me/?text=${encodeURIComponent(msg)}`,twitter:`https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}`,telegram:`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent('Join me on Chatter3 — practice English with real people!')}`,line:`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(inviteUrl)}`};
+    if(urls[platform])window.open(urls[platform],'_blank');
+  };
+
+  const FriendRow=({f,actions})=>(
+    <div className="friend-item">
+      <div className="friend-avatar">
+        {f.avatar_url?<img src={f.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt=""/>:(f.nickname||f.username||'?').charAt(0).toUpperCase()}
+      </div>
+      <div className="friend-info">
+        <div className="friend-name">{f.nickname||f.username}</div>
+        <div className="friend-sub">{f.country?`${getFlag(f.country)} ${countryName(f.country)}`:''}{f.english_level?` · ${f.english_level}`:''}</div>
+      </div>
+      {actions}
+    </div>
+  );
+
+  return(
+    <div className="overlay" onClick={onClose}>
+      <div className="modal-card" style={{maxWidth:440}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+          <h2 style={{margin:0,textAlign:'left'}}>👥 Friends & Invite</h2>
+          <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:'1.1rem'}}>✕</button>
+        </div>
+        <div className="modal-tab-row">
+          {['friends','search','invite'].map(t=><button key={t} className={`modal-tab ${tab===t?'active':''}`} onClick={()=>setTab(t)}>{t==='friends'?`Friends${pending.length>0?` (${pending.length})`:''}`:t.charAt(0).toUpperCase()+t.slice(1)}</button>)}
+        </div>
+
+        {tab==='friends'&&(
+          <>
+            {pending.length>0&&(
+              <>
+                <p style={{fontSize:'.8rem',fontWeight:600,color:'#1e293b',margin:'0 0 .5rem'}}>Pending requests</p>
+                {pending.map(r=>(
+                  <FriendRow key={r.id} f={r} actions={
+                    <div style={{display:'flex',gap:5}}>
+                      <button className="friend-action-btn accept" onClick={()=>respond(r.id,'accept')}>Accept</button>
+                      <button className="friend-action-btn decline" onClick={()=>respond(r.id,'decline')}>✕</button>
+                    </div>
+                  }/>
+                ))}
+                <hr style={{margin:'.75rem 0',border:'none',borderTop:'1px solid #f1f5f9'}}/>
+              </>
+            )}
+            {friends.length===0&&pending.length===0&&<p style={{color:'#9ca3af',fontSize:'.85rem',textAlign:'center',padding:'1rem 0'}}>No friends yet. Use Search to add people!</p>}
+            {friends.map(f=><FriendRow key={f.id} f={f} actions={<button className="friend-action-btn remove" onClick={()=>removeFriend(f.id)}>Remove</button>}/>)}
+          </>
+        )}
+
+        {tab==='search'&&(
+          <>
+            <div className="search-row" style={{marginBottom:'.75rem'}}>
+              <input className="search-input" placeholder="Search by username or nickname…" value={searchQ} onChange={e=>setSearchQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doSearch()}/>
+              <button className="search-btn" onClick={doSearch}>Search</button>
+            </div>
+            {loading&&<p style={{color:'#9ca3af',fontSize:'.85rem',textAlign:'center'}}>Searching…</p>}
+            {searchRes.map(u=>(
+              <FriendRow key={u.id} f={u} actions={<button className="modal-btn-primary" style={{width:'auto',padding:'5px 13px',margin:0,fontSize:'.78rem'}} onClick={()=>sendRequest(u.id)}>+ Add</button>}/>
+            ))}
+            {!loading&&searchQ&&searchRes.length===0&&<p style={{color:'#9ca3af',fontSize:'.85rem',textAlign:'center'}}>No users found.</p>}
+          </>
+        )}
+
+        {tab==='invite'&&(
+          <>
+            <p style={{textAlign:'center',margin:'0 0 .75rem'}}>Invite friends to Chatter3 and help grow the community!</p>
+            <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:9,padding:'.75rem 1rem',textAlign:'center',marginBottom:'.875rem'}}>
+              <div style={{fontSize:'1.5rem',fontWeight:800,color:'#15803d',fontFamily:'Sora,sans-serif'}}>{inviteStats.used}</div>
+              <div style={{fontSize:'.75rem',color:'#6b7280'}}>friends joined via your invite</div>
+            </div>
+            {inviteUrl&&(
+              <>
+                <div className="invite-url-box">{inviteUrl}</div>
+                <button className="modal-btn-primary" onClick={copyLink}>{copied?'✓ Copied!':'📋 Copy Invite Link'}</button>
+                <p style={{fontSize:'.78rem',color:'#9ca3af',margin:'.5rem 0 .65rem',textAlign:'center'}}>Share on:</p>
+                <div className="invite-share-row">
+                  {navigator.share&&<button className="invite-share-btn" onClick={()=>shareLink('native')}>📤<span>Share</span></button>}
+                  <button className="invite-share-btn" onClick={()=>shareLink('whatsapp')}>💬<span>WhatsApp</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('twitter')}>🐦<span>Twitter/X</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('telegram')}>✈️<span>Telegram</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('line')}>💚<span>LINE</span></button>
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Admin Dashboard ─────────────────────────────────────────────
+// ── Admin Settings Panel ────────────────────────────────────────
+function AdminSettingsPanel({user}){
+  const[settings,setSettings]=useState({matching_by_level:'true',matching_diff_country:'true',matching_diff_language:'true',custom_call_duration:'0'});
+  const[loading,setLoading]=useState(true);
+  const[saving,setSaving]=useState(false);
+  const[saved,setSaved]=useState(false);
+  const[customDur,setCustomDur]=useState('0');
+
+  const post=(p,b)=>fetch(`${API_URL}${p}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_id:user.id,...b})}).then(r=>r.json());
+
+  useEffect(()=>{
+    post('/api/admin/settings',{}).then(d=>{
+      if(d.settings){
+        const m={};d.settings.forEach(s=>m[s.key]=s.value);
+        setSettings(m);setCustomDur(m.custom_call_duration||'0');
+      }
+      setLoading(false);
+    });
+  },[]);
+
+  const toggle=key=>{setSettings(prev=>({...prev,[key]:prev[key]==='true'?'false':'true'}));setSaved(false);};
+
+  const saveAll=async()=>{
+    setSaving(true);
+    await Promise.all([
+      post('/api/admin/settings/update',{key:'matching_by_level',value:settings.matching_by_level}),
+      post('/api/admin/settings/update',{key:'matching_diff_country',value:settings.matching_diff_country}),
+      post('/api/admin/settings/update',{key:'matching_diff_language',value:settings.matching_diff_language}),
+      post('/api/admin/settings/update',{key:'custom_call_duration',value:customDur}),
+    ]);
+    setSettings(prev=>({...prev,custom_call_duration:customDur}));
+    setSaving(false);setSaved(true);setTimeout(()=>setSaved(false),3000);
+  };
+
+  if(loading)return <p style={{color:'#9ca3af'}}>Loading settings…</p>;
+
+  const allOff=settings.matching_by_level==='false'&&settings.matching_diff_country==='false'&&settings.matching_diff_language==='false';
+
+  return(
+    <div className="admin-section">
+      <h3>🎛️ Matching Settings <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— shared across all admins</span></h3>
+      {[
+        {key:'matching_by_level',name:'Match by English Level',desc:'Only match users at the same proficiency level (Beginner / Intermediate / Advanced)'},
+        {key:'matching_diff_country',name:'Prefer Different Countries',desc:'Prioritize matching users from different countries for cross-cultural practice'},
+        {key:'matching_diff_language',name:'Prefer Different Native Languages',desc:'Prioritize matching users with different native languages'},
+      ].map(({key,name,desc})=>(
+        <div key={key} className="setting-row">
+          <div className="setting-info">
+            <div className="setting-name">{name}</div>
+            <div className="setting-desc">{desc}</div>
+          </div>
+          <label className="toggle">
+            <input type="checkbox" checked={settings[key]==='true'} onChange={()=>toggle(key)}/>
+            <span className="toggle-slider"/>
+          </label>
+        </div>
+      ))}
+      {allOff&&(
+        <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
+          <div className="setting-info">
+            <div className="setting-name">Custom Call Duration (minutes)</div>
+            <div className="setting-desc">Applied when all matching restrictions are disabled. Set 0 to use level-based defaults (5 or 10 min).</div>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
+            <input type="number" className="duration-input" min="1" max="60" value={customDur} onChange={e=>setCustomDur(e.target.value)}/>
+            <span style={{fontSize:'.8rem',color:'#6b7280'}}>minutes per session</span>
+          </div>
+        </div>
+      )}
+      <button className="save-settings-btn" onClick={saveAll} disabled={saving}>{saving?'Saving…':saved?'✓ Saved!':'Save Settings'}</button>
+    </div>
+  );
+}
+
 function AdminDashboard({user,onBack}){
   const[tab,setTab]=useState('analytics');
   const[stats,setStats]=useState(null);
@@ -582,7 +944,7 @@ function AdminDashboard({user,onBack}){
       </div>
 
       <div className="admin-tabs">
-        {['analytics','users','reports','health'].map(t=>(
+        {['analytics','users','reports','settings','health'].map(t=>(
           <button key={t} className={`admin-tab ${tab===t?'active':''}`} onClick={()=>setTab(t)} style={{textTransform:'capitalize'}}>{t}</button>
         ))}
       </div>
@@ -731,6 +1093,11 @@ function AdminDashboard({user,onBack}){
         </>
       )}
 
+      {/* ── SETTINGS ── */}
+      {tab==='settings'&&(
+        <AdminSettingsPanel user={user}/>
+      )}
+
       {/* ── HEALTH ── */}
       {tab==='health'&&(
         <HealthTab stats={stats} user={user} post={post}/>
@@ -782,6 +1149,7 @@ export default function App(){
   const[showOnboarding,setShowOnboarding]=useState(false);
   const[showProfileGate,setShowProfileGate]=useState(false);
   const[showExchange,setShowExchange]=useState(false);
+  const[showFriends,setShowFriends]=useState(false);
 
   useEffect(()=>{
     const saved=localStorage.getItem('chatter3_user');
@@ -831,6 +1199,7 @@ export default function App(){
         {showOnboarding&&<OnboardingSlider onComplete={()=>{localStorage.setItem('chatter3_onboarding_seen','1');setShowOnboarding(false);}}/>}
         {showProfileGate&&user&&<ProfileGate user={user} onComplete={u=>{setAndSaveUser(u);setShowProfileGate(false);setView('matching');}} onDismiss={()=>setShowProfileGate(false)}/>}
         {showExchange&&user&&<ExchangeModal user={user} onClose={()=>setShowExchange(false)} onDone={(fp,rp)=>{setAndSaveUser({...user,fp_balance:fp,rp_balance:rp});setShowExchange(false);if(fp>=1)setView('matching');}}/>}
+        {showFriends&&user&&<FriendsModal user={user} onClose={()=>setShowFriends(false)}/>}
 
         {view==='auth'&&<AuthView onLogin={handleLogin}/>}
 
@@ -842,6 +1211,7 @@ export default function App(){
                 <div className="user-info">
                   <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}</span>
                   <div className="header-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
+                  <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 Friends</button>
                   {user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ Admin</button>}
                   <button className="header-btn btn-logout" onClick={handleLogout}>Logout</button>
                 </div>
