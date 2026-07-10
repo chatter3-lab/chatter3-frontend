@@ -240,176 +240,54 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .precall-back-btn:hover{color:rgba(255,255,255,.55);}
 
 /* Video */
-.video-compact-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 1.5rem; /* Slightly more padding for a cleaner look */
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0,0,0,.05);
-  flex-shrink: 0;
-}
-.video-compact-header img {
-  height: 36px; /* Slightly larger header logo */
-  width: auto;
-}
-.video-compact-pts {
-  font-size: .85rem;
-  font-weight: 700;
-  color: #1a73e8; /* Google Meet blue */
-}
+.video-compact-header{display:flex;align-items:center;justify-content:space-between;padding:5px 1rem;background:white;box-shadow:0 1px 4px rgba(0,0,0,.08);flex-shrink:0;}
+.video-compact-header img{height:32px;width:auto;}
+.video-compact-pts{font-size:.79rem;font-weight:700;color:#4285f4;}
 
-/* Main Layout: Takes up the full available viewport height */
-.video-call-interface {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 56px); /* Adjusted for the new header height */
-  gap: 1rem;
-  padding: 1rem;
-  position: relative;
-  background-color: #202124; /* Google Meet dark background */
-}
+/* Changed height to 100vh to ensure the interface occupies the full screen height */
+.video-call-interface{display:flex;flex-direction:column;height:100vh;gap:.75rem;padding:.75rem;position:relative;box-sizing:border-box;}
 
-/* Video Container: Maximized to fill all vertical and horizontal space */
-.video-container {
-  position: relative;
-  flex: 1;
-  background: #131314; /* Deeper dark for the video well */
-  border-radius: 16px; /* Modern, softer corners */
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 0;
-  width: 100%;
-}
+/* Flex-grow allows this container to aggressively claim all remaining vertical space */
+.video-container{position:relative;flex-grow:1;background:#1a1a1a;border-radius:12px;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:0;width:100%;}
 
-/* Video Element: Changed to 'contain' to respect camera aspect ratios without clipping, 
-   or 'cover' with a centered position if you want it completely borderless. */
-.video-el {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* Prevents the video from being cropped into a narrow strip */
-  max-width: 100%;
-  max-height: 100%;
-}
+/* Set object-fit to contain so wide video feeds fit fully inside the taller container without getting severely cropped on the sides */
+.video-el{width:100%;height:100%;object-fit:contain;}
 
-/* Floating Picture-in-Picture (Local Camera) */
-.video-el.local {
-  position: absolute;
-  bottom: 24px;
-  right: 24px;
-  width: 160px; /* Increased size slightly for readability */
-  height: 100px; /* Golden wide aspect ratio (16:9 look) instead of a narrow box */
-  border-radius: 10px;
-  z-index: 10;
-  object-fit: cover;
-  background: #3c4043;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-  border: none; /* Cleaner borderless floating window */
-}
-
-/* Overlays & Badges */
-.timer-overlay {
-  position: absolute;
-  top: 1.25rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(32, 33, 36, 0.75);
-  backdrop-filter: blur(10px);
-  padding: 8px 20px;
-  border-radius: 24px;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 5;
-  border: 1px solid rgba(255,255,255,.1);
-}
-.timer-display {
-  font-family: 'Sora', sans-serif;
-  font-size: .95rem;
-  font-weight: 700;
-  letter-spacing: .05em;
-  transition: color .4s;
-}
-.timer-display.normal { color: #fff; }
-.timer-display.warning { color: #fdd835; }
-.timer-display.critical { color: #f28b82; animation: blink 1s ease-in-out infinite; }
-
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-
-.status-badge {
-  position: absolute;
-  bottom: 24px;
-  left: 24px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: .8rem;
-  font-weight: 600;
-  z-index: 20;
-  backdrop-filter: blur(10px);
-}
-.status-badge.connected { background: rgba(129, 201, 149, 0.15); border: 1px solid rgba(129, 201, 149, 0.3); color: #81c795; }
-.status-badge.connecting, .status-badge.checking { background: rgba(253, 216, 53, 0.15); border: 1px solid rgba(253, 216, 53, 0.3); color: #fdd835; }
-.status-badge.failed, .status-badge.disconnected { background: rgba(242, 139, 130, 0.15); border: 1px solid rgba(242, 139, 130, 0.3); color: #f28b82; }
-
-.s-dot { width: 8px; height: 8px; border-radius: 50%; }
-.status-badge.connected .s-dot { background: #81c795; }
-.status-badge.connecting .s-dot, .status-badge.checking .s-dot { background: #fdd835; animation: pulse 1s infinite; }
-.status-badge.failed .s-dot, .status-badge.disconnected .s-dot { background: #f28b82; }
-
-/* Control Bar: Kept elegant and clean at the bottom */
-.call-controls {
-  background: #202124; /* Matches background for an integrated UI look */
-  padding: 0.75rem 1.5rem;
-  border-radius: 0; 
-  box-shadow: none;
-  display: flex;
-  justify-content: center; /* Centers controls like Google Meet */
-  align-items: center;
-  gap: 2rem;
-  flex-shrink: 0;
-}
-.control-btn-end {
-  background: #ea4335; /* Google Meet red hangup button */
-  color: white;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 24px; /* Pill shaped button */
-  cursor: pointer;
-  font-size: .95rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  font-family: 'DM Sans', sans-serif;
-  transition: background 0.2s;
-}
-.control-btn-end:hover {
-  background: #d93025;
-}
-
-/* End Call / Rating Overlays */
-.ended-overlay, .disconnect-overlay, .rating-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(32, 33, 36, 0.95);
-  backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  border-radius: 16px;
-  text-align: center;
-  padding: 2rem;
-  color: white;
-  animation: fadeIn .3s ease;
-}
+.video-el.local{position:absolute;bottom:16px;right:14px;width:130px;height:175px;border:2px solid white;border-radius:8px;z-index:10;object-fit:cover;background:#333;}
+.timer-overlay{position:absolute;top:.875rem;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.65);backdrop-filter:blur(6px);padding:6px 16px;border-radius:22px;color:white;display:flex;align-items:center;gap:7px;z-index:5;border:1px solid rgba(255,255,255,.1);}
+.timer-display{font-family:'Sora',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.05em;transition:color .4s;}
+.timer-display.normal{color:#fff;}
+.timer-display.warning{color:#fbbf24;}
+.timer-display.critical{color:#f87171;animation:blink 1s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.5;}}
+.status-badge{position:absolute;bottom:14px;left:14px;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:18px;font-size:.75rem;font-weight:600;z-index:20;backdrop-filter:blur(6px);border:1px solid transparent;}
+.status-badge.connected{background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.4);color:#6ee7b7;}
+.status-badge.connecting,.status-badge.checking{background:rgba(251,191,36,.2);border-color:rgba(251,191,36,.3);color:#fcd34d;}
+.status-badge.failed,.status-badge.disconnected{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.3);color:#fca5a5;}
+.status-badge.new,.status-badge.closed{background:rgba(156,163,175,.2);border-color:rgba(156,163,175,.2);color:#d1d5db;}
+.s-dot{width:6px;height:6px;border-radius:50%;}
+.status-badge.connected .s-dot{background:#10b981;}
+.status-badge.connecting .s-dot,.status-badge.checking .s-dot{background:#f59e0b;animation:pulse 1s infinite;}
+.status-badge.failed .s-dot,.status-badge.disconnected .s-dot{background:#ef4444;}
+.status-badge.new .s-dot,.status-badge.closed .s-dot{background:#9ca3af;}
+.call-controls{background:white;padding:1.1rem 1.25rem;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.control-btn-end{background:#ef4444;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:.93rem;display:flex;align-items:center;gap:.4rem;font-family:'DM Sans',sans-serif;}
+.report-btn{background:none;border:1px solid #e5e7eb;color:#9ca3af;padding:5px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;margin-top:5px;}
+.report-btn:hover{border-color:#ef4444;color:#ef4444;background:#fff5f5;}
+.ended-overlay,.disconnect-overlay,.rating-overlay{position:absolute;inset:0;background:rgba(0,0,0,.87);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;border-radius:12px;text-align:center;padding:2rem;color:white;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.ended-overlay h3,.disconnect-overlay h3{font-family:'Sora',sans-serif;font-size:1.15rem;font-weight:700;margin:.75rem 0 .4rem;}
+.ended-overlay p,.disconnect-overlay p{color:rgba(255,255,255,.58);font-size:.87rem;margin:0 0 1.5rem;}
+.spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.15);border-top-color:#f59e0b;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:1rem;}
+.disc-end-btn{padding:9px 24px;background:#ef4444;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:.9rem;font-family:'DM Sans',sans-serif;}
+.rating-buttons{display:flex;gap:.875rem;margin-top:1.75rem;}
+.rating-btn{padding:.875rem 1.75rem;font-size:1.1rem;border-radius:8px;border:none;cursor:pointer;transition:transform .2s;}
+.rating-btn.good{background:#10b981;color:white;}
+.rating-btn.meh{background:#6b7280;color:white;}
+.rating-btn:hover{transform:scale(1.05);}
+.context-note{font-size:.82rem;margin-bottom:.75rem;padding:5px 13px;border-radius:7px;}
+.context-note.warning{color:#fbbf24;background:rgba(251,191,36,.15);}
+.context-note.muted{color:rgba(255,255,255,.45);}
 
 /* Report modal */
 .report-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:1rem;}
