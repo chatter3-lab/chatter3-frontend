@@ -438,7 +438,7 @@ function ProfileGate({user,onComplete,onDismiss}){
         <h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.25rem',fontWeight:800,color:'#1a1a2e',margin:'0 0 .4rem'}}>One quick thing…</h2>
         <p style={{color:'#6b7280',fontSize:'.88rem',marginBottom:'1.25rem',lineHeight:1.5}}>Tell us where you're from and your native language — we use this to find you better conversation partners.</p>
         {err&&<div className="error-message">{err}</div>}
-        <input className="profile-gate-input" placeholder="Country of origin (e.g. Japan)" value={country} onChange={e=>setCountry(e.target.value)}/>
+        <div style={{marginBottom:'.55rem'}}><CountrySelect value={country} onChange={setCountry} required/></div>
         <input className="profile-gate-input" placeholder="Native language (e.g. Japanese)" value={lang} onChange={e=>setLang(e.target.value)}/>
         <button className="profile-gate-submit" onClick={save} disabled={loading}>{loading?'Saving…':'Save & Find a Partner →'}</button>
         <button onClick={onDismiss} style={{marginTop:'.6rem',background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:'.82rem'}}>Maybe later</button>
@@ -822,8 +822,8 @@ function AdminDashboard({user,onBack}){
       </div>
 
       <div className="admin-tabs">
-        {['analytics','users','reports','settings','health'].map(t=>(
-          <button key={t} className={`admin-tab ${tab===t?'active':''}`} onClick={()=>setTab(t)} style={{textTransform:'capitalize'}}>{t}</button>
+        {['analytics','users','reports','settings','all-users','health'].map(t=>(
+          <button key={t} className={`admin-tab ${tab===t?'active':''}`} onClick={()=>setTab(t)} style={{textTransform:'capitalize'}}>{t==='all-users'?'All Users':t}</button>
         ))}
       </div>
 
@@ -976,9 +976,81 @@ function AdminDashboard({user,onBack}){
         <AdminSettingsPanel user={user}/>
       )}
 
+      {/* ── ALL USERS ── */}
+      {tab==='all-users'&&(
+        <AllUsersTab user={user} post={post}/>
+      )}
+
       {/* ── HEALTH ── */}
       {tab==='health'&&(
         <HealthTab stats={stats} user={user} post={post}/>
+      )}
+    </div>
+  );
+}
+
+function AllUsersTab({user,post}){
+  const[users,setUsers]=useState([]);
+  const[page,setPage]=useState(0);
+  const[loading,setLoading]=useState(true);
+  const[total,setTotal]=useState(0);
+  const PAGE=50;
+
+  const load=async(p=0)=>{
+    setLoading(true);
+    const d=await post('/api/admin/users/all',{offset:p*PAGE,limit:PAGE});
+    if(d.success){setUsers(d.users||[]);setTotal(d.total||0);}
+    setLoading(false);
+  };
+
+  useEffect(()=>{load(page);},[page]);
+
+  const exportCSV=async()=>{
+    const d=await post('/api/admin/users/export',{});
+    if(!d.csv)return;
+    const blob=new Blob([d.csv],{type:'text/csv'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`chatter3_users_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  };
+
+  return(
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:'.5rem'}}>
+        <p style={{margin:0,fontSize:'.88rem',color:'#64748b'}}>{total} total users · page {page+1} of {Math.ceil(total/PAGE)||1}</p>
+        <button className="save-settings-btn" style={{margin:0}} onClick={exportCSV}>⬇ Export All as CSV</button>
+      </div>
+      {loading?<p style={{color:'#9ca3af'}}>Loading…</p>:(
+        <div className="admin-section">
+          <div style={{overflowX:'auto'}}>
+            <table className="admin-table">
+              <thead><tr><th>#</th><th>Username</th><th>Nickname</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Status</th><th>Joined</th></tr></thead>
+              <tbody>
+                {users.map((u,i)=>(
+                  <tr key={u.id}>
+                    <td style={{color:'#94a3b8',fontSize:'.72rem'}}>{page*PAGE+i+1}</td>
+                    <td><strong>{u.username}</strong></td>
+                    <td>{u.nickname||'—'}</td>
+                    <td style={{fontSize:'.78rem',color:'#64748b'}}>{u.email}</td>
+                    <td>{u.country?`${getFlag(u.country)} ${countryName(u.country)}`:'—'}</td>
+                    <td>{u.native_language||'—'}</td>
+                    <td style={{textTransform:'capitalize'}}>{u.english_level}</td>
+                    <td style={{color:'#1d4ed8',fontWeight:700}}>{u.fp_balance??0}</td>
+                    <td style={{color:'#15803d',fontWeight:700}}>{(u.rp_balance||0).toFixed(1)}</td>
+                    <td>{u.is_banned?<span className="badge-pill banned">Banned</span>:u.is_admin?<span className="badge-pill admin">Admin</span>:'—'}</td>
+                    <td style={{fontSize:'.75rem',color:'#94a3b8'}}>{u.created_at?.slice(0,10)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{display:'flex',gap:'.5rem',marginTop:'.875rem',justifyContent:'center'}}>
+            <button className="act-btn" disabled={page===0} onClick={()=>setPage(p=>p-1)}>← Prev</button>
+            <span style={{padding:'4px 12px',fontSize:'.83rem',color:'#64748b'}}>{page*PAGE+1}–{Math.min((page+1)*PAGE,total)} of {total}</span>
+            <button className="act-btn" disabled={(page+1)*PAGE>=total} onClick={()=>setPage(p=>p+1)}>Next →</button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1153,7 +1225,7 @@ function AuthView({onLogin}){
         <form onSubmit={submit} className="register-form">
           {reg&&<>
             <div className="form-group"><label>Username</label><input value={form.username} onChange={upd('username')} required/></div>
-            <div className="form-group"><label>Country of Origin</label><input value={form.country} onChange={upd('country')} required placeholder="e.g. Japan"/></div>
+            <div className="form-group"><label>Country of Origin</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))} required/></div>
             <div className="form-group"><label>Native Language</label><input value={form.native_language} onChange={upd('native_language')} required placeholder="e.g. Japanese"/></div>
             <div className="form-group"><label>English Level</label>
               <select value={form.english_level} onChange={upd('english_level')}>
@@ -1217,8 +1289,8 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
             </span>
           </div>
         )}
-        <button onClick={onFindPartner} className="start-matching-btn" disabled={false}>
-          Find a Conversation Partner
+        <button onClick={onFindPartner} className="start-matching-btn" disabled={balances.fp<1}>
+          {balances.fp<1?'No FP Available — Exchange RP First':'Find a Conversation Partner'}
         </button>
         {!canCall&&(
           <p style={{fontSize:'.82rem',color:'#f59e0b',marginTop:'.5rem'}}>
@@ -1402,7 +1474,8 @@ function PreCallView({session,onStart,onCancel}){
 // VIDEO ROOM VIEW
 // ─────────────────────────────────────────────────────────────────
 function VideoRoomView({user,session,callStartedAt,onEnd}){
-  const total=session.english_level==='beginner'?300:600;
+  const customDur=(session.custom_duration||0)*60;
+  const total=customDur>0?customDur:(session.english_level==='beginner'?300:600);
   const[timeLeft,setTimeLeft]=useState(total);
   const[connStatus,setConnStatus]=useState('new');
   const[showRating,setShowRating]=useState(false);
@@ -1410,10 +1483,13 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   const[showReport,setShowReport]=useState(false);
   const[endReason,setEndReason]=useState(null);
   const[partnerEndedScreen,setPartnerEndedScreen]=useState(false);
+  const[partnerReconnecting,setPartnerReconnecting]=useState(false);
   const[err,setErr]=useState('');
   const lv=useRef(null),rv=useRef(null),pc=useRef(null),ws=useRef(null);
   const remStream=useRef(null),lcQ=useRef([]),rcQ=useRef([]),negRef=useRef(false),streamRef=useRef(null);
   const discTimer=useRef(null),autoTimer=useRef(null);
+  const hasConnected=useRef(false);
+  const partnerReconnectTimer=useRef(null);
 
   const cleanup=()=>{
     if(streamRef.current){streamRef.current.getTracks().forEach(t=>t.stop());streamRef.current=null;}
@@ -1439,7 +1515,11 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         p.onicecandidate=ev=>{if(ev.candidate){const pl=JSON.stringify({type:'candidate',candidate:ev.candidate});ws.current?.readyState===1?ws.current.send(pl):lcQ.current.push(pl);}};
         p.onconnectionstatechange=()=>{
           const s=p.connectionState;setConnStatus(s);
-          if(s==='connected'){playSound('start');clearTimeout(discTimer.current);clearTimeout(autoTimer.current);setShowDisc(false);}
+          if(s==='connected'){hasConnected.current=true;playSound('start');clearTimeout(discTimer.current);clearTimeout(autoTimer.current);setShowDisc(false);}
+          if((s==='failed')&&!hasConnected.current){
+            // Never connected — refund FP
+            fetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id})}).catch(()=>{});
+          }
           if(s==='disconnected'||s==='failed'){
             discTimer.current=setTimeout(()=>setShowDisc(true),3000);
             autoTimer.current=setTimeout(async()=>{setEndReason('network');setShowDisc(false);await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'network_disconnect'})}).catch(()=>{});cleanup();playSound('end');setShowRating(true);},15000);
@@ -1448,10 +1528,22 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         pc.current=p;
         const sock=new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
         ws.current=sock;
-        sock.onopen=()=>{setConnStatus('checking');while(lcQ.current.length>0)sock.send(lcQ.current.shift());sock.send(JSON.stringify({type:'join'}));};
+        sock.onopen=()=>{setConnStatus('checking');while(lcQ.current.length>0)sock.send(lcQ.current.shift());sock.send(JSON.stringify({type:'join'}));if(hasConnected.current)sock.send(JSON.stringify({type:'reconnected'}));};
         sock.onmessage=async(msg)=>{
           const data=JSON.parse(msg.data);
-          if(data.type==='bye'){cleanup();playSound('end');setEndReason('partner');setPartnerEndedScreen(true);setTimeout(()=>{setPartnerEndedScreen(false);setShowRating(true);},3000);}
+          if(data.type==='bye'){
+            if(hasConnected.current){
+              // Partner left mid-call — show reconnect notice, auto-proceed after 15s
+              setPartnerReconnecting(true);
+              partnerReconnectTimer.current=setTimeout(()=>{
+                cleanup();playSound('end');setPartnerReconnecting(false);setEndReason('partner');setShowRating(true);
+              },15000);
+            } else {
+              // Never connected — just end
+              cleanup();playSound('end');setEndReason('partner');setShowRating(true);
+            }
+          }
+          else if(data.type==='reconnected'){clearTimeout(partnerReconnectTimer.current);setPartnerReconnecting(false);}
           else if(data.type==='join'){sock.send(JSON.stringify({type:'join_ack'}));if(user.id===session.user1_id&&!negRef.current)neg();}
           else if(data.type==='join_ack'){if(user.id===session.user1_id&&!negRef.current)neg();}
           else if(data.type==='offer'){negRef.current=true;await p.setRemoteDescription(new RTCSessionDescription(data.sdp));flushRC();const a=await p.createAnswer();await p.setLocalDescription(a);sock.send(JSON.stringify({type:'answer',sdp:a}));}
@@ -1464,11 +1556,12 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
     const flushRC=async()=>{if(!pc.current)return;while(rcQ.current.length>0)try{await pc.current.addIceCandidate(rcQ.current.shift());}catch{}};
     const beforeUnload=()=>{ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye'}));};
     window.addEventListener('beforeunload',beforeUnload);
-    const t0=callStartedAt||Date.now();
-    const tick=()=>{const el=Math.floor((Date.now()-t0)/1000);const rem=Math.max(0,total-el);setTimeLeft(rem);return rem;};
+    // Use server session.created_at for timer sync — both users see identical countdown
+    const sessionStart=new Date(session.created_at.endsWith('Z')?session.created_at:session.created_at+'Z').getTime();
+    const tick=()=>{const el=Math.floor((Date.now()-sessionStart)/1000);const rem=Math.max(0,total-el);setTimeLeft(rem);return rem;};
     tick();init();
     const timer=setInterval(()=>{if(tick()<=0)hangup();},1000);
-    return()=>{clearInterval(timer);clearTimeout(discTimer.current);clearTimeout(autoTimer.current);window.removeEventListener('beforeunload',beforeUnload);};
+    return()=>{clearInterval(timer);clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(partnerReconnectTimer.current);window.removeEventListener('beforeunload',beforeUnload);};
   },[]);
 
   const hangup=async()=>{
@@ -1491,7 +1584,17 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   const SM={new:{l:'Initializing',c:'new'},checking:{l:'Connecting…',c:'checking'},connecting:{l:'Connecting…',c:'connecting'},connected:{l:'Connected',c:'connected'},disconnected:{l:'Reconnecting…',c:'disconnected'},failed:{l:'Connection failed',c:'failed'},closed:{l:'Ended',c:'closed'}};
   const si=SM[connStatus]||SM.new;
 
-  if(err)return <div className="matching-screen"><p style={{color:'red'}}>{err}</p><button onClick={onEnd} className="cancel-btn">Go Back</button></div>;
+  if(err)return(
+    <div className="matching-screen">
+      <p style={{color:'red',fontWeight:600}}>{err}</p>
+      <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'1rem',maxWidth:320,textAlign:'left',margin:'.75rem 0',fontSize:'.83rem',color:'#92400e',lineHeight:1.55}}>
+        <strong>📱 iPhone / Safari users:</strong> Camera permission resets after each session in Safari. To keep it permanent:<br/>
+        1. Tap <strong>Share → Add to Home Screen</strong> to install as an app — permissions persist like Android.<br/>
+        2. Or go to <strong>Settings → Safari → Camera</strong> and set to <em>Allow</em>.
+      </div>
+      <button onClick={onEnd} className="cancel-btn">Go Back</button>
+    </div>
+  );
 
   return(
     <div className="video-call-interface">
@@ -1508,8 +1611,16 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
           <span className={`timer-display ${tc}`}>{fmt(timeLeft)}</span>
         </div>
         <div className={`status-badge ${si.c}`}><span className="s-dot"/>{si.l}</div>
-        {partnerEndedScreen&&<div className="ended-overlay"><div style={{fontSize:'2.25rem',marginBottom:'.65rem'}}>📵</div><h3>Your partner ended the call</h3><p>Taking you to the rating screen…</p></div>}
-        {showDisc&&!showRating&&!partnerEndedScreen&&(
+        {partnerReconnecting&&(
+          <div className="ended-overlay">
+            <div className="spinner"/>
+            <h3>Partner disconnected</h3>
+            <p>Waiting for them to reconnect… (15s)</p>
+            <button className="disc-end-btn" onClick={()=>{clearTimeout(partnerReconnectTimer.current);cleanup();playSound('end');setEndReason('partner');setPartnerReconnecting(false);setShowRating(true);}}>End Call Now</button>
+          </div>
+        )}
+        {partnerEndedScreen&&!partnerReconnecting&&<div className="ended-overlay"><div style={{fontSize:'2.25rem',marginBottom:'.65rem'}}>📵</div><h3>Your partner ended the call</h3><p>Taking you to the rating screen…</p></div>}
+        {showDisc&&!showRating&&!partnerEndedScreen&&!partnerReconnecting&&(
           <div className="disconnect-overlay">
             <div className="spinner"/>
             <h3>Connection Lost</h3>
@@ -1572,7 +1683,7 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
           <p style={{fontSize:'.72rem',color:'#9ca3af',margin:'3px 0 0'}}>Auto-compressed on upload.</p>
         </div>
         <div className="form-group"><label>Nickname</label><input value={form.nickname} onChange={upd('nickname')}/></div>
-        <div className="form-group"><label>Country</label><input value={form.country} onChange={upd('country')} placeholder="e.g. Japan"/></div>
+        <div className="form-group"><label>Country</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))}/></div>
         <div className="form-group"><label>Native Language</label><input value={form.native_language} onChange={upd('native_language')} placeholder="e.g. Japanese"/></div>
         <div className="form-group"><label>English Level</label>
           <select value={form.english_level} onChange={upd('english_level')}>
