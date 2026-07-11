@@ -1119,6 +1119,15 @@ export default function App(){
     if(saved){const u=JSON.parse(saved);setUser(u);setView('dashboard');checkSession(u.id);}
   },[]);
 
+  // Refresh user presence every 30 seconds while dashboard is open
+  useEffect(() => {
+    if (!user) return;
+    const t = setInterval(() => {
+      fetch(`${API_URL}/api/user/${user.id}`).catch(()=>{});
+    }, 30000);
+    return () => clearInterval(t);
+  }, [user]);
+
   const checkSession=async(uid)=>{
     try{const r=await fetch(`${API_URL}/api/matching/session/${uid}`);const d=await r.json();
       if(d.active_session){setSession(d.session);setCallStartedAt(Date.now());setView('video');}}catch{}
