@@ -12,14 +12,13 @@ const COUNTRIES=[{code:'AF',name:'Afghanistan'},{code:'AL',name:'Albania'},{code
 
 const getFlag=code=>{
   if(!code)return'🌍';
-  // Match by ISO code or full name (backwards compat for existing users with name stored)
-  const c=COUNTRIES.find(x=>x.code===code||x.name.toLowerCase()===code.toLowerCase());
+  const c=COUNTRIES.find(x=>x.code===code);
   if(!c)return'🌍';
   return String.fromCodePoint(...c.code.toUpperCase().split('').map(ch=>0x1F1E6+ch.charCodeAt(0)-65));
 };
 const countryName=code=>{
   if(!code)return'';
-  const c=COUNTRIES.find(x=>x.code===code||x.name.toLowerCase()===code.toLowerCase());
+  const c=COUNTRIES.find(x=>x.code===code);
   return c?c.name:code;
 };
 function CountrySelect({value,onChange,required,placeholder='Select your country'}){
@@ -51,11 +50,7 @@ const startRinging = () => {
   return ()=>{ stopped=true; if(audio){try{audio.pause();audio.src='';}catch{}} };
 };
 
-// ── Country helpers ──────────────────────────────────────────
-const FLAGS={'japan':'🇯🇵','korea':'🇰🇷','south korea':'🇰🇷','china':'🇨🇳','united states':'🇺🇸','usa':'🇺🇸','us':'🇺🇸','america':'🇺🇸','brazil':'🇧🇷','mexico':'🇲🇽','germany':'🇩🇪','france':'🇫🇷','spain':'🇪🇸','italy':'🇮🇹','india':'🇮🇳','indonesia':'🇮🇩','vietnam':'🇻🇳','thailand':'🇹🇭','philippines':'🇵🇭','taiwan':'🇹🇼','russia':'🇷🇺','turkey':'🇹🇷','portugal':'🇵🇹','colombia':'🇨🇴','argentina':'🇦🇷','bangladesh':'🇧🇩','pakistan':'🇵🇰','egypt':'🇪🇬','nigeria':'🇳🇬','saudi arabia':'🇸🇦','uae':'🇦🇪','canada':'🇨🇦','australia':'🇦🇺','uk':'🇬🇧','united kingdom':'🇬🇧','netherlands':'🇳🇱','poland':'🇵🇱','sweden':'🇸🇪','norway':'🇳🇴','denmark':'🇩🇰','finland':'🇫🇮','switzerland':'🇨🇭','austria':'🇦🇹','belgium':'🇧🇪','greece':'🇬🇷','ukraine':'🇺🇦','malaysia':'🇲🇾','singapore':'🇸🇬','hong kong':'🇭🇰','peru':'🇵🇪','chile':'🇨🇱','venezuela':'🇻🇪','morocco':'🇲🇦','kenya':'🇰🇪','ethiopia':'🇪🇹','ghana':'🇬🇭','iran':'🇮🇷','iraq':'🇮🇶','israel':'🇮🇱','nepal':'🇳🇵','sri lanka':'🇱🇰','myanmar':'🇲🇲','cambodia':'🇰🇭'};
-const ALIASES={'japon':'japan','jpn':'japan','jp':'japan','brasil':'brazil','deutschland':'germany','allemagne':'germany','españa':'spain','espana':'spain','italia':'italy','türkiye':'turkey','turkiye':'turkey','pilipinas':'philippines','filipinas':'philippines','viet nam':'vietnam','việt nam':'vietnam','estados unidos':'united states','eeuu':'united states','u.s.a':'united states','u.k':'uk','great britain':'uk','england':'uk','britain':'uk','nederland':'netherlands','holland':'netherlands','österreich':'austria','osterreich':'austria','polska':'poland','hellas':'greece','grecia':'greece','україна':'ukraine','marokko':'morocco','maroc':'morocco','burma':'myanmar'};
-const normalizeCountry=(r)=>{if(!r)return '';const s=r.trim().toLowerCase().replace(/\s+/g,' ');return ALIASES[s]||FLAGS[s]&&s||(Object.keys(FLAGS).find(k=>k.startsWith(s)||s.startsWith(k)))||s;};
-//const getFlag=(c)=>FLAGS[normalizeCountry(c)]||'🌍';
+// ── Country helpers ────────────────────────────────────────── 
 
 // ── Conversation starters ────────────────────────────────────
 const STARTERS=[(p)=>`Ask ${p} what the most popular food is in their country!`,(p)=>`Ask ${p} what music or shows are trending where they live!`,(p)=>`Ask ${p} what they enjoy doing on weekends!`,(p)=>`Ask ${p} what made them want to learn English!`,(p)=>`Ask ${p} to describe something unique about their hometown!`];
@@ -1381,7 +1376,7 @@ function MatchingView({user,onCancel,onMatch}){
     const search=async()=>{
       try{
         if(!matched){
-          const r=await fetch(`${API_URL}/api/matching/join`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id,english_level:user.english_level,country:normalizeCountry(user.country),native_language:(user.native_language||'').trim().toLowerCase()})});
+          const r=await fetch(`${API_URL}/api/matching/join`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id,english_level:user.english_level,country:user.country,native_language:(user.native_language||'').trim().toLowerCase()})});
           const d=await r.json();
           if(d.error==='insufficient_fp'){stopRingRef.current?.();onCancel();return;}
           if(d.matched){setMatched(true);setStatus('Partner found!');stopRingRef.current?.();}
