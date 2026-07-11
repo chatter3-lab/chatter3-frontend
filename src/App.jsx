@@ -1283,7 +1283,7 @@ function AuthView({onLogin}){
 // DASHBOARD VIEW
 // ─────────────────────────────────────────────────────────────────
 function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser}){
-  const[online,setOnline]=useState({searching:0,in_call:0,by_level:{}});
+  const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
   const canCall=balances.fp>=1;
 
@@ -1294,7 +1294,7 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
     }).catch(()=>{});
   },[user.id]);
 
-  const totalOnline=online.searching+online.in_call;
+  const totalOnline=online.total||online.searching+online.in_call;
   const sameLevel=online.by_level?.[user.english_level]||0;
 
   return(
@@ -1405,7 +1405,7 @@ function MatchingView({user,onCancel,onMatch}){
     onCancel();
   };
 
-  const total=online.searching+online.in_call;
+  const total=online.total||online.searching+online.in_call;
   const sameLevel=online.by_level?.[user.english_level]||0;
   const noLevel=total>0&&sameLevel<=1;
 
