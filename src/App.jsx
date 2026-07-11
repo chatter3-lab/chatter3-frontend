@@ -63,7 +63,7 @@ const STARTERS=[(p)=>`Ask ${p} what the most popular food is in their country!`,
 // ── Onboarding slides ────────────────────────────────────────
 const SLIDES=[
   {id:1,emoji:'🌐',color:'#4f8ef7',tag:'CONNECT',headline:'Connect with real people, instantly.',body:'Get matched 1-on-1 with learners around the world. No scheduling. No profiles to browse.'},
-  {id:2,emoji:'🗣️',color:'#7c3aed',tag:'SPEAK',headline:"Just speak. That's how you learn.",body:'Short, real conversations build real confidence. No lessons. No teachers. Just practice.'},
+  {id:2,emoji:'🗣️',color:'#7c3aed',tag:'SPEAK',headline:"Just speak. That is how you learn.",body:'Short, real conversations build real confidence. No lessons. No teachers. Just practice.'},
   {id:3,emoji:'⭐',color:'#059669',tag:'EARN',headline:'Your conversations earn value.',body:'Complete conversations to earn Reward Points. Exchange them for more call time.',note:'RP may transition to C3T (Chatter3 Token) in the future.'},
 ];
 
