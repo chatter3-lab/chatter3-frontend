@@ -7,6 +7,31 @@ const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.goo
 const RP_TO_FP = 3; // 3 RP → 1 FP
 const MATCH_TIMEOUT = 90;
 
+// ── ISO 3166-1 Countries ─────────────────────────────────────
+const COUNTRIES=[{code:'AF',name:'Afghanistan'},{code:'AL',name:'Albania'},{code:'DZ',name:'Algeria'},{code:'AD',name:'Andorra'},{code:'AO',name:'Angola'},{code:'AG',name:'Antigua and Barbuda'},{code:'AR',name:'Argentina'},{code:'AM',name:'Armenia'},{code:'AU',name:'Australia'},{code:'AT',name:'Austria'},{code:'AZ',name:'Azerbaijan'},{code:'BS',name:'Bahamas'},{code:'BH',name:'Bahrain'},{code:'BD',name:'Bangladesh'},{code:'BB',name:'Barbados'},{code:'BY',name:'Belarus'},{code:'BE',name:'Belgium'},{code:'BZ',name:'Belize'},{code:'BJ',name:'Benin'},{code:'BT',name:'Bhutan'},{code:'BO',name:'Bolivia'},{code:'BA',name:'Bosnia and Herzegovina'},{code:'BW',name:'Botswana'},{code:'BR',name:'Brazil'},{code:'BN',name:'Brunei'},{code:'BG',name:'Bulgaria'},{code:'BF',name:'Burkina Faso'},{code:'BI',name:'Burundi'},{code:'CV',name:'Cabo Verde'},{code:'KH',name:'Cambodia'},{code:'CM',name:'Cameroon'},{code:'CA',name:'Canada'},{code:'CF',name:'Central African Republic'},{code:'TD',name:'Chad'},{code:'CL',name:'Chile'},{code:'CN',name:'China'},{code:'CO',name:'Colombia'},{code:'KM',name:'Comoros'},{code:'CG',name:'Congo'},{code:'CD',name:'Congo (DRC)'},{code:'CR',name:'Costa Rica'},{code:'HR',name:'Croatia'},{code:'CU',name:'Cuba'},{code:'CY',name:'Cyprus'},{code:'CZ',name:'Czech Republic'},{code:'DK',name:'Denmark'},{code:'DJ',name:'Djibouti'},{code:'DM',name:'Dominica'},{code:'DO',name:'Dominican Republic'},{code:'EC',name:'Ecuador'},{code:'EG',name:'Egypt'},{code:'SV',name:'El Salvador'},{code:'GQ',name:'Equatorial Guinea'},{code:'ER',name:'Eritrea'},{code:'EE',name:'Estonia'},{code:'SZ',name:'Eswatini'},{code:'ET',name:'Ethiopia'},{code:'FJ',name:'Fiji'},{code:'FI',name:'Finland'},{code:'FR',name:'France'},{code:'GA',name:'Gabon'},{code:'GM',name:'Gambia'},{code:'GE',name:'Georgia'},{code:'DE',name:'Germany'},{code:'GH',name:'Ghana'},{code:'GR',name:'Greece'},{code:'GD',name:'Grenada'},{code:'GT',name:'Guatemala'},{code:'GN',name:'Guinea'},{code:'GW',name:'Guinea-Bissau'},{code:'GY',name:'Guyana'},{code:'HT',name:'Haiti'},{code:'HN',name:'Honduras'},{code:'HK',name:'Hong Kong'},{code:'HU',name:'Hungary'},{code:'IS',name:'Iceland'},{code:'IN',name:'India'},{code:'ID',name:'Indonesia'},{code:'IR',name:'Iran'},{code:'IQ',name:'Iraq'},{code:'IE',name:'Ireland'},{code:'IL',name:'Israel'},{code:'IT',name:'Italy'},{code:'JM',name:'Jamaica'},{code:'JP',name:'Japan'},{code:'JO',name:'Jordan'},{code:'KZ',name:'Kazakhstan'},{code:'KE',name:'Kenya'},{code:'KI',name:'Kiribati'},{code:'KW',name:'Kuwait'},{code:'KG',name:'Kyrgyzstan'},{code:'LA',name:'Laos'},{code:'LV',name:'Latvia'},{code:'LB',name:'Lebanon'},{code:'LS',name:'Lesotho'},{code:'LR',name:'Liberia'},{code:'LY',name:'Libya'},{code:'LI',name:'Liechtenstein'},{code:'LT',name:'Lithuania'},{code:'LU',name:'Luxembourg'},{code:'MG',name:'Madagascar'},{code:'MW',name:'Malawi'},{code:'MY',name:'Malaysia'},{code:'MV',name:'Maldives'},{code:'ML',name:'Mali'},{code:'MT',name:'Malta'},{code:'MH',name:'Marshall Islands'},{code:'MR',name:'Mauritania'},{code:'MU',name:'Mauritius'},{code:'MX',name:'Mexico'},{code:'FM',name:'Micronesia'},{code:'MD',name:'Moldova'},{code:'MC',name:'Monaco'},{code:'MN',name:'Mongolia'},{code:'ME',name:'Montenegro'},{code:'MA',name:'Morocco'},{code:'MZ',name:'Mozambique'},{code:'MM',name:'Myanmar'},{code:'NA',name:'Namibia'},{code:'NR',name:'Nauru'},{code:'NP',name:'Nepal'},{code:'NL',name:'Netherlands'},{code:'NZ',name:'New Zealand'},{code:'NI',name:'Nicaragua'},{code:'NE',name:'Niger'},{code:'NG',name:'Nigeria'},{code:'NO',name:'Norway'},{code:'OM',name:'Oman'},{code:'PK',name:'Pakistan'},{code:'PW',name:'Palau'},{code:'PA',name:'Panama'},{code:'PG',name:'Papua New Guinea'},{code:'PY',name:'Paraguay'},{code:'PE',name:'Peru'},{code:'PH',name:'Philippines'},{code:'PL',name:'Poland'},{code:'PT',name:'Portugal'},{code:'PR',name:'Puerto Rico'},{code:'QA',name:'Qatar'},{code:'RO',name:'Romania'},{code:'RU',name:'Russia'},{code:'RW',name:'Rwanda'},{code:'KN',name:'Saint Kitts and Nevis'},{code:'LC',name:'Saint Lucia'},{code:'VC',name:'Saint Vincent and the Grenadines'},{code:'WS',name:'Samoa'},{code:'SM',name:'San Marino'},{code:'SA',name:'Saudi Arabia'},{code:'SN',name:'Senegal'},{code:'RS',name:'Serbia'},{code:'SC',name:'Seychelles'},{code:'SL',name:'Sierra Leone'},{code:'SG',name:'Singapore'},{code:'SK',name:'Slovakia'},{code:'SI',name:'Slovenia'},{code:'SB',name:'Solomon Islands'},{code:'SO',name:'Somalia'},{code:'ZA',name:'South Africa'},{code:'KR',name:'South Korea'},{code:'SS',name:'South Sudan'},{code:'ES',name:'Spain'},{code:'LK',name:'Sri Lanka'},{code:'SD',name:'Sudan'},{code:'SR',name:'Suriname'},{code:'SE',name:'Sweden'},{code:'CH',name:'Switzerland'},{code:'SY',name:'Syria'},{code:'TW',name:'Taiwan'},{code:'TJ',name:'Tajikistan'},{code:'TZ',name:'Tanzania'},{code:'TH',name:'Thailand'},{code:'TL',name:'Timor-Leste'},{code:'TG',name:'Togo'},{code:'TO',name:'Tonga'},{code:'TT',name:'Trinidad and Tobago'},{code:'TN',name:'Tunisia'},{code:'TR',name:'Turkey'},{code:'TM',name:'Turkmenistan'},{code:'UG',name:'Uganda'},{code:'UA',name:'Ukraine'},{code:'AE',name:'United Arab Emirates'},{code:'GB',name:'United Kingdom'},{code:'US',name:'United States'},{code:'UY',name:'Uruguay'},{code:'UZ',name:'Uzbekistan'},{code:'VU',name:'Vanuatu'},{code:'VE',name:'Venezuela'},{code:'VN',name:'Vietnam'},{code:'YE',name:'Yemen'},{code:'ZM',name:'Zambia'},{code:'ZW',name:'Zimbabwe'}];
+
+const getFlag=code=>{
+  if(!code)return'🌍';
+  // Match by ISO code or full name (backwards compat for existing users with name stored)
+  const c=COUNTRIES.find(x=>x.code===code||x.name.toLowerCase()===code.toLowerCase());
+  if(!c)return'🌍';
+  return String.fromCodePoint(...c.code.toUpperCase().split('').map(ch=>0x1F1E6+ch.charCodeAt(0)-65));
+};
+const countryName=code=>{
+  if(!code)return'';
+  const c=COUNTRIES.find(x=>x.code===code||x.name.toLowerCase()===code.toLowerCase());
+  return c?c.name:code;
+};
+function CountrySelect({value,onChange,required,placeholder='Select your country'}){
+  return(
+    <select value={value||''} onChange={e=>onChange(e.target.value)} required={required}
+      style={{width:'100%',padding:'9px 12px',border:'1px solid #ddd',borderRadius:6,fontSize:15,boxSizing:'border-box',background:'white',color:value?'#333':'#9ca3af'}}>
+      <option value="" disabled>{placeholder}</option>
+      {COUNTRIES.map(c=><option key={c.code} value={c.code}>{getFlag(c.code)} {c.name}</option>)}
+    </select>
+  );
+}
+
 // ── Sounds ──────────────────────────────────────────────────
 const SOUNDS = {
   match: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3',
@@ -38,7 +63,7 @@ const STARTERS=[(p)=>`Ask ${p} what the most popular food is in their country!`,
 // ── Onboarding slides ────────────────────────────────────────
 const SLIDES=[
   {id:1,emoji:'🌐',color:'#4f8ef7',tag:'CONNECT',headline:'Connect with real people, instantly.',body:'Get matched 1-on-1 with learners around the world. No scheduling. No profiles to browse.'},
-  {id:2,emoji:'🗣️',color:'#7c3aed',tag:'SPEAK',headline:"Just speak. That is how you learn.",body:'Short, real conversations build real confidence. No lessons. No teachers. Just practice.'},
+  {id:2,emoji:'🗣️',color:'#7c3aed',tag:'SPEAK',headline:"Just speak. That's how you learn.",body:'Short, real conversations build real confidence. No lessons. No teachers. Just practice.'},
   {id:3,emoji:'⭐',color:'#059669',tag:'EARN',headline:'Your conversations earn value.',body:'Complete conversations to earn Reward Points. Exchange them for more call time.',note:'RP may transition to C3T (Chatter3 Token) in the future.'},
 ];
 
@@ -243,16 +268,9 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .video-compact-header{display:flex;align-items:center;justify-content:space-between;padding:5px 1rem;background:white;box-shadow:0 1px 4px rgba(0,0,0,.08);flex-shrink:0;}
 .video-compact-header img{height:32px;width:auto;}
 .video-compact-pts{font-size:.79rem;font-weight:700;color:#4285f4;}
-
-/* Changed height to 100vh to ensure the interface occupies the full screen height */
-.video-call-interface{display:flex;flex-direction:column;height:100vh;gap:.75rem;padding:.75rem;position:relative;box-sizing:border-box;}
-
-/* Flex-grow allows this container to aggressively claim all remaining vertical space */
-.video-container{position:relative;flex-grow:1;background:#1a1a1a;border-radius:12px;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:0;width:100%;}
-
-/* Set object-fit to contain so wide video feeds fit fully inside the taller container without getting severely cropped on the sides */
-.video-el{width:100%;height:100%;object-fit:contain;}
-
+.video-call-interface{display:flex;flex-direction:column;height:calc(100vh - 44px);gap:.75rem;padding:.75rem;position:relative;}
+.video-container{position:relative;flex:1;background:#1a1a1a;border-radius:12px;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:0;}
+.video-el{width:100%;height:100%;object-fit:cover;}
 .video-el.local{position:absolute;bottom:16px;right:14px;width:130px;height:175px;border:2px solid white;border-radius:8px;z-index:10;object-fit:cover;background:#333;}
 .timer-overlay{position:absolute;top:.875rem;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.65);backdrop-filter:blur(6px);padding:6px 16px;border-radius:22px;color:white;display:flex;align-items:center;gap:7px;z-index:5;border:1px solid rgba(255,255,255,.1);}
 .timer-display{font-family:'Sora',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.05em;transition:color .4s;}
@@ -1557,8 +1575,12 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
     const beforeUnload=()=>{ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye'}));};
     window.addEventListener('beforeunload',beforeUnload);
     // Use server session.created_at for timer sync — both users see identical countdown
-    const sessionStart=new Date(session.created_at.endsWith('Z')?session.created_at:session.created_at+'Z').getTime();
-    const tick=()=>{const el=Math.floor((Date.now()-sessionStart)/1000);const rem=Math.max(0,total-el);setTimeLeft(rem);return rem;};
+    // SQLite returns "2024-01-15 12:34:56" (space), must convert to ISO format
+    const rawDate=session.created_at||'';
+    const isoDate=rawDate.includes('T')?rawDate:rawDate.replace(' ','T')+'Z';
+    const sessionStart=new Date(isoDate).getTime();
+    const t0=isNaN(sessionStart)?(callStartedAt||Date.now()):sessionStart;
+    const tick=()=>{const el=Math.floor((Date.now()-t0)/1000);const rem=Math.max(0,total-el);setTimeLeft(rem);return rem;};
     tick();init();
     const timer=setInterval(()=>{if(tick()<=0)hangup();},1000);
     return()=>{clearInterval(timer);clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(partnerReconnectTimer.current);window.removeEventListener('beforeunload',beforeUnload);};
