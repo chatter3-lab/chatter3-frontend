@@ -1137,7 +1137,10 @@ export default function App(){
 
   const checkSession=async(uid)=>{
     try{const r=await fetch(`${API_URL}/api/matching/session/${uid}`);const d=await r.json();
-      if(d.active_session){setSession(d.session);setCallStartedAt(Date.now());setView('video');}}catch{}
+      if(d.active_session){
+        const age=Date.now()-new Date(d.session.created_at).getTime();
+        if(age<300000){setSession(d.session);setCallStartedAt(Date.now());setView('video');}
+      }}catch{}
   };
 
   const refreshUser=async(uid)=>{
@@ -1519,6 +1522,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   const discTimer=useRef(null),autoTimer=useRef(null);
   const hasConnected=useRef(false);
   const partnerReconnectTimer=useRef(null);
+  const connTimeout=useRef(null);
 
   const cleanup=()=>{
     if(streamRef.current){streamRef.current.getTracks().forEach(t=>t.stop());streamRef.current=null;}
@@ -1544,7 +1548,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         p.onicecandidate=ev=>{if(ev.candidate){const pl=JSON.stringify({type:'candidate',candidate:ev.candidate});ws.current?.readyState===1?ws.current.send(pl):lcQ.current.push(pl);}};
         p.onconnectionstatechange=()=>{
           const s=p.connectionState;setConnStatus(s);
-          if(s==='connected'){hasConnected.current=true;playSound('start');clearTimeout(discTimer.current);clearTimeout(autoTimer.current);setShowDisc(false);}
+          if(s==='connected'){hasConnected.current=true;playSound('start');clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(connTimeout.current);setShowDisc(false);}
           if((s==='failed')&&!hasConnected.current){
             // Never connected — refund FP
             fetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id})}).catch(()=>{});
@@ -1558,6 +1562,13 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         const sock=new WebSocket(`${WS_URL}/api/signal?sessionId=${session.id}`);
         ws.current=sock;
         sock.onopen=()=>{setConnStatus('checking');while(lcQ.current.length>0)sock.send(lcQ.current.shift());sock.send(JSON.stringify({type:'join'}));if(hasConnected.current)sock.send(JSON.stringify({type:'reconnected'}));};
+        // Connection timeout: if not connected within 30s, refund FP and end session
+        connTimeout.current=setTimeout(()=>{
+          if(!hasConnected.current){
+            fetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id})}).catch(()=>{});
+            cleanup();playSound('end');setShowRating(true);
+          }
+        },30000);
         sock.onmessage=async(msg)=>{
           const data=JSON.parse(msg.data);
           if(data.type==='bye'){
@@ -1569,6 +1580,8 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
               },15000);
             } else {
               // Never connected — just end
+              clearTimeout(connTimeout.current);
+              fetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id})}).catch(()=>{});
               cleanup();playSound('end');setEndReason('partner');setShowRating(true);
             }
           }
@@ -1594,7 +1607,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
     const tick=()=>{const el=Math.floor((Date.now()-t0)/1000);const rem=Math.max(0,total-el);setTimeLeft(rem);return rem;};
     tick();init();
     const timer=setInterval(()=>{if(tick()<=0)hangup();},1000);
-    return()=>{clearInterval(timer);clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(partnerReconnectTimer.current);window.removeEventListener('beforeunload',beforeUnload);};
+    return()=>{clearInterval(timer);clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(partnerReconnectTimer.current);clearTimeout(connTimeout.current);window.removeEventListener('beforeunload',beforeUnload);};
   },[]);
 
   const hangup=async()=>{
