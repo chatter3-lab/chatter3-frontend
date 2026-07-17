@@ -785,6 +785,238 @@ function AdminDashboard({user,onBack}){
 
   const post=(path,body)=>fetch(`${API_URL}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_id:user.id,...body})}).then(r=>r.json());
 
+  const renderAnalytics = (stats, maxSessions) => {
+    if (!stats) return null;
+    return (
+      <div>
+        <div className="kpi-grid">
+          <div className="kpi-card"><div className="kpi-val">{stats.total_users?.toLocaleString()}</div><div className="kpi-lbl">Total Users</div><div className="kpi-sub">+{stats.new_users_today} today</div></div>
+          <div className="kpi-card"><div className="kpi-val">{stats.dau?.toLocaleString()}</div><div className="kpi-lbl">DAU</div></div>
+          <div className="kpi-card"><div className="kpi-val">{stats.mau?.toLocaleString()}</div><div className="kpi-lbl">MAU</div></div>
+          <div className="kpi-card"><div className="kpi-val">{stats.total_sessions?.toLocaleString()}</div><div className="kpi-lbl">Completed Calls</div></div>
+          <div className="kpi-card"><div className="kpi-val" style={{color:'#22c55e'}}>{stats.active_sessions}</div><div className="kpi-lbl">Live Calls Now</div></div>
+          <div className="kpi-card"><div className="kpi-val" style={{color:'#f59e0b'}}>{stats.queue_size}</div><div className="kpi-lbl">In Queue</div></div>
+          <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{stats.pending_reports}</div><div className="kpi-lbl">Pending Reports</div></div>
+        </div>
+        {stats.connection_stats&&(function(){
+            const cs=stats.connection_stats;
+            const total=cs.total_sessions||0;
+            const connected=cs.connected||0;
+            const connectRate=total?Math.round((connected/total)*100):0;
+            const avgConnect=cs.avg_time_to_connect||0;
+            return (
+              <div>
+                <div className="kpi-grid" style={{marginTop:'.75rem'}}>
+                  <div className="kpi-card"><div className="kpi-val" style={{color:connectRate>50?'#22c55e':'#ef4444'}}>{connectRate}%</div><div className="kpi-lbl">Connect Rate</div></div>
+                  <div className="kpi-card"><div className="kpi-val">{avgConnect?Math.round(avgConnect)+'s':'N/A'}</div><div className="kpi-lbl">Avg Connect Time</div></div>
+                  <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{cs.network_disconnects||0}</div><div className="kpi-lbl">Network Disconnects</div></div>
+                  <div className="kpi-card"><div className="kpi-val" style={{color:'#6b7280'}}>{cs.intentional_ends||0}</div><div className="kpi-lbl">Intentional End Call</div></div>
+                  <div className="kpi-card"><div className="kpi-val">{cs.connection_issues||0}</div><div className="kpi-lbl">Connection Issues</div></div>
+                </div>
+                <div className="admin-section" style={{marginTop:'.75rem'}}>
+                  <h3>Disconnect Reasons (30 Days)</h3>
+                  <div className="chart-row" style={{height:'120px'}}>
+                    <div className="chart-bar" style={{height:`${(cs.network_disconnects||0)/Math.max(total,1)*100}%`,background:'#ef4444'}} title={`Network: ${cs.network_disconnects||0}`}/>
+                    <div className="chart-bar" style={{height:`${(cs.intentional_ends||0)/Math.max(total,1)*100}%`,background:'#6b7280'}} title={`Intentional End Call: ${cs.intentional_ends||0}`}/>
+                    <div className="chart-bar" style={{height:`${(cs.connection_issues||0)/Math.max(total,1)*100}%`,background:'#f59e0b'}} title={`Connection Issues: ${cs.connection_issues||0}`}/>
+                    <div className="chart-bar" style={{height:`${(cs.timeouts||0)/Math.max(total,1)*100}%`,background:'#3b82f6'}} title={`Timeout: ${cs.timeouts||0}`}/>
+                  </div>
+                  <div className="chart-labels" style={{marginTop:'.5rem'}}>
+                    <div className="chart-lbl" style={{color:'#ef4444'}}>Network</div>
+                    <div className="chart-lbl" style={{color:'#6b7280'}}>Intentional End</div>
+                    <div className="chart-lbl" style={{color:'#f59e0b'}}>Connection Issues</div>
+                    <div className="chart-lbl" style={{color:'#3b82f6'}}>Timeout</div>
+                  </div>
+                </div>
+              </div>
+            );
+          }())}
+        {stats.session_stats&&(function(){
+            const ss=stats.session_stats;
+            const completed=ss.completed_sessions||0;
+            const good=(ss.good_ratings||0)+(ss.good_ratings_2||0);
+            const meh=(ss.meh_ratings||0)+(ss.meh_ratings_2||0);
+            const issues=(ss.connection_issue_ratings||0)+(ss.connection_issue_ratings_2||0);
+            const totalRatings=good+meh+issues;
+            const completedFull=(ss.completed_full||0)+(ss.completed_full_beginner||0)+(ss.completed_full_other||0);
+            const completionRate=completed?Math.round((completedFull/completed)*100):0;
+            return (
+              <div>
+                <div className="admin-section" style={{marginTop:'.75rem'}}>
+                  <h3>Session Quality (30 Days)</h3>
+                  <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                    <div className="kpi-card"><div className="kpi-val">{ss.avg_duration?Math.round(ss.avg_duration/60)+'m': 'N/A'}</div><div className="kpi-lbl">Avg Duration</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{ss.max_duration?Math.round(ss.max_duration/60)+'m':'N/A'}</div><div className="kpi-lbl">Max Duration</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:completionRate>70?'#22c55e':'#ef4444'}}>{completionRate}%</div><div className="kpi-lbl">Full Completion Rate</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{good}</div><div className="kpi-lbl" style={{color:'#10b981' }}>👍 Good</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{meh}</div><div className="kpi-lbl" style={{color:'#6b7280'}}>😐 Meh</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{issues}</div><div className="kpi-lbl" style={{color:'#f59e0b'}}>📡 Issues</div></div>
+                  </div>
+                  <div className="chart-row" style={{height:'100px'}}>
+                    <div className="chart-bar" style={{height:`${totalRatings?Math.round((good/totalRatings)*100):0}%`,background:'#10b981'}} title={`Good: ${good}`}/>
+                    <div className="chart-bar" style={{height:`${totalRatings?Math.round((meh/totalRatings)*100):0}%`,background:'#6b7280'}} title={`Meh: ${meh}`}/>
+                    <div className="chart-bar" style={{height:`${totalRatings?Math.round((issues/totalRatings)*100):0}%`,background:'#f59e0b'}} title={`Issues: ${issues}`}/>
+                  </div>
+                  <div className="chart-labels" style={{marginTop:'.5rem'}}>
+                    <div className="chart-lbl" style={{color:'#10b981'}}>Good</div>
+                    <div className="chart-lbl" style={{color:'#6b7280'}}>Meh</div>
+                    <div className="chart-lbl" style={{color:'#f59e0b'}}>Issues</div>
+                  </div>
+                </div>
+              </div>
+            );
+          }())}
+        {stats.queue_stats&&(function(){
+            const qs=stats.queue_stats;
+            return (
+              <div>
+                <div className="admin-section" style={{marginTop:'.75rem'}}>
+                  <h3>Queue Wait Time (30 Days)</h3>
+                  <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                    <div className="kpi-card"><div className="kpi-val">{qs.avg_wait?Math.round(qs.avg_wait)+'s':'N/A'}</div><div className="kpi-lbl">Avg Wait</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{qs.min_wait?Math.round(qs.min_wait)+'s':'N/A'}</div><div className="kpi-lbl">Min Wait</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{qs.max_wait?Math.round(qs.max_wait)+'s':'N/A'}</div><div className="kpi-lbl">Max Wait</div></div>
+                  </div>
+                </div>
+              </div>
+            );
+          }())}
+        {stats.cross_border_stats&&(function(){
+            const cb=stats.cross_border_stats;
+            const total=cb.total_matches||0;
+            const cross=cb.cross_border||0;
+            const rate=total?Math.round((cross/total)*100):0;
+            return (
+              <div>
+                <div className="admin-section" style={{marginTop:'.75rem'}}>
+                  <h3>Cross-Border Matches (30 Days)</h3>
+                  <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                    <div className="kpi-card"><div className="kpi-val">{total}</div><div className="kpi-lbl">Total Matches</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{cross}</div><div className="kpi-lbl">Cross-Border</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:rate>50?'#22c55e':'#ef4444'}}>{rate}%</div><div className="kpi-lbl">Cross-Border Rate</div></div>
+                  </div>
+                </div>
+              </div>
+            );
+          }())}
+        {stats.browser_stats&&stats.browser_stats.length>0&&(function(){
+            const bs=stats.browser_stats;
+            const totalFailures=stats.browser_stats.reduce((sum,b)=>sum+(b.failures||0),0);
+            return (
+              <div>
+                <div className="admin-section" style={{marginTop:'.75rem'}}>
+                  <h3>WebRTC Failures by Browser (30 Days)</h3>
+                  <div className="chart-row" style={{height:'100px'}}>
+                    {stats.browser_stats.map((b,i)=>(
+                      <div key={i} className="chart-bar" style={{height:`${(b.failures||0)/Math.max(totalFailures,1)*100}%`,background:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}} title={`${b.browser}: ${b.failures||0} failures`}/>
+                    ))}
+                  </div>
+                  <div className="chart-labels" style={{marginTop:'.5rem'}}>
+                    {stats.browser_stats.map((b,i)=><div key={i} className="chart-lbl" style={{color:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}}>{b.browser} ({(b.failures||0)/Math.max(totalFailures,1)*100}%)</div>)}
+                  </div>
+                </div>
+              </div>
+            );
+          }())}
+        {stats.rematch_stats&&(function(){
+            const rs=stats.rematch_stats;
+            const rate=rs.rematches>0?Math.round((rs.rematches/stats.session_stats?.completed_sessions)*100):0;
+            return (
+              <div>
+                <div className="admin-section" style={{marginTop:'.75rem'}}>
+                  <h3>Re-Match Rate (24h, 30 Days)</h3>
+                  <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                    <div className="kpi-card"><div className="kpi-val">{rs.rematches||0}</div><div className="kpi-lbl">Re-Matches</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{rate}%</div><div className="kpi-lbl">Re-Match Rate</div></div>
+                  </div>
+                </div>
+              </div>
+            );
+          }())}
+        {stats.queue_depth_stats&&(function(){
+            const qd=stats.queue_depth_stats;
+            return (
+              <div>
+                <div className="admin-section" style={{marginTop:'.75rem'}}>
+                  <h3>Queue Depth Over Time (30 Days)</h3>
+                  <div className="chart-row" style={{height:'120px'}}>
+                    {qd.results.map((d,i)=>(
+                      <div key={i} className="chart-bar" style={{height:`${(d.queue_size||0)/Math.max(...qd.results.map(x=>x.queue_size||0),1)*100}%`,background:'#3b82f6'}} title={`${d.day}: ${d.queue_size||0}`}/>
+                    ))}
+                  </div>
+                  <div className="chart-labels" style={{marginTop:'.5rem'}}>
+                    {qd.results.filter((_,i)=>i%5===0).map((d,i)=><div key={i} className="chart-lbl" style={{flex:5}}>{d.day?.slice(5)}</div>)}
+                  </div>
+                </div>
+              </div>
+            );
+          }())}
+        {stats.fp_rp_stats&&(function(){
+            const fr=stats.fp_rp_stats;
+            const totalUsers=fr.active_users||1;
+            return (
+              <div>
+                <div className="admin-section" style={{marginTop:'.75rem'}}>
+                  <h3>FP/RP Economy (30 Days)</h3>
+                  <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:'#10b981'}}>{stats.fp_rp_stats.fp_earned||0}</div><div className="kpi-lbl">FP Earned</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{stats.fp_rp_stats.fp_spent||0}</div><div className="kpi-lbl">FP Spent</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:'#f59e0b'}}>{stats.fp_rp_stats.rp_earned||0}</div><div className="kpi-lbl">RP Earned</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{(stats.fp_rp_stats.fp_earned||0)/Math.max(stats.fp_rp_stats.active_users||1,1).toFixed(2)}</div><div className="kpi-lbl">FP/User</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{(stats.fp_rp_stats.rp_earned||0)/Math.max(stats.fp_rp_stats.active_users||1,1).toFixed(2)}</div><div className="kpi-lbl">RP/User</div></div>
+                  </div>
+                </div>
+              </div>
+            );
+          }())}
+        {stats.retention_stats&&(function(){
+            const rt=stats.retention_stats;
+            const total=rt.total_users||1;
+            return (
+              <div>
+                <div className="admin-section" style={{marginTop:'.75rem'}}>
+                  <h3>Retention Curves (D1/D7/D30)</h3>
+                  <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                    <div className="kpi-card"><div className="kpi-val">{rt.total_users||0}</div><div className="kpi-lbl">Total Users</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:rt.d1_users/total>0.4?'#22c55e':'#ef4444'}}>{Math.round((rt.d1_users||0)/total*100)}%</div><div className="kpi-lbl">Day 1 Retention</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:rt.d7_users/total>0.2?'#22c55e':'#ef4444'}}>{Math.round((rt.d7_users||0)/total*100)}%</div><div className="kpi-lbl">Day 7 Retention</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:rt.d30_users/total>0.1?'#22c55e':'#ef4444'}}>{Math.round((rt.d30_users||0)/total*100)}%</div><div className="kpi-lbl">Day 30 Retention</div></div>
+                  </div>
+                </div>
+              </div>
+            );
+          }())}
+        {stats.report_stats&&(function(){
+            const rs=stats.report_stats;
+            return (
+              <div>
+                <div className="admin-section" style={{marginTop:'.75rem'}}>
+                  <h3>Reports per 1000 Sessions (30 Days)</h3>
+                  <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                    <div className="kpi-card"><div className="kpi-val">{stats.report_stats.total_reports||0}</div><div className="kpi-lbl">Total Reports</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:stats.report_stats.reports_per_1000>10?'#ef4444':stats.report_stats.reports_per_1000>5?'#f59e0b':'#22c55e'}}>{stats.report_stats.reports_per_1000?stats.report_stats.reports_per_1000.toFixed(1):'0'}</div><div className="kpi-lbl">Per 1000 Sessions</div></div>
+                  </div>
+                </div>
+              </div>
+            );
+          }())}
+        <div className="admin-section">
+          <h3>Sessions (Last 30 Days)</h3>
+          <div className="chart-row">
+            {[...stats.sessions_by_day].reverse().map((r,i)=>(
+              <div key={i} className="chart-bar" style={{height:`${(r.c/maxSessions)*100}%`}} title={`${r.day}: ${r.c} sessions`}/>
+            ))}
+          </div>
+          <div className="chart-labels">
+            {[...stats.sessions_by_day].reverse().filter((_,i)=>i%5===0).map((r,i)=>(
+              <div key={i} className="chart-lbl" style={{flex:5}}>{r.day?.slice(5)}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   useEffect(()=>{
     if(tab==='analytics'){
       setLoading(true);
@@ -851,7 +1083,7 @@ function AdminDashboard({user,onBack}){
       {/* ── ANALYTICS ── */}
       {tab==='analytics'&&(
         loading?<p style={{color:'#9ca3af'}}>Loading…</p>:stats?(
-          <>
+          <div>
             <div className="kpi-grid">
               <div className="kpi-card"><div className="kpi-val">{stats.total_users?.toLocaleString()}</div><div className="kpi-lbl">Total Users</div><div className="kpi-sub">+{stats.new_users_today} today</div></div>
               <div className="kpi-card"><div className="kpi-val">{stats.dau?.toLocaleString()}</div><div className="kpi-lbl">DAU</div></div>
@@ -868,7 +1100,7 @@ function AdminDashboard({user,onBack}){
                 const connectRate=total?Math.round((connected/total)*100):0;
                 const avgConnect=cs.avg_time_to_connect||0;
                 return (
-                  <>
+                  <div>
                     <div className="kpi-grid" style={{marginTop:'.75rem'}}>
                       <div className="kpi-card"><div className="kpi-val" style={{color:connectRate>50?'#22c55e':'#ef4444'}}>{connectRate}%</div><div className="kpi-lbl">Connect Rate</div></div>
                       <div className="kpi-card"><div className="kpi-val">{avgConnect?Math.round(avgConnect)+'s':'N/A'}</div><div className="kpi-lbl">Avg Connect Time</div></div>
@@ -891,7 +1123,7 @@ function AdminDashboard({user,onBack}){
                         <div className="chart-lbl" style={{color:'#3b82f6'}}>Timeout</div>
                       </div>
                     </div>
-                  </>
+                  </div>
                 );
               }())}
             {stats.session_stats&&(function(){
@@ -904,7 +1136,7 @@ function AdminDashboard({user,onBack}){
                 const completedFull=(ss.completed_full||0)+(ss.completed_full_beginner||0)+(ss.completed_full_other||0);
                 const completionRate=completed?Math.round((completedFull/completed)*100):0;
                 return (
-                  <>
+                  <div>
                     <div className="admin-section" style={{marginTop:'.75rem'}}>
                       <h3>Session Quality (30 Days)</h3>
                       <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
@@ -926,18 +1158,20 @@ function AdminDashboard({user,onBack}){
                         <div className="chart-lbl" style={{color:'#f59e0b'}}>Issues</div>
                       </div>
                     </div>
-                  </>
+                  </div>
                 );
               }())}
             {stats.queue_stats&&(function(){
                 const qs=stats.queue_stats;
                 return (
-                  <div className="admin-section" style={{marginTop:'.75rem'}}>
-                    <h3>Queue Wait Time (30 Days)</h3>
-                    <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                      <div className="kpi-card"><div className="kpi-val">{qs.avg_wait?Math.round(qs.avg_wait)+'s':'N/A'}</div><div className="kpi-lbl">Avg Wait</div></div>
-                      <div className="kpi-card"><div className="kpi-val">{qs.min_wait?Math.round(qs.min_wait)+'s':'N/A'}</div><div className="kpi-lbl">Min Wait</div></div>
-                      <div className="kpi-card"><div className="kpi-val">{qs.max_wait?Math.round(qs.max_wait)+'s':'N/A'}</div><div className="kpi-lbl">Max Wait</div></div>
+                  <div>
+                    <div className="admin-section" style={{marginTop:'.75rem'}}>
+                      <h3>Queue Wait Time (30 Days)</h3>
+                      <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                        <div className="kpi-card"><div className="kpi-val">{qs.avg_wait?Math.round(qs.avg_wait)+'s':'N/A'}</div><div className="kpi-lbl">Avg Wait</div></div>
+                        <div className="kpi-card"><div className="kpi-val">{qs.min_wait?Math.round(qs.min_wait)+'s':'N/A'}</div><div className="kpi-lbl">Min Wait</div></div>
+                        <div className="kpi-card"><div className="kpi-val">{qs.max_wait?Math.round(qs.max_wait)+'s':'N/A'}</div><div className="kpi-lbl">Max Wait</div></div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -948,12 +1182,14 @@ function AdminDashboard({user,onBack}){
                 const cross=cb.cross_border||0;
                 const rate=total?Math.round((cross/total)*100):0;
                 return (
-                  <div className="admin-section" style={{marginTop:'.75rem'}}>
-                    <h3>Cross-Border Matches (30 Days)</h3>
-                    <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                      <div className="kpi-card"><div className="kpi-val">{total}</div><div className="kpi-lbl">Total Matches</div></div>
-                      <div className="kpi-card"><div className="kpi-val">{cross}</div><div className="kpi-lbl">Cross-Border</div></div>
-                      <div className="kpi-card"><div className="kpi-val" style={{color:rate>50?'#22c55e':'#ef4444'}}>{rate}%</div><div className="kpi-lbl">Cross-Border Rate</div></div>
+                  <div>
+                    <div className="admin-section" style={{marginTop:'.75rem'}}>
+                      <h3>Cross-Border Matches (30 Days)</h3>
+                      <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                        <div className="kpi-card"><div className="kpi-val">{total}</div><div className="kpi-lbl">Total Matches</div></div>
+                        <div className="kpi-card"><div className="kpi-val">{cross}</div><div className="kpi-lbl">Cross-Border</div></div>
+                        <div className="kpi-card"><div className="kpi-val" style={{color:rate>50?'#22c55e':'#ef4444'}}>{rate}%</div><div className="kpi-lbl">Cross-Border Rate</div></div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -962,15 +1198,17 @@ function AdminDashboard({user,onBack}){
                 const bs=stats.browser_stats;
                 const totalFailures=bs.reduce((sum,b)=>sum+(b.failures||0),0);
                 return (
-                  <div className="admin-section" style={{marginTop:'.75rem'}}>
-                    <h3>WebRTC Failures by Browser (30 Days)</h3>
-                    <div className="chart-row" style={{height:'100px'}}>
-                      {bs.map((b,i)=>(
-                        <div key={i} className="chart-bar" style={{height:`${(b.failures||0)/Math.max(totalFailures,1)*100}%`,background:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}} title={`${b.browser}: ${b.failures||0} failures`}/>
-                      ))}
-                    </div>
-                    <div className="chart-labels" style={{marginTop:'.5rem'}}>
-                      {bs.map((b,i)=><div key={i} className="chart-lbl" style={{color:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}}>{b.browser} ({(b.failures||0)/Math.max(totalFailures,1)*100}%)</div>)}
+                  <div>
+                    <div className="admin-section" style={{marginTop:'.75rem'}}>
+                      <h3>WebRTC Failures by Browser (30 Days)</h3>
+                      <div className="chart-row" style={{height:'100px'}}>
+                        {bs.map((b,i)=>(
+                          <div key={i} className="chart-bar" style={{height:`${(b.failures||0)/Math.max(totalFailures,1)*100}%`,background:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}} title={`${b.browser}: ${b.failures||0} failures`}/>
+                        ))}
+                      </div>
+                      <div className="chart-labels" style={{marginTop:'.5rem'}}>
+                        {bs.map((b,i)=><div key={i} className="chart-lbl" style={{color:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}}>{b.browser} ({(b.failures||0)/Math.max(totalFailures,1)*100}%)</div>)}
+                      </div>
                     </div>
                   </div>
                 );
@@ -986,10 +1224,8 @@ function AdminDashboard({user,onBack}){
                   {[...stats.sessions_by_day].reverse().filter((_,i)=>i%5===0).map((r,i)=>(
                     <div key={i} className="chart-lbl" style={{flex:5}}>{r.day?.slice(5)}</div>
                   ))}
-                </div>
-              </div>
-            )}
-          </>
+</div>
+          </div>
         ):<p style={{color:'#9ca3af'}}>No data.</p>
       )}
 
@@ -1065,7 +1301,7 @@ function AdminDashboard({user,onBack}){
         </>
       )}
 
-      {/* ── REPORTS ── */}
+{/* ── REPORTS ── */}
       {tab==='reports'&&(
         <>
           <div style={{display:'flex',gap:'.5rem',marginBottom:'1rem',flexWrap:'wrap'}}>
@@ -1101,9 +1337,9 @@ function AdminDashboard({user,onBack}){
                 </table>
               </div>
             </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
 
       {/* ── SETTINGS ── */}
       {tab==='settings'&&(
@@ -1310,11 +1546,11 @@ export default function App(){
                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 Friends</button>
                   {user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ Admin</button>}
                   <button className="header-btn btn-logout" onClick={handleLogout}>Logout</button>
-                </div>
-              )}
-            </div>
-          </header>
-        )}
+</div>
+            )}
+          </div>
+        ):<p style={{color:'#9ca3af'}}>No data.</p>
+      )}
 
         <main className="app-content">
           {view==='dashboard'&&user&&<DashboardView user={user} onNavigate={setView} onFindPartner={handleFindPartner} onExchange={()=>setShowExchange(true)} onRefreshUser={()=>refreshUser(user.id)}/>}
