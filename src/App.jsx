@@ -894,7 +894,87 @@ function AdminDashboard({user,onBack}){
                   </>
                 );
               }())}
-            {stats.sessions_by_day?.length>0&&(
+            {stats.session_stats&&(function(){
+                const ss=stats.session_stats;
+                const completed=ss.completed_sessions||0;
+                const good=(ss.good_ratings||0)+(ss.good_ratings_2||0);
+                const meh=(ss.meh_ratings||0)+(ss.meh_ratings_2||0);
+                const issues=(ss.connection_issue_ratings||0)+(ss.connection_issue_ratings_2||0);
+                const totalRatings=good+meh+issues;
+                const completedFull=(ss.completed_full||0)+(ss.completed_full_beginner||0)+(ss.completed_full_other||0);
+                const completionRate=completed?Math.round((completedFull/completed)*100):0;
+                return (
+                  <>
+                    <div className="admin-section" style={{marginTop:'.75rem'}}>
+                      <h3>Session Quality (30 Days)</h3>
+                      <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                        <div className="kpi-card"><div className="kpi-val">{ss.avg_duration?Math.round(ss.avg_duration/60)+'m': 'N/A'}</div><div className="kpi-lbl">Avg Duration</div></div>
+                        <div className="kpi-card"><div className="kpi-val">{ss.max_duration?Math.round(ss.max_duration/60)+'m':'N/A'}</div><div className="kpi-lbl">Max Duration</div></div>
+                        <div className="kpi-card"><div className="kpi-val" style={{color:completionRate>70?'#22c55e':'#ef4444'}}>{completionRate}%</div><div className="kpi-lbl">Full Completion Rate</div></div>
+                        <div className="kpi-card"><div className="kpi-val">{good}</div><div className="kpi-lbl" style={{color:'#10b981' }}>👍 Good</div></div>
+                        <div className="kpi-card"><div className="kpi-val">{meh}</div><div className="kpi-lbl" style={{color:'#6b7280'}}>😐 Meh</div></div>
+                        <div className="kpi-card"><div className="kpi-val">{issues}</div><div className="kpi-lbl" style={{color:'#f59e0b'}}>📡 Issues</div></div>
+                      </div>
+                      <div className="chart-row" style={{height:'100px'}}>
+                        <div className="chart-bar" style={{height:`${totalRatings?Math.round((good/totalRatings)*100):0}%`,background:'#10b981'}} title={`Good: ${good}`}/>
+                        <div className="chart-bar" style={{height:`${totalRatings?Math.round((meh/totalRatings)*100):0}%`,background:'#6b7280'}} title={`Meh: ${meh}`}/>
+                        <div className="chart-bar" style={{height:`${totalRatings?Math.round((issues/totalRatings)*100):0}%`,background:'#f59e0b'}} title={`Issues: ${issues}`}/>
+                      </div>
+                      <div className="chart-labels" style={{marginTop:'.5rem'}}>
+                        <div className="chart-lbl" style={{color:'#10b981'}}>Good</div>
+                        <div className="chart-lbl" style={{color:'#6b7280'}}>Meh</div>
+                        <div className="chart-lbl" style={{color:'#f59e0b'}}>Issues</div>
+                      </div>
+                    </div>
+                  </>
+                );
+              }())}
+            {stats.queue_stats&&(function(){
+                const qs=stats.queue_stats;
+                return (
+                  <div className="admin-section" style={{marginTop:'.75rem'}}>
+                    <h3>Queue Wait Time (30 Days)</h3>
+                    <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                      <div className="kpi-card"><div className="kpi-val">{qs.avg_wait?Math.round(qs.avg_wait)+'s':'N/A'}</div><div className="kpi-lbl">Avg Wait</div></div>
+                      <div className="kpi-card"><div className="kpi-val">{qs.min_wait?Math.round(qs.min_wait)+'s':'N/A'}</div><div className="kpi-lbl">Min Wait</div></div>
+                      <div className="kpi-card"><div className="kpi-val">{qs.max_wait?Math.round(qs.max_wait)+'s':'N/A'}</div><div className="kpi-lbl">Max Wait</div></div>
+                    </div>
+                  </div>
+                );
+              }())}
+            {stats.cross_border_stats&&(function(){
+                const cb=stats.cross_border_stats;
+                const total=cb.total_matches||0;
+                const cross=cb.cross_border||0;
+                const rate=total?Math.round((cross/total)*100):0;
+                return (
+                  <div className="admin-section" style={{marginTop:'.75rem'}}>
+                    <h3>Cross-Border Matches (30 Days)</h3>
+                    <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
+                      <div className="kpi-card"><div className="kpi-val">{total}</div><div className="kpi-lbl">Total Matches</div></div>
+                      <div className="kpi-card"><div className="kpi-val">{cross}</div><div className="kpi-lbl">Cross-Border</div></div>
+                      <div className="kpi-card"><div className="kpi-val" style={{color:rate>50?'#22c55e':'#ef4444'}}>{rate}%</div><div className="kpi-lbl">Cross-Border Rate</div></div>
+                    </div>
+                  </div>
+                );
+              }())}
+            {stats.browser_stats&&stats.browser_stats.length>0&&(function(){
+                const bs=stats.browser_stats;
+                const totalFailures=bs.reduce((sum,b)=>sum+(b.failures||0),0);
+                return (
+                  <div className="admin-section" style={{marginTop:'.75rem'}}>
+                    <h3>WebRTC Failures by Browser (30 Days)</h3>
+                    <div className="chart-row" style={{height:'100px'}}>
+                      {bs.map((b,i)=>(
+                        <div key={i} className="chart-bar" style={{height:`${(b.failures||0)/Math.max(totalFailures,1)*100}%`,background:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}} title={`${b.browser}: ${b.failures||0} failures`}/>
+                      ))}
+                    </div>
+                    <div className="chart-labels" style={{marginTop:'.5rem'}}>
+                      {bs.map((b,i)=><div key={i} className="chart-lbl" style={{color:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}}>{b.browser} ({(b.failures||0)/Math.max(totalFailures,1)*100}%)</div>)}
+                    </div>
+                  </div>
+                );
+              }())}
               <div className="admin-section">
                 <h3>Sessions (Last 30 Days)</h3>
                 <div className="chart-row">
