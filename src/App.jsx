@@ -1572,8 +1572,11 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         sock.onmessage=async(msg)=>{
           const data=JSON.parse(msg.data);
           if(data.type==='bye'){
-            if(hasConnected.current){
-              // Partner left mid-call — show reconnect notice, auto-proceed after 15s
+            if(data.reason==='hangup'){
+              // Partner intentionally ended the call
+              cleanup();playSound('end');setEndReason('partner');setShowRating(true);
+            } else if(hasConnected.current){
+              // Partner disconnected unexpectedly — show reconnect notice, auto-proceed after 15s
               setPartnerReconnecting(true);
               partnerReconnectTimer.current=setTimeout(()=>{
                 cleanup();playSound('end');setPartnerReconnecting(false);setEndReason('partner');setShowRating(true);
@@ -1611,7 +1614,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   },[]);
 
   const hangup=async()=>{
-    ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye'}));
+    ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye',reason:'hangup'}));
     try{await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'hangup'})});}catch{}
     playSound('end');cleanup();setShowRating(true);
   };
