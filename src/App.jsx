@@ -304,6 +304,7 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .rating-btn{padding:.875rem 1.75rem;font-size:1.1rem;border-radius:8px;border:none;cursor:pointer;transition:transform .2s;}
 .rating-btn.good{background:#10b981;color:white;}
 .rating-btn.meh{background:#6b7280;color:white;}
+.rating-btn.warn{background:#f59e0b;color:white;}
 .rating-btn:hover{transform:scale(1.05);}
 .context-note{font-size:.82rem;margin-bottom:.75rem;padding:5px 13px;border-radius:7px;}
 .context-note.warning{color:#fbbf24;background:rgba(251,191,36,.15);}
@@ -1693,6 +1694,9 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
             <div className="rating-buttons">
               <button className="rating-btn good" onClick={()=>rate('good')}>👍 Good</button>
               <button className="rating-btn meh" onClick={()=>rate('meh')}>😐 Meh</button>
+              {(endReason==='network'||endReason==='partner')&&(
+                <button className="rating-btn warn" onClick={()=>rate('connection_issue')}>📡 Connection Issue</button>
+              )}
             </div>
           </div>
         )}
