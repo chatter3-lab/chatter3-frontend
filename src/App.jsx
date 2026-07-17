@@ -1605,7 +1605,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         const neg=async()=>{negRef.current=true;const o=await p.createOffer();await p.setLocalDescription(o);sock.send(JSON.stringify({type:'offer',sdp:o}));logConn('offer_created');};
       }catch{setErr('Could not access camera/microphone');}
     };
-    const logConn=(event_type:string,event_data?:any)=>{
+    const logConn=(event_type,event_data)=>{
       fetch(`${API_URL}/api/connection/event`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,event_type,event_data,user_agent:navigator.userAgent})}).catch(()=>{});
     };
     const flushRC=async()=>{if(!pc.current)return;while(rcQ.current.length>0)try{await pc.current.addIceCandidate(rcQ.current.shift());}catch{}};
