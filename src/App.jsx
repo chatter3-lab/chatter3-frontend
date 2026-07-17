@@ -300,7 +300,7 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .ended-overlay p,.disconnect-overlay p{color:rgba(255,255,255,.58);font-size:.87rem;margin:0 0 1.5rem;}
 .spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.15);border-top-color:#f59e0b;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:1rem;}
 .disc-end-btn{padding:9px 24px;background:#ef4444;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:.9rem;font-family:'DM Sans',sans-serif;}
-.rating-buttons{display:flex;gap:.875rem;margin-top:1.75rem;}
+.rating-buttons{display:flex;gap:.875rem;margin-top:1.75rem;flex-wrap:wrap;}
 .rating-btn{padding:.875rem 1.75rem;font-size:1.1rem;border-radius:8px;border:none;cursor:pointer;transition:transform .2s;}
 .rating-btn.good{background:#10b981;color:white;}
 .rating-btn.meh{background:#6b7280;color:white;}
@@ -1694,7 +1694,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
             <div className="rating-buttons">
               <button className="rating-btn good" onClick={()=>rate('good')}>👍 Good</button>
               <button className="rating-btn meh" onClick={()=>rate('meh')}>😐 Meh</button>
-              {(endReason==='network'||endReason==='partner')&&(
+              {endReason==='network'&&(
                 <button className="rating-btn warn" onClick={()=>rate('connection_issue')}>📡 Connection Issue</button>
               )}
             </div>
