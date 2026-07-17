@@ -861,6 +861,42 @@ function AdminDashboard({user,onBack}){
               <div className="kpi-card"><div className="kpi-val" style={{color:'#f59e0b'}}>{stats.queue_size}</div><div className="kpi-lbl">In Queue</div></div>
               <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{stats.pending_reports}</div><div className="kpi-lbl">Pending Reports</div></div>
             </div>
+            {stats.connection_stats&&(function(){
+                const cs=stats.connection_stats;
+                const total=cs.total_sessions||0;
+                const connected=cs.connected||0;
+                const connectRate=total?Math.round((connected/total)*100):0;
+                const avgConnect=cs.avg_time_to_connect||0;
+                return (
+                  <>
+                    <div className="kpi-grid" style={{marginTop:'.75rem'}}>
+                      <div className="kpi-card"><div className="kpi-val" style={{color:connectRate>50?'#22c55e':'#ef4444'}}>{connectRate}%</div><div className="kpi-lbl">Connect Rate</div></div>
+                      <div className="kpi-card"><div className="kpi-val">{avgConnect?Math.round(avgConnect)+'s':'N/A'}</div><div className="kpi-lbl">Avg Connect Time</div></div>
+                      <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{cs.network_disconnects||0}</div><div className="kpi-lbl">Network Disconnects</div></div>
+                      <div className="kpi-card"><div className="kpi-val">{cs.partner_disconnects||0}</div><div className="kpi-lbl">Partner Hung Up</div></div>
+                      <div className="kpi-card"><div className="kpi-val">{cs.hangups||0}</div><div className="kpi-lbl">User Hangups</div></div>
+                      <div className="kpi-card"><div className="kpi-val">{cs.connection_issues||0}</div><div className="kpi-lbl">Connection Issues</div></div>
+                    </div>
+                    <div className="admin-section" style={{marginTop:'.75rem'}}>
+                      <h3>Disconnect Reasons (30 Days)</h3>
+                      <div className="chart-row" style={{height:'120px'}}>
+                        <div className="chart-bar" style={{height:`${(cs.network_disconnects||0)/Math.max(total,1)*100}%`,background:'#ef4444'}} title={`Network: ${cs.network_disconnects||0}`}/>
+                        <div className="chart-bar" style={{height:`${(cs.partner_disconnects||0)/Math.max(total,1)*100}%`,background:'#f59e0b'}} title={`Partner: ${cs.partner_disconnects||0}`}/>
+                        <div className="chart-bar" style={{height:`${(cs.hangups||0)/Math.max(total,1)*100}%`,background:'#6b7280'}} title={`Hangup: ${cs.hangups||0}`}/>
+                        <div className="chart-bar" style={{height:`${(cs.connection_issues||0)/Math.max(total,1)*100}%`,background:'#f59e0b'}} title={`Issues: ${cs.connection_issues||0}`}/>
+                        <div className="chart-bar" style={{height:`${(cs.timeouts||0)/Math.max(total,1)*100}%`,background:'#3b82f6'}} title={`Timeout: ${cs.timeouts||0}`}/>
+                      </div>
+                      <div className="chart-labels" style={{marginTop:'.5rem'}}>
+                        <div className="chart-lbl" style={{color:'#ef4444'}}>Network</div>
+                        <div className="chart-lbl" style={{color:'#f59e0b'}}>Partner</div>
+                        <div className="chart-lbl" style={{color:'#6b7280'}}>Hangup</div>
+                        <div className="chart-lbl" style={{color:'#f59e0b'}}>Issues</div>
+                        <div className="chart-lbl" style={{color:'#3b82f6'}}>Timeout</div>
+                      </div>
+                    </div>
+                  </>
+                );
+              }())}
             {stats.sessions_by_day?.length>0&&(
               <div className="admin-section">
                 <h3>Sessions (Last 30 Days)</h3>
