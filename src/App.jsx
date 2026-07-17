@@ -1548,12 +1548,13 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         const p=new RTCPeerConnection({iceServers:ice});
         stream.getTracks().forEach(t=>p.addTrack(t,stream));
         p.ontrack=ev=>{const s=ev.streams?.[0]||remStream.current;if(!ev.streams?.[0])remStream.current.addTrack(ev.track);if(rv.current){rv.current.srcObject=s;rv.current.play().catch(()=>{});}};
-        p.onicecandidate=ev=>{if(ev.candidate){const pl=JSON.stringify({type:'candidate',candidate:ev.candidate});ws.current?.readyState===1?ws.current.send(pl):lcQ.current.push(pl);}};
+        p.onicecandidate=ev=>{if(ev.candidate){const pl=JSON.stringify({type:'candidate',candidate:ev.candidate});ws.current?.readyState===1?ws.current.send(pl):lcQ.current.push(pl);logConn('ice_candidate_sent',{candidate:ev.candidate});}};
         p.onconnectionstatechange=()=>{
           const s=p.connectionState;setConnStatus(s);
-          if(s==='connected'){hasConnected.current=true;playSound('start');clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(connTimeout.current);setShowDisc(false);}
+          logConn('ice_connection_state_change',{state:s});
+          if(s==='connected'){hasConnected.current=true;playSound('start');clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(connTimeout.current);setShowDisc(false);logConn('connected',{time_to_connect_ms:Date.now()-t0});}
           if((s==='failed')&&!hasConnected.current){
-            // Never connected — refund FP
+            logConn('failed',{never_connected:true});
             fetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id})}).catch(()=>{});
           }
           if((s==='disconnected'||s==='failed') && !intentionalHangup.current && !partnerHungUp.current){
@@ -1597,12 +1598,15 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
           else if(data.type==='reconnected'){clearTimeout(partnerReconnectTimer.current);setPartnerReconnecting(false);}
           else if(data.type==='join'){sock.send(JSON.stringify({type:'join_ack'}));if(user.id===session.user1_id&&!negRef.current)neg();}
           else if(data.type==='join_ack'){if(user.id===session.user1_id&&!negRef.current)neg();}
-          else if(data.type==='offer'){negRef.current=true;await p.setRemoteDescription(new RTCSessionDescription(data.sdp));flushRC();const a=await p.createAnswer();await p.setLocalDescription(a);sock.send(JSON.stringify({type:'answer',sdp:a}));}
-          else if(data.type==='answer'){await p.setRemoteDescription(new RTCSessionDescription(data.sdp));flushRC();}
-          else if(data.type==='candidate'){const c=new RTCIceCandidate(data.candidate);p.remoteDescription?.type?await p.addIceCandidate(c):rcQ.current.push(c);}
+          else if(data.type==='offer'){negRef.current=true;await p.setRemoteDescription(new RTCSessionDescription(data.sdp));flushRC();const a=await p.createAnswer();await p.setLocalDescription(a);sock.send(JSON.stringify({type:'answer',sdp:a}));logConn('answer_created');}
+          else if(data.type==='answer'){await p.setRemoteDescription(new RTCSessionDescription(data.sdp));flushRC();logConn('answer_received');}
+          else if(data.type==='candidate'){const c=new RTCIceCandidate(data.candidate);p.remoteDescription?.type?await p.addIceCandidate(c):rcQ.current.push(c);logConn('ice_candidate_received',{candidate:data.candidate});}
         };
-        const neg=async()=>{negRef.current=true;const o=await p.createOffer();await p.setLocalDescription(o);sock.send(JSON.stringify({type:'offer',sdp:o}));};
+        const neg=async()=>{negRef.current=true;const o=await p.createOffer();await p.setLocalDescription(o);sock.send(JSON.stringify({type:'offer',sdp:o}));logConn('offer_created');};
       }catch{setErr('Could not access camera/microphone');}
+    };
+    const logConn=(event_type:string,event_data?:any)=>{
+      fetch(`${API_URL}/api/connection/event`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,event_type,event_data,user_agent:navigator.userAgent})}).catch(()=>{});
     };
     const flushRC=async()=>{if(!pc.current)return;while(rcQ.current.length>0)try{await pc.current.addIceCandidate(rcQ.current.shift());}catch{}};
     const beforeUnload=()=>{ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye'}));};
