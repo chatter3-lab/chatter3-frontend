@@ -263,9 +263,16 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .video-compact-header{display:flex;align-items:center;justify-content:space-between;padding:5px 1rem;background:white;box-shadow:0 1px 4px rgba(0,0,0,.08);flex-shrink:0;}
 .video-compact-header img{height:32px;width:auto;}
 .video-compact-pts{font-size:.79rem;font-weight:700;color:#4285f4;}
-.video-call-interface{display:flex;flex-direction:column;height:calc(100vh - 44px);gap:.75rem;padding:.75rem;position:relative;}
-.video-container{position:relative;flex:1;background:#1a1a1a;border-radius:12px;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:0;}
-.video-el{width:100%;height:100%;object-fit:cover;}
+
+/* Changed height to 100vh to ensure the interface occupies the full screen height */
+.video-call-interface{display:flex;flex-direction:column;height:100vh;gap:.75rem;padding:.75rem;position:relative;box-sizing:border-box;}
+
+/* Flex-grow allows this container to aggressively claim all remaining vertical space */
+.video-container{position:relative;flex-grow:1;background:#1a1a1a;border-radius:12px;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:0;width:100%;}
+
+/* Set object-fit to contain so wide video feeds fit fully inside the taller container without getting severely cropped on the sides */
+.video-el{width:100%;height:100%;object-fit:contain;}
+
 .video-el.local{position:absolute;bottom:16px;right:14px;width:130px;height:175px;border:2px solid white;border-radius:8px;z-index:10;object-fit:cover;background:#333;}
 .timer-overlay{position:absolute;top:.875rem;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.65);backdrop-filter:blur(6px);padding:6px 16px;border-radius:22px;color:white;display:flex;align-items:center;gap:7px;z-index:5;border:1px solid rgba(255,255,255,.1);}
 .timer-display{font-family:'Sora',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.05em;transition:color .4s;}
