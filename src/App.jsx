@@ -1523,6 +1523,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   const hasConnected=useRef(false);
   const partnerReconnectTimer=useRef(null);
   const connTimeout=useRef(null);
+  const intentionalHangup=useRef(false);
 
   const cleanup=()=>{
     if(streamRef.current){streamRef.current.getTracks().forEach(t=>t.stop());streamRef.current=null;}
@@ -1553,7 +1554,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
             // Never connected — refund FP
             fetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id})}).catch(()=>{});
           }
-          if(s==='disconnected'||s==='failed'){
+          if((s==='disconnected'||s==='failed') && !intentionalHangup.current){
             discTimer.current=setTimeout(()=>setShowDisc(true),3000);
             autoTimer.current=setTimeout(async()=>{setEndReason('network');setShowDisc(false);await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'network_disconnect'})}).catch(()=>{});cleanup();playSound('end');setShowRating(true);},15000);
           }
@@ -1614,6 +1615,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   },[]);
 
   const hangup=async()=>{
+    intentionalHangup.current=true;
     ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye',reason:'hangup'}));
     try{await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'hangup'})});}catch{}
     playSound('end');cleanup();setShowRating(true);
