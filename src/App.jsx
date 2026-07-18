@@ -1064,172 +1064,21 @@ function AdminDashboard({user,onBack}){
     loadReports();
   };
 
-  const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_day.map(r=>r.c),1):1;
+const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_day.map(r=>r.c),1):1;
 
-  return(
+  return (
     <div className="admin-container">
       <div className="admin-header">
-        <button onClick={onBack} style={{background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:'.85rem',padding:'5px 0'}}>← Back</button>
         <h1>Admin Dashboard</h1>
-        <span className="admin-badge">Chatter3 Internal</span>
+        <span className="admin-badge">ADMIN</span>
+        <button className="header-btn btn-logout" onClick={onBack}>← Back</button>
       </div>
-
       <div className="admin-tabs">
         {['analytics','users','reports','settings','all-users','health'].map(t=>(
-          <button key={t} className={`admin-tab ${tab===t?'active':''}`} onClick={()=>setTab(t)} style={{textTransform:'capitalize'}}>{t==='all-users'?'All Users':t}</button>
+          <button key={t} className={`admin-tab ${tab===t?'active':''}`} style={{textTransform:'capitalize'}} onClick={()=>setTab(t)}>{t.replace('-',' ')}</button>
         ))}
       </div>
-
-      {/* ── ANALYTICS ── */}
-      {tab==='analytics'&&(
-        loading?<p style={{color:'#9ca3af'}}>Loading…</p>:stats?(
-          <div>
-            <div className="kpi-grid">
-              <div className="kpi-card"><div className="kpi-val">{stats.total_users?.toLocaleString()}</div><div className="kpi-lbl">Total Users</div><div className="kpi-sub">+{stats.new_users_today} today</div></div>
-              <div className="kpi-card"><div className="kpi-val">{stats.dau?.toLocaleString()}</div><div className="kpi-lbl">DAU</div></div>
-              <div className="kpi-card"><div className="kpi-val">{stats.mau?.toLocaleString()}</div><div className="kpi-lbl">MAU</div></div>
-              <div className="kpi-card"><div className="kpi-val">{stats.total_sessions?.toLocaleString()}</div><div className="kpi-lbl">Completed Calls</div></div>
-              <div className="kpi-card"><div className="kpi-val" style={{color:'#22c55e'}}>{stats.active_sessions}</div><div className="kpi-lbl">Live Calls Now</div></div>
-              <div className="kpi-card"><div className="kpi-val" style={{color:'#f59e0b'}}>{stats.queue_size}</div><div className="kpi-lbl">In Queue</div></div>
-              <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{stats.pending_reports}</div><div className="kpi-lbl">Pending Reports</div></div>
-            </div>
-            {stats.connection_stats&&(function(){
-                const cs=stats.connection_stats;
-                const total=cs.total_sessions||0;
-                const connected=cs.connected||0;
-                const connectRate=total?Math.round((connected/total)*100):0;
-                const avgConnect=cs.avg_time_to_connect||0;
-                return (
-                  <div>
-                    <div className="kpi-grid" style={{marginTop:'.75rem'}}>
-                      <div className="kpi-card"><div className="kpi-val" style={{color:connectRate>50?'#22c55e':'#ef4444'}}>{connectRate}%</div><div className="kpi-lbl">Connect Rate</div></div>
-                      <div className="kpi-card"><div className="kpi-val">{avgConnect?Math.round(avgConnect)+'s':'N/A'}</div><div className="kpi-lbl">Avg Connect Time</div></div>
-                      <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{cs.network_disconnects||0}</div><div className="kpi-lbl">Network Disconnects</div></div>
-                      <div className="kpi-card"><div className="kpi-val" style={{color:'#6b7280'}}>{cs.intentional_ends||0}</div><div className="kpi-lbl">Intentional End Call</div></div>
-                      <div className="kpi-card"><div className="kpi-val">{cs.connection_issues||0}</div><div className="kpi-lbl">Connection Issues</div></div>
-                    </div>
-                    <div className="admin-section" style={{marginTop:'.75rem'}}>
-                      <h3>Disconnect Reasons (30 Days)</h3>
-                      <div className="chart-row" style={{height:'120px'}}>
-                        <div className="chart-bar" style={{height:`${(cs.network_disconnects||0)/Math.max(total,1)*100}%`,background:'#ef4444'}} title={`Network: ${cs.network_disconnects||0}`}/>
-                        <div className="chart-bar" style={{height:`${(cs.intentional_ends||0)/Math.max(total,1)*100}%`,background:'#6b7280'}} title={`Intentional End Call: ${cs.intentional_ends||0}`}/>
-                        <div className="chart-bar" style={{height:`${(cs.connection_issues||0)/Math.max(total,1)*100}%`,background:'#f59e0b'}} title={`Connection Issues: ${cs.connection_issues||0}`}/>
-                        <div className="chart-bar" style={{height:`${(cs.timeouts||0)/Math.max(total,1)*100}%`,background:'#3b82f6'}} title={`Timeout: ${cs.timeouts||0}`}/>
-                      </div>
-                      <div className="chart-labels" style={{marginTop:'.5rem'}}>
-                        <div className="chart-lbl" style={{color:'#ef4444'}}>Network</div>
-                        <div className="chart-lbl" style={{color:'#6b7280'}}>Intentional End</div>
-                        <div className="chart-lbl" style={{color:'#f59e0b'}}>Connection Issues</div>
-                        <div className="chart-lbl" style={{color:'#3b82f6'}}>Timeout</div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }())}
-            {stats.session_stats&&(function(){
-                const ss=stats.session_stats;
-                const completed=ss.completed_sessions||0;
-                const good=(ss.good_ratings||0)+(ss.good_ratings_2||0);
-                const meh=(ss.meh_ratings||0)+(ss.meh_ratings_2||0);
-                const issues=(ss.connection_issue_ratings||0)+(ss.connection_issue_ratings_2||0);
-                const totalRatings=good+meh+issues;
-                const completedFull=(ss.completed_full||0)+(ss.completed_full_beginner||0)+(ss.completed_full_other||0);
-                const completionRate=completed?Math.round((completedFull/completed)*100):0;
-                return (
-                  <div>
-                    <div className="admin-section" style={{marginTop:'.75rem'}}>
-                      <h3>Session Quality (30 Days)</h3>
-                      <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                        <div className="kpi-card"><div className="kpi-val">{ss.avg_duration?Math.round(ss.avg_duration/60)+'m': 'N/A'}</div><div className="kpi-lbl">Avg Duration</div></div>
-                        <div className="kpi-card"><div className="kpi-val">{ss.max_duration?Math.round(ss.max_duration/60)+'m':'N/A'}</div><div className="kpi-lbl">Max Duration</div></div>
-                        <div className="kpi-card"><div className="kpi-val" style={{color:completionRate>70?'#22c55e':'#ef4444'}}>{completionRate}%</div><div className="kpi-lbl">Full Completion Rate</div></div>
-                        <div className="kpi-card"><div className="kpi-val">{good}</div><div className="kpi-lbl" style={{color:'#10b981' }}>👍 Good</div></div>
-                        <div className="kpi-card"><div className="kpi-val">{meh}</div><div className="kpi-lbl" style={{color:'#6b7280'}}>😐 Meh</div></div>
-                        <div className="kpi-card"><div className="kpi-val">{issues}</div><div className="kpi-lbl" style={{color:'#f59e0b'}}>📡 Issues</div></div>
-                      </div>
-                      <div className="chart-row" style={{height:'100px'}}>
-                        <div className="chart-bar" style={{height:`${totalRatings?Math.round((good/totalRatings)*100):0}%`,background:'#10b981'}} title={`Good: ${good}`}/>
-                        <div className="chart-bar" style={{height:`${totalRatings?Math.round((meh/totalRatings)*100):0}%`,background:'#6b7280'}} title={`Meh: ${meh}`}/>
-                        <div className="chart-bar" style={{height:`${totalRatings?Math.round((issues/totalRatings)*100):0}%`,background:'#f59e0b'}} title={`Issues: ${issues}`}/>
-                      </div>
-                      <div className="chart-labels" style={{marginTop:'.5rem'}}>
-                        <div className="chart-lbl" style={{color:'#10b981'}}>Good</div>
-                        <div className="chart-lbl" style={{color:'#6b7280'}}>Meh</div>
-                        <div className="chart-lbl" style={{color:'#f59e0b'}}>Issues</div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }())}
-            {stats.queue_stats&&(function(){
-                const qs=stats.queue_stats;
-                return (
-                  <div>
-                    <div className="admin-section" style={{marginTop:'.75rem'}}>
-                      <h3>Queue Wait Time (30 Days)</h3>
-                      <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                        <div className="kpi-card"><div className="kpi-val">{qs.avg_wait?Math.round(qs.avg_wait)+'s':'N/A'}</div><div className="kpi-lbl">Avg Wait</div></div>
-                        <div className="kpi-card"><div className="kpi-val">{qs.min_wait?Math.round(qs.min_wait)+'s':'N/A'}</div><div className="kpi-lbl">Min Wait</div></div>
-                        <div className="kpi-card"><div className="kpi-val">{qs.max_wait?Math.round(qs.max_wait)+'s':'N/A'}</div><div className="kpi-lbl">Max Wait</div></div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }())}
-            {stats.cross_border_stats&&(function(){
-                const cb=stats.cross_border_stats;
-                const total=cb.total_matches||0;
-                const cross=cb.cross_border||0;
-                const rate=total?Math.round((cross/total)*100):0;
-                return (
-                  <div>
-                    <div className="admin-section" style={{marginTop:'.75rem'}}>
-                      <h3>Cross-Border Matches (30 Days)</h3>
-                      <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                        <div className="kpi-card"><div className="kpi-val">{total}</div><div className="kpi-lbl">Total Matches</div></div>
-                        <div className="kpi-card"><div className="kpi-val">{cross}</div><div className="kpi-lbl">Cross-Border</div></div>
-                        <div className="kpi-card"><div className="kpi-val" style={{color:rate>50?'#22c55e':'#ef4444'}}>{rate}%</div><div className="kpi-lbl">Cross-Border Rate</div></div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }())}
-            {stats.browser_stats&&stats.browser_stats.length>0&&(function(){
-                const bs=stats.browser_stats;
-                const totalFailures=bs.reduce((sum,b)=>sum+(b.failures||0),0);
-                return (
-                  <div>
-                    <div className="admin-section" style={{marginTop:'.75rem'}}>
-                      <h3>WebRTC Failures by Browser (30 Days)</h3>
-                      <div className="chart-row" style={{height:'100px'}}>
-                        {bs.map((b,i)=>(
-                          <div key={i} className="chart-bar" style={{height:`${(b.failures||0)/Math.max(totalFailures,1)*100}%`,background:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}} title={`${b.browser}: ${b.failures||0} failures`}/>
-                        ))}
-                      </div>
-                      <div className="chart-labels" style={{marginTop:'.5rem'}}>
-                        {bs.map((b,i)=><div key={i} className="chart-lbl" style={{color:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}}>{b.browser} ({(b.failures||0)/Math.max(totalFailures,1)*100}%)</div>)}
-                      </div>
-                    </div>
-                  </div>
-                );
-              }())}
-              <div className="admin-section">
-                <h3>Sessions (Last 30 Days)</h3>
-                <div className="chart-row">
-                  {[...stats.sessions_by_day].reverse().map((r,i)=>(
-                    <div key={i} className="chart-bar" style={{height:`${(r.c/maxSessions)*100}%`}} title={`${r.day}: ${r.c} sessions`}/>
-                  ))}
-                </div>
-                <div className="chart-labels">
-                  {[...stats.sessions_by_day].reverse().filter((_,i)=>i%5===0).map((r,i)=>(
-                    <div key={i} className="chart-lbl" style={{flex:5}}>{r.day?.slice(5)}</div>
-                  ))}
-</div>
-          </div>
-        ):<p style={{color:'#9ca3af'}}>No data.</p>
-      )}
-
-      {/* ── USERS ── */}
+      {tab==='analytics' && renderAnalytics(stats, maxSessions)}
       {tab==='users'&&(
         <>
           <div className="search-row">
@@ -1300,8 +1149,6 @@ function AdminDashboard({user,onBack}){
           {users.length===0&&!loading&&searchQ&&<p style={{color:'#9ca3af',textAlign:'center'}}>No results. Try a different query.</p>}
         </>
       )}
-
-{/* ── REPORTS ── */}
       {tab==='reports'&&(
         <>
           <div style={{display:'flex',gap:'.5rem',marginBottom:'1rem',flexWrap:'wrap'}}>
@@ -1337,21 +1184,15 @@ function AdminDashboard({user,onBack}){
                 </table>
               </div>
             </div>
-            )}
-          </>
-        )}
-
-      {/* ── SETTINGS ── */}
+          )}
+        </>
+      )}
       {tab==='settings'&&(
         <AdminSettingsPanel user={user}/>
       )}
-
-      {/* ── ALL USERS ── */}
       {tab==='all-users'&&(
         <AllUsersTab user={user} post={post}/>
       )}
-
-      {/* ── HEALTH ── */}
       {tab==='health'&&(
         <HealthTab stats={stats} user={user} post={post}/>
       )}
@@ -1546,11 +1387,11 @@ export default function App(){
                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 Friends</button>
                   {user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ Admin</button>}
                   <button className="header-btn btn-logout" onClick={handleLogout}>Logout</button>
-</div>
-            )}
-          </div>
-        ):<p style={{color:'#9ca3af'}}>No data.</p>
-      )}
+                </div>
+              )}
+            </div>
+          </header>
+        )}
 
         <main className="app-content">
           {view==='dashboard'&&user&&<DashboardView user={user} onNavigate={setView} onFindPartner={handleFindPartner} onExchange={()=>setShowExchange(true)} onRefreshUser={()=>refreshUser(user.id)}/>}
