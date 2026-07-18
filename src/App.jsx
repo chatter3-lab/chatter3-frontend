@@ -787,6 +787,7 @@ function AdminDashboard({user,onBack}){
 
   const renderAnalytics = (stats, maxSessions) => {
     if (!stats) return null;
+    try {
     return (
       <div>
         <div className="kpi-grid">
@@ -933,7 +934,7 @@ function AdminDashboard({user,onBack}){
               </div>
             );
           }())}
-        {stats.queue_depth_stats&&(function(){
+        {stats.queue_depth_stats&&stats.queue_depth_stats.results&&(function(){
             const qd=stats.queue_depth_stats;
             return (
               <div>
@@ -1000,6 +1001,7 @@ function AdminDashboard({user,onBack}){
               </div>
             );
           }())}
+        {stats.sessions_by_day&&stats.sessions_by_day.length>0&&(
         <div className="admin-section">
           <h3>Sessions (Last 30 Days)</h3>
           <div className="chart-row">
@@ -1013,8 +1015,10 @@ function AdminDashboard({user,onBack}){
             ))}
           </div>
         </div>
+        )}
       </div>
     );
+    } catch(e) { console.error('renderAnalytics error:', e); return <div style={{padding:'1rem',color:'#ef4444'}}>Error loading analytics.</div>; }
   };
 
   useEffect(()=>{
