@@ -698,11 +698,14 @@ function FriendsModal({user,onClose}){
 // ── Admin Dashboard ─────────────────────────────────────────────
 // ── Admin Settings Panel ────────────────────────────────────────
 function AdminSettingsPanel({user}){
-  const[settings,setSettings]=useState({matching_by_level:'true',matching_diff_country:'true',matching_diff_language:'true',custom_call_duration:'0'});
+  const[settings,setSettings]=useState({matching_by_level:'true',matching_diff_country:'true',matching_diff_language:'true',custom_call_duration:'0',promo_fp_free_days:'0',promo_initial_rp:'0',promo_badge_days:'0'});
   const[loading,setLoading]=useState(true);
   const[saving,setSaving]=useState(false);
   const[saved,setSaved]=useState(false);
   const[customDur,setCustomDur]=useState('0');
+  const[promoFpFree,setPromoFpFree]=useState('0');
+  const[promoInitRp,setPromoInitRp]=useState('0');
+  const[promoBadge,setPromoBadge]=useState('0');
 
   const post=(p,b)=>fetch(`${API_URL}${p}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_id:user.id,...b})}).then(r=>r.json());
 
@@ -710,7 +713,11 @@ function AdminSettingsPanel({user}){
     post('/api/admin/settings',{}).then(d=>{
       if(d.settings){
         const m={};d.settings.forEach(s=>m[s.key]=s.value);
-        setSettings(m);setCustomDur(m.custom_call_duration||'0');
+        setSettings(m);
+        setCustomDur(m.custom_call_duration||'0');
+        setPromoFpFree(m.promo_fp_free_days||'0');
+        setPromoInitRp(m.promo_initial_rp||'0');
+        setPromoBadge(m.promo_badge_days||'0');
       }
       setLoading(false);
     });
@@ -725,8 +732,11 @@ function AdminSettingsPanel({user}){
       post('/api/admin/settings/update',{key:'matching_diff_country',value:settings.matching_diff_country}),
       post('/api/admin/settings/update',{key:'matching_diff_language',value:settings.matching_diff_language}),
       post('/api/admin/settings/update',{key:'custom_call_duration',value:customDur}),
+      post('/api/admin/settings/update',{key:'promo_fp_free_days',value:promoFpFree}),
+      post('/api/admin/settings/update',{key:'promo_initial_rp',value:promoInitRp}),
+      post('/api/admin/settings/update',{key:'promo_badge_days',value:promoBadge}),
     ]);
-    setSettings(prev=>({...prev,custom_call_duration:customDur}));
+    setSettings(prev=>({...prev,custom_call_duration:customDur,promo_fp_free_days:promoFpFree,promo_initial_rp:promoInitRp,promo_badge_days:promoBadge}));
     setSaving(false);setSaved(true);setTimeout(()=>setSaved(false),3000);
   };
 
@@ -735,6 +745,7 @@ function AdminSettingsPanel({user}){
   const allOff=settings.matching_by_level==='false'&&settings.matching_diff_country==='false'&&settings.matching_diff_language==='false';
 
   return(
+    <div>
     <div className="admin-section">
       <h3>🎛️ Matching Settings <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— shared across all admins</span></h3>
       {[
@@ -766,6 +777,42 @@ function AdminSettingsPanel({user}){
         </div>
       )}
       <button className="save-settings-btn" onClick={saveAll} disabled={saving}>{saving?'Saving…':saved?'✓ Saved!':'Save Settings'}</button>
+    </div>
+
+    <div className="admin-section" style={{marginTop:'1rem'}}>
+      <h3>🎁 Launch Promotions <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— early-user incentives</span></h3>
+      <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
+        <div className="setting-info">
+          <div className="setting-name">Free FP Period (days)</div>
+          <div className="setting-desc">New users skip FP consumption for this many days after registration. Set 0 to disable.</div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
+          <input type="number" className="duration-input" min="0" max="365" value={promoFpFree} onChange={e=>setPromoFpFree(e.target.value)}/>
+          <span style={{fontSize:'.8rem',color:'#6b7280'}}>days (0 = off)</span>
+        </div>
+      </div>
+      <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
+        <div className="setting-info">
+          <div className="setting-name">Registration RP Bonus</div>
+          <div className="setting-desc">Grant this many RP to new users upon registration. Set 0 to disable.</div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
+          <input type="number" className="duration-input" min="0" max="100" value={promoInitRp} onChange={e=>setPromoInitRp(e.target.value)}/>
+          <span style={{fontSize:'.8rem',color:'#6b7280'}}>RP (0 = off)</span>
+        </div>
+      </div>
+      <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
+        <div className="setting-info">
+          <div className="setting-name">Founding Member Badge (days)</div>
+          <div className="setting-desc">Show a "Founding Member" badge for this many days after registration. Set 0 to disable.</div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
+          <input type="number" className="duration-input" min="0" max="365" value={promoBadge} onChange={e=>setPromoBadge(e.target.value)}/>
+          <span style={{fontSize:'.8rem',color:'#6b7280'}}>days (0 = off)</span>
+        </div>
+      </div>
+      <button className="save-settings-btn" onClick={saveAll} disabled={saving}>{saving?'Saving…':saved?'✓ Saved!':'Save Settings'}</button>
+    </div>
     </div>
   );
 }
@@ -1299,6 +1346,16 @@ function HealthTab({user,post}){
           </tbody>
         </table>
       </div>
+      <div className="admin-section" style={{marginTop:'1rem'}}>
+        <h3>🎁 Launch Promotions</h3>
+        <table className="admin-table">
+          <tbody>
+            <tr><td>Free FP Period</td><td>New users skip FP consumption for N days after registration (configurable in Settings)</td></tr>
+            <tr><td>Registration RP Bonus</td><td>RP granted on signup to encourage retention (configurable in Settings)</td></tr>
+            <tr><td>Founding Member Badge</td><td>Exclusive badge shown for N days after registration (configurable in Settings)</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -1363,8 +1420,9 @@ export default function App(){
       const r=await fetch(`${API_URL}/api/user/balances/${user.id}`);
       const d=await r.json();
       const fp=d.fp??0;const rp=d.rp??0;
-      setAndSaveUser({...user,fp_balance:fp,rp_balance:rp});
-      if(fp<1){setShowExchange(true);return;}
+      const isFM=!!d.founding_member;
+      setAndSaveUser({...user,fp_balance:fp,rp_balance:rp,founding_member:isFM});
+      if(fp<1&&!isFM){setShowExchange(true);return;}
     }catch{}
     setView('matching');
   };
@@ -1386,7 +1444,7 @@ export default function App(){
               <div><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="header-logo-img"/></div>
               {user&&(
                 <div className="user-info">
-                  <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}</span>
+                  <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member&&<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🏆 Founding Member</span>}</span>
                   <div className="header-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 Friends</button>
                   {user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ Admin</button>}
@@ -1490,7 +1548,8 @@ function AuthView({onLogin}){
 function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser}){
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
-  const canCall=balances.fp>=1;
+  const isFreePeriod=user.founding_member&&user.fp_balance<1;
+  const canCall=balances.fp>=1||isFreePeriod;
 
   useEffect(()=>{
     fetch(`${API_URL}/api/stats/online`).then(r=>r.json()).then(setOnline).catch(()=>{});
@@ -1516,10 +1575,15 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
             </span>
           </div>
         )}
-        <button onClick={onFindPartner} className="start-matching-btn" disabled={balances.fp<1}>
-          {balances.fp<1?'No FP Available — Exchange RP First':'Find a Conversation Partner'}
+        {user.founding_member&&(
+          <div style={{background:'linear-gradient(135deg,#fef3c7,#fde68a)',border:'1px solid #fbbf24',borderRadius:10,padding:'10px 16px',marginBottom:'.75rem',fontSize:'.85rem',color:'#92400e',fontWeight:500}}>
+            🎉 <strong>Founding Member</strong> — FP consumption is waived during your free period!
+          </div>
+        )}
+        <button onClick={onFindPartner} className="start-matching-btn" disabled={!canCall}>
+          {!canCall?'No FP Available — Exchange RP First':'Find a Conversation Partner'}
         </button>
-        {!canCall&&(
+        {!canCall&&!user.founding_member&&(
           <p style={{fontSize:'.82rem',color:'#f59e0b',marginTop:'.5rem'}}>
             ⚡ No FP remaining — <button onClick={onExchange} style={{background:'none',border:'none',color:'#4f46e5',fontWeight:700,cursor:'pointer',fontSize:'.82rem',textDecoration:'underline'}}>exchange RP for FP</button> to continue.
           </p>
@@ -1671,7 +1735,7 @@ function PreCallView({session,onStart,onCancel}){
             {partner.avatar_url?<img src={partner.avatar_url} alt={name}/>:<span style={{fontFamily:'Sora,sans-serif',fontSize:'2.2rem',fontWeight:800,color:'white'}}>{name.charAt(0).toUpperCase()}</span>}
           </div>
         </div>
-        <h2 className="precall-name">{name}</h2>
+        <h2 className="precall-name">{name}{partner.founding_member&&<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>🏆 Founding Member</span>}</h2>
         <div className="precall-chips">
           {partner.country&&<span className="chip country">{getFlag(partner.country)} {partner.country}</span>}
           {partner.native_language&&<span className="chip lang">🗣️ {partner.native_language}</span>}
