@@ -1817,7 +1817,17 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
           }
           if((s==='disconnected'||s==='failed') && !intentionalHangup.current && !partnerHungUp.current){
             discTimer.current=setTimeout(()=>setShowDisc(true),3000);
-            autoTimer.current=setTimeout(async()=>{setEndReason('network');setShowDisc(false);await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'network_disconnect'})}).catch(()=>{});cleanup();playSound('end');setShowRating(true);},15000);
+            autoTimer.current=setTimeout(async()=>{
+              // Check server-side if partner already ended the call
+              try{
+                const sr=await fetch(`${API_URL}/api/matching/session/${user.id}`);
+                const sd=await sr.json();
+                if(!sd.active_session){partnerHungUp.current=true;clearTimeout(discTimer.current);setPartnerEndedScreen(true);setTimeout(()=>{cleanup();playSound('end');setEndReason('partner');setShowRating(true);},1500);return;}
+              }catch{}
+              setEndReason('network');setShowDisc(false);
+              await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'network_disconnect'})}).catch(()=>{});
+              cleanup();playSound('end');setShowRating(true);
+            },15000);
           }
         };
         pc.current=p;
@@ -1839,7 +1849,8 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
               partnerHungUp.current=true;
               clearTimeout(discTimer.current);
               clearTimeout(autoTimer.current);
-              cleanup();playSound('end');setEndReason('partner');setShowRating(true);
+              setPartnerEndedScreen(true);
+              setTimeout(()=>{cleanup();playSound('end');setEndReason('partner');setShowRating(true);},1500);
             } else if(hasConnected.current){
               // Partner disconnected unexpectedly — show reconnect notice, auto-proceed after 15s
               setPartnerReconnecting(true);
