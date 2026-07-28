@@ -1410,6 +1410,19 @@ function HealthTab({user,post}){
         </table>
       </div>
       <div className="admin-section" style={{marginTop:'1rem'}}>
+        <h3>🌐 TURN/STUN Servers (metered.ca)</h3>
+        <table className="admin-table">
+          <tbody>
+            <tr><td>Provider</td><td style={{fontWeight:700}}>metered.ca</td><td style={{color:'#94a3b8'}}>chatter3.metered.live</td></tr>
+            <tr><td>Protocol</td><td>TURN over TLS + STUN</td><td style={{color:'#94a3b8'}}>Used for WebRTC relay when P2P fails</td></tr>
+            <tr><td>Free Tier</td><td>50 GB bandwidth/month</td><td style={{color:'#94a3b8'}}>Exceeding → paid plan required</td></tr>
+            <tr><td>Fallback</td><td>Google STUN (stun.l.google.com:19302)</td><td style={{color:'#94a3b8'}}>Used if metered.ca is unreachable</td></tr>
+            <tr><td>Estimated Usage</td><td>~{Math.round((health?.connection_stats?.connected||0)*2.5)} MB/month</td><td style={{color:'#94a3b8'}}>Based on connected sessions × ~2.5 MB/session avg</td></tr>
+          </tbody>
+        </table>
+        <p style={{fontSize:'.72rem',color:'#94a3b8',margin:'.5rem 0 0'}}>Note: Actual bandwidth depends on call duration and video quality. Monitor at <a href="https://chatter3.metered.live/dashboard" target="_blank" rel="noopener" style={{color:'#60a5fa'}}>chatter3.metered.live/dashboard</a></p>
+      </div>
+      <div className="admin-section" style={{marginTop:'1rem'}}>
         <h3>🎁 Launch Promotions</h3>
         <table className="admin-table">
           <tbody>
