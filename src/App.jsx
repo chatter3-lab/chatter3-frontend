@@ -1403,6 +1403,160 @@ function HealthTab({user,post}){
         </div>
       )}
 
+      {health&&health.connection_stats&&(
+        <div className="admin-section" style={{marginTop:'1rem'}}>
+          <h3>📹 Session Monitoring (30 Days)</h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:'.5rem',marginBottom:'1rem'}}>
+            <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+              <div style={{fontSize:'1.5rem',fontWeight:800,color:'#22c55e'}}>{health.active_sessions??0}</div>
+              <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>🔴 Live Now</div>
+            </div>
+            <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+              <div style={{fontSize:'1.5rem',fontWeight:800,color:'#60a5fa'}}>{health.connection_stats.connected??0}</div>
+              <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>✅ Connected</div>
+            </div>
+            <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+              <div style={{fontSize:'1.5rem',fontWeight:800,color:'#f59e0b'}}>{health.connection_stats.total_sessions??0}</div>
+              <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>📊 Total Sessions</div>
+            </div>
+            <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+              <div style={{fontSize:'1.5rem',fontWeight:800,color:'#a78bfa'}}>{health.connection_stats.avg_time_to_connect?health.connection_stats.avg_time_to_connect.toFixed(1)+'s':'—'}</div>
+              <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>⏱️ Avg Connect Time</div>
+            </div>
+          </div>
+
+          <h4 style={{fontSize:'.82rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>Connection Quality</h4>
+          {(()=>{
+            const cs=health.connection_stats||{};
+            const total=cs.total_sessions||0;
+            const connected=cs.connected||0;
+            const connRate=total?((connected/total)*100).toFixed(1):0;
+            const intentional=cs.intentional_ends||0;
+            const network=cs.network_disconnects||0;
+            const issues=cs.connection_issues||0;
+            const timeouts=cs.timeouts||0;
+            return(
+              <div>
+                <UsageBar label="Connection Success Rate" used={connected} limit={total}/>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.5rem',marginBottom:'.75rem'}}>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontSize:'.8rem',color:'#e2e8f0'}}>✅ Intentional Ends</span>
+                    <span style={{fontWeight:700,color:'#22c55e'}}>{intentional}</span>
+                  </div>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontSize:'.8rem',color:'#e2e8f0'}}>🔌 Network Disconnects</span>
+                    <span style={{fontWeight:700,color:'#ef4444'}}>{network}</span>
+                  </div>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontSize:'.8rem',color:'#e2e8f0'}}>⚠️ Connection Issues</span>
+                    <span style={{fontWeight:700,color:'#f59e0b'}}>{issues}</span>
+                  </div>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontSize:'.8rem',color:'#e2e8f0'}}>⏳ Timeouts</span>
+                    <span style={{fontWeight:700,color:'#f97316'}}>{timeouts}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {health.session_stats&&(()=>{
+            const ss=health.session_stats;
+            const avgMin=ss.avg_duration?Math.floor(ss.avg_duration/60):0;
+            const avgSec=ss.avg_duration?Math.floor(ss.avg_duration%60):0;
+            const maxMin=ss.max_duration?Math.floor(ss.max_duration/60):0;
+            const maxSec=ss.max_duration?Math.floor(ss.max_duration%60):0;
+            const completed=ss.completed_sessions||0;
+            const good=ss.good_ratings||0;
+            const meh=ss.meh_ratings||0;
+            const issues=ss.connection_issue_ratings||0;
+            const totalRatings=good+meh+issues;
+            return(
+              <div>
+                <h4 style={{fontSize:'.82rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>Session Quality</h4>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:'.5rem',marginBottom:'.75rem'}}>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                    <div style={{fontSize:'1.1rem',fontWeight:800,color:'#60a5fa'}}>{completed}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Completed Calls</div>
+                  </div>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                    <div style={{fontSize:'1.1rem',fontWeight:800,color:'#a78bfa'}}>{avgMin}m {avgSec}s</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Avg Duration</div>
+                  </div>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                    <div style={{fontSize:'1.1rem',fontWeight:800,color:'#f59e0b'}}>{maxMin}m {maxSec}s</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Max Duration</div>
+                  </div>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                    <div style={{fontSize:'1.1rem',fontWeight:800,color:'#22c55e'}}>{ss.completed_full||0}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Full Duration Completions</div>
+                  </div>
+                </div>
+                <h4 style={{fontSize:'.82rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>Ratings Breakdown</h4>
+                <div style={{display:'flex',gap:'.5rem',marginBottom:'.5rem'}}>
+                  <div style={{flex:1,background:'#1e293b',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                    <div style={{fontSize:'1.1rem',fontWeight:800,color:'#22c55e'}}>{good}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>👍 Good</div>
+                  </div>
+                  <div style={{flex:1,background:'#1e293b',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                    <div style={{fontSize:'1.1rem',fontWeight:800,color:'#6b7280'}}>{meh}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>😐 Meh</div>
+                  </div>
+                  <div style={{flex:1,background:'#1e293b',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                    <div style={{fontSize:'1.1rem',fontWeight:800,color:'#f59e0b'}}>{issues}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>📡 Issues</div>
+                  </div>
+                </div>
+                {totalRatings>0&&(
+                  <div style={{display:'flex',height:8,borderRadius:4,overflow:'hidden',marginTop:'.5rem'}}>
+                    <div style={{width:`${(good/totalRatings)*100}%`,background:'#22c55e'}}/>
+                    <div style={{width:`${(meh/totalRatings)*100}%`,background:'#6b7280'}}/>
+                    <div style={{width:`${(issues/totalRatings)*100}%`,background:'#f59e0b'}}/>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {health.queue_stats&&(()=>{
+            const qs=health.queue_stats;
+            return(
+              <div style={{marginTop:'.75rem'}}>
+                <h4 style={{fontSize:'.82rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>Matchmaking Queue</h4>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'.5rem'}}>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                    <div style={{fontSize:'1.1rem',fontWeight:800,color:'#22c55e'}}>{qs.avg_wait?qs.avg_wait.toFixed(1)+'s':'—'}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Avg Wait</div>
+                  </div>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                    <div style={{fontSize:'1.1rem',fontWeight:800,color:'#60a5fa'}}>{qs.min_wait?qs.min_wait.toFixed(1)+'s':'—'}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Min Wait</div>
+                  </div>
+                  <div style={{background:'#1e293b',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                    <div style={{fontSize:'1.1rem',fontWeight:800,color:'#ef4444'}}>{qs.max_wait?qs.max_wait.toFixed(1)+'s':'—'}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Max Wait</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {health.browser_stats&&health.browser_stats.length>0&&(
+            <div style={{marginTop:'.75rem'}}>
+              <h4 style={{fontSize:'.82rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>Failures by Browser</h4>
+              <div style={{display:'flex',gap:'.5rem',flexWrap:'wrap'}}>
+                {health.browser_stats.map((b,i)=>(
+                  <div key={i} style={{background:'#1e293b',borderRadius:8,padding:'8px 12px',display:'flex',alignItems:'center',gap:6}}>
+                    <span style={{fontSize:'.8rem',color:'#e2e8f0'}}>{b.browser}</span>
+                    <span style={{fontSize:'.75rem',fontWeight:700,color:'#ef4444'}}>{b.failures}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="admin-section" style={{marginTop:'1rem'}}>
         <h3>System Info</h3>
         <table className="admin-table">
