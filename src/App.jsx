@@ -1523,14 +1523,14 @@ function HealthTab({user,post}){
                 <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>Overall bottleneck</div>
               </div>
               <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
-                <div style={{fontSize:'1.4rem',fontWeight:800,color:'#60a5fa'}}>{Math.round(bottleneck/30).toLocaleString()}</div>
+                <div style={{fontSize:'1.4rem',fontWeight:800,color:'#60a5fa'}}>{(bottleneck*30).toLocaleString()}</div>
                 <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Max Sessions/Month</div>
-                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>At current avg duration</div>
+                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>Based on daily bottleneck ×30</div>
               </div>
               <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
                 <div style={{fontSize:'1.4rem',fontWeight:800,color:'#a78bfa'}}>{Math.round(bottleneck*avgDur/3600)}</div>
-                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Max Concurrent Calls</div>
-                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>If all active simultaneously</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Avg Concurrent Calls</div>
+                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>Average at any given moment</div>
               </div>
             </div>
 
