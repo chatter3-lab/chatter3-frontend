@@ -1588,7 +1588,7 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
             </span>
           </div>
         )}
-        {user.founding_member&&(
+        {isFreePeriod&&(
           <div style={{background:'linear-gradient(135deg,#fef3c7,#fde68a)',border:'1px solid #fbbf24',borderRadius:10,padding:'10px 16px',marginBottom:'.75rem',fontSize:'.85rem',color:'#92400e',fontWeight:500}}>
             🎉 <strong>Founding Member</strong> — FP consumption is waived during your free period!
           </div>
@@ -1596,7 +1596,7 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
         <button onClick={onFindPartner} className="start-matching-btn" disabled={!canCall}>
           {!canCall?'No FP Available — Exchange RP First':'Find a Conversation Partner'}
         </button>
-        {!canCall&&!user.founding_member&&(
+        {!canCall&&!isFreePeriod&&(
           <p style={{fontSize:'.82rem',color:'#f59e0b',marginTop:'.5rem'}}>
             ⚡ No FP remaining — <button onClick={onExchange} style={{background:'none',border:'none',color:'#4f46e5',fontWeight:700,cursor:'pointer',fontSize:'.82rem',textDecoration:'underline'}}>exchange RP for FP</button> to continue.
           </p>
