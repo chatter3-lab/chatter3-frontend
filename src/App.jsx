@@ -1433,8 +1433,9 @@ export default function App(){
       const d=await r.json();
       const fp=d.fp??0;const rp=d.rp??0;
       const isFM=!!d.founding_member;
-      setAndSaveUser({...user,fp_balance:fp,rp_balance:rp,founding_member:isFM});
-      if(fp<1&&!isFM){setShowExchange(true);return;}
+      const inFP=!!d.in_free_period;
+      setAndSaveUser({...user,fp_balance:fp,rp_balance:rp,founding_member:isFM,in_free_period:inFP});
+      if(fp<1&&!isFM&&!inFP){setShowExchange(true);return;}
     }catch{}
     setView('matching');
   };
@@ -1560,7 +1561,7 @@ function AuthView({onLogin}){
 function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser}){
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
-  const isFreePeriod=user.founding_member&&user.fp_balance<1;
+  const isFreePeriod=!!user.in_free_period;
   const canCall=balances.fp>=1||isFreePeriod;
 
   useEffect(()=>{
