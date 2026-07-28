@@ -1332,9 +1332,33 @@ function AllUsersTab({user,post}){
 
 function HealthTab({user,post}){
   const[health,setHealth]=useState(null);
+  const[usage,setUsage]=useState(null);
   useEffect(()=>{
     post('/api/admin/stats',{}).then(setHealth).catch(()=>{});
+    post('/api/admin/usage',{}).then(setUsage).catch(()=>{});
   },[]);
+
+  // Cloudflare free tier limits
+  const LIMITS={workers_req:100000,d1_reads:5000000,d1_writes:100000,do_req:1000000,d1_storage:5000,workers_cpu:10};
+
+  const UsageBar=({label,used,limit,unit=''})=>{
+    const pct=limit?Math.min(100,(used/limit)*100):0;
+    const color=pct>90?'#ef4444':pct>70?'#f59e0b':'#22c55e';
+    const fmt=used>=1000000?(used/1000000).toFixed(1)+'M':used>=1000?(used/1000).toFixed(1)+'K':used;
+    const fmtLim=limit>=1000000?(limit/1000000).toFixed(0)+'M':limit>=1000?(limit/1000).toFixed(0)+'K':limit;
+    return(
+      <div style={{marginBottom:'.75rem'}}>
+        <div style={{display:'flex',justifyContent:'space-between',fontSize:'.8rem',marginBottom:'4px'}}>
+          <span style={{color:'#e2e8f0',fontWeight:600}}>{label}</span>
+          <span style={{color:'#94a3b8'}}>{fmt}{unit} / {fmtLim}{unit} ({pct.toFixed(1)}%)</span>
+        </div>
+        <div style={{height:8,background:'#1e293b',borderRadius:4,overflow:'hidden'}}>
+          <div style={{height:'100%',width:`${pct}%`,background:color,borderRadius:4,transition:'width .3s'}}/>
+        </div>
+      </div>
+    );
+  };
+
   return(
     <div>
       <div className="health-grid">
@@ -1343,6 +1367,42 @@ function HealthTab({user,post}){
         <div className="health-item"><div className="h-val">{health?.total_users??'—'}</div><div className="h-lbl">Total Registered Users</div></div>
         <div className="health-item"><div className="h-val" style={{color:'#ef4444'}}>{health?.pending_reports??'—'}</div><div className="h-lbl">Pending Reports</div></div>
       </div>
+
+      {usage&&(
+        <div className="admin-section" style={{marginTop:'1rem'}}>
+          <h3>Infrastructure Usage (Cloudflare Free Tier)</h3>
+          <p style={{fontSize:'.78rem',color:'#94a3b8',margin:'0 0 1rem'}}>Monitoring API requests, D1 database operations, and Durable Object usage against free tier limits.</p>
+
+          <div style={{marginBottom:'1.25rem'}}>
+            <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>📅 Today</h4>
+            <UsageBar label="Worker Requests" used={usage.daily?.api_requests||0} limit={LIMITS.workers_req}/>
+            <UsageBar label="D1 Rows Read" used={usage.daily?.d1_reads||0} limit={LIMITS.d1_reads}/>
+            <UsageBar label="D1 Rows Written" used={usage.daily?.d1_writes||0} limit={LIMITS.d1_writes}/>
+            <UsageBar label="Durable Object Requests" used={usage.daily?.do_requests||0} limit={LIMITS.do_req}/>
+          </div>
+
+          <div style={{marginBottom:'1.25rem'}}>
+            <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>📊 This Month</h4>
+            <UsageBar label="Worker Requests" used={usage.monthly?.api_requests||0} limit={LIMITS.workers_req*30}/>
+            <UsageBar label="D1 Rows Read" used={usage.monthly?.d1_reads||0} limit={LIMITS.d1_reads*30}/>
+            <UsageBar label="D1 Rows Written" used={usage.monthly?.d1_writes||0} limit={LIMITS.d1_writes*30}/>
+            <UsageBar label="Durable Object Requests" used={usage.monthly?.do_requests||0} limit={LIMITS.do_req*30}/>
+          </div>
+
+          <div>
+            <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>🗄️ Storage Estimates</h4>
+            <table className="admin-table">
+              <tbody>
+                <tr><td>Estimated D1 Rows</td><td style={{color:'#60a5fa',fontWeight:700}}>{(usage.estimates?.total_rows||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>Free tier: 5M rows</td></tr>
+                <tr><td>Total Users</td><td style={{fontWeight:700}}>{(usage.estimates?.total_users||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>~1 row each</td></tr>
+                <tr><td>Total Sessions</td><td style={{fontWeight:700}}>{(usage.estimates?.total_sessions||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>~3-4 rows each (session + events + queue)</td></tr>
+                <tr><td>All-Time D1 Writes</td><td style={{fontWeight:700}}>{(usage.estimates?.total_d1_writes_all_time||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>100K/day limit</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div className="admin-section" style={{marginTop:'1rem'}}>
         <h3>System Info</h3>
         <table className="admin-table">
