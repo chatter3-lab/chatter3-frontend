@@ -614,7 +614,7 @@ function FriendsModal({user,onClose}){
         {f.avatar_url?<img src={f.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt=""/>:(f.nickname||f.username||'?').charAt(0).toUpperCase()}
       </div>
       <div className="friend-info">
-        <div className="friend-name">{f.nickname||f.username}</div>
+        <div className="friend-name">{f.nickname||f.username}{f.founding_member&&<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>🏆 FM</span>}</div>
         <div className="friend-sub">{f.country?`${getFlag(f.country)} ${countryName(f.country)}`:''}{f.english_level?` · ${f.english_level}`:''}</div>
       </div>
       {actions}
@@ -2016,7 +2016,7 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
   const save=async()=>{const r=await fetch(`${API_URL}/api/user/update`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:user.id,...form})});const d=await r.json();if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));onUpdate(u);alert('Profile Saved!');}};
   return(
     <div className="dashboard-container">
-      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,color:'#1a1a2e',margin:0}}>Edit Profile</h2></div>
+      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,color:'#1a1a2e',margin:0}}>Edit Profile</h2>{user.founding_member&&<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🏆 Founding Member</span>}</div>
       <div className="profile-section">
         <div className="profile-avatar">
           {form.avatar_url?<img src={form.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt="Profile"/>:(form.nickname||user.username).charAt(0).toUpperCase()}
