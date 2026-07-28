@@ -1419,9 +1419,65 @@ function HealthTab({user,post}){
             <tr><td>Protocol</td><td>TURN over TLS + STUN</td><td style={{color:'#94a3b8'}}>Used for WebRTC relay when P2P fails</td></tr>
             <tr><td>Free Tier</td><td>50 GB bandwidth/month</td><td style={{color:'#94a3b8'}}>Exceeding → paid plan required</td></tr>
             <tr><td>Fallback</td><td>Google STUN (stun.l.google.com:19302)</td><td style={{color:'#94a3b8'}}>Used if metered.ca is unreachable</td></tr>
-            <tr><td>Estimated Usage</td><td>~{Math.round((health?.connection_stats?.connected||0)*2.5)} MB/month</td><td style={{color:'#94a3b8'}}>Based on connected sessions × ~2.5 MB/session avg</td></tr>
           </tbody>
         </table>
+        {usage?.relay?(()=>{
+          const tRelay=usage.relay.today_relay||0;
+          const tP2P=usage.relay.today_p2p||0;
+          const mRelay=usage.relay.month_relay||0;
+          const mP2P=usage.relay.month_p2p||0;
+          const totalRelay=usage.relay.total_relay||0;
+          const totalP2P=usage.relay.total_p2p||0;
+          const totalAll=totalRelay+totalP2P;
+          const relayPct=totalAll>0?Math.round((totalRelay/totalAll)*100):0;
+          const todayAll=tRelay+tP2P;
+          const todayPct=todayAll>0?Math.round((tRelay/todayAll)*100):0;
+          const monthAll=mRelay+mP2P;
+          const monthPct=monthAll>0?Math.round((mRelay/monthAll)*100):0;
+          return(
+            <div style={{marginTop:'.75rem',background:'#1e293b',borderRadius:8,padding:'12px'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'.5rem'}}>
+                <h4 style={{margin:0,fontSize:'.85rem',fontWeight:700}}>P2P vs TURN Relay Usage</h4>
+                <span style={{fontSize:'.7rem',color:'#94a3b8'}}>Lower relay % = less bandwidth cost</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:'.5rem',marginBottom:'.5rem'}}>
+                <div style={{textAlign:'center',padding:'8px'}}>
+                  <div style={{fontSize:'1.3rem',fontWeight:800,color:'#22c55e'}}>{todayPct}%</div>
+                  <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Today Relay</div>
+                  <div style={{fontSize:'.65rem',color:'#6b7280'}}>{tRelay}/{todayAll} calls</div>
+                </div>
+                <div style={{textAlign:'center',padding:'8px'}}>
+                  <div style={{fontSize:'1.3rem',fontWeight:800,color:'#60a5fa'}}>{monthPct}%</div>
+                  <div style={{fontSize:'.7rem',color:'#94a3b8'}}>This Month Relay</div>
+                  <div style={{fontSize:'.65rem',color:'#6b7280'}}>{mRelay}/{monthAll} calls</div>
+                </div>
+                <div style={{textAlign:'center',padding:'8px'}}>
+                  <div style={{fontSize:'1.3rem',fontWeight:800,color:'#a78bfa'}}>{relayPct}%</div>
+                  <div style={{fontSize:'.7rem',color:'#94a3b8'}}>All-Time Relay</div>
+                  <div style={{fontSize:'.65rem',color:'#6b7280'}}>{totalRelay}/{totalAll} calls</div>
+                </div>
+              </div>
+              <div style={{display:'flex',gap:'.5rem',alignItems:'center',marginTop:'.5rem'}}>
+                <div style={{flex:1,height:8,background:'#334155',borderRadius:4,overflow:'hidden'}}>
+                  <div style={{width:`${relayPct}%`,height:'100%',background:relayPct>50?'#f59e0b':'#22c55e',borderRadius:4,transition:'width .3s'}}/>
+                </div>
+                <span style={{fontSize:'.7rem',color:'#94a3b8',whiteSpace:'nowrap'}}>{100-relayPct}% P2P · {relayPct}% TURN</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.5rem',marginTop:'.75rem',fontSize:'.72rem'}}>
+                <div style={{background:'#0f172a',borderRadius:6,padding:'8px'}}>
+                  <div style={{color:'#22c55e',fontWeight:600,marginBottom:2}}>P2P (Free)</div>
+                  <div style={{color:'#94a3b8'}}>Direct connection, 0 bandwidth cost</div>
+                  <div style={{color:'#6b7280',fontSize:'.65rem'}}>Google STUN discovers IP, devices connect directly</div>
+                </div>
+                <div style={{background:'#0f172a',borderRadius:6,padding:'8px'}}>
+                  <div style={{color:'#f59e0b',fontWeight:600,marginBottom:2}}>TURN Relay (Metered)</div>
+                  <div style={{color:'#94a3b8'}}>Server relay, uses 50GB/month budget</div>
+                  <div style={{color:'#6b7280',fontSize:'.65rem'}}>Used when P2P fails (symmetric NAT, firewalls)</div>
+                </div>
+              </div>
+            </div>
+          );
+        })():null}
         <p style={{fontSize:'.72rem',color:'#94a3b8',margin:'.5rem 0 0'}}>Note: Actual bandwidth depends on call duration and video quality. Monitor at <a href="https://chatter3.metered.live/dashboard" target="_blank" rel="noopener" style={{color:'#60a5fa'}}>chatter3.metered.live/dashboard</a></p>
       </div>
 
@@ -1481,7 +1537,7 @@ function HealthTab({user,post}){
             <UsageBar label={`Worker Requests (${usage.daily?.api_requests||0} today)`} used={usage.daily?.api_requests||0} limit={CF_WORKERS_DAY}/>
             <UsageBar label={`D1 Writes (${usage.daily?.d1_writes||0} today)`} used={usage.daily?.d1_writes||0} limit={CF_D1_WRITES_DAY}/>
             <UsageBar label={`Durable Object Requests (${usage.daily?.do_requests||0} today)`} used={usage.daily?.do_requests||0} limit={CF_DO_DAY}/>
-            <UsageBar label={`TURN Bandwidth (~${Math.round(todaySessions*mbPerCall)}MB today est.)`} used={todaySessions*mbPerCall} limit={METERED_MONTH_GB*MB_PER_GB/30}/>
+            <UsageBar label={`TURN Bandwidth (~${Math.round((usage.relay?.today_relay||0)*mbPerCall)}MB relay today)`} used={(usage.relay?.today_relay||0)*mbPerCall} limit={METERED_MONTH_GB*MB_PER_GB/30}/>
 
             <table className="admin-table" style={{marginTop:'.75rem'}}>
               <tbody>
@@ -1938,6 +1994,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   const connTimeout=useRef(null);
   const intentionalHangup=useRef(false);
   const partnerHungUp=useRef(false);
+  const usedRelay=useRef(false);
 
   const cleanup=()=>{
     if(streamRef.current){streamRef.current.getTracks().forEach(t=>t.stop());streamRef.current=null;}
@@ -1964,7 +2021,10 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         p.onconnectionstatechange=()=>{
           const s=p.connectionState;setConnStatus(s);
           logConn('ice_connection_state_change',{state:s});
-          if(s==='connected'){hasConnected.current=true;playSound('start');clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(connTimeout.current);setShowDisc(false);logConn('connected',{time_to_connect_ms:Date.now()-t0});}
+          if(s==='connected'){hasConnected.current=true;playSound('start');clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(connTimeout.current);setShowDisc(false);logConn('connected',{time_to_connect_ms:Date.now()-t0});
+            // Detect TURN relay usage
+            p.getStats().then(stats=>{stats.forEach(r=>{if(r.type==='candidate-pair'&&r.state==='succeeded'&&r.localCandidateId){const lc=stats.get(r.localCandidateId);if(lc&&lc.relayProtocol)usedRelay.current=true;}});}).catch(()=>{});
+          }
           if((s==='failed')&&!hasConnected.current){
             logConn('failed',{never_connected:true});
             fetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id})}).catch(()=>{});
@@ -1979,7 +2039,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
                 if(!sd.active_session){partnerHungUp.current=true;clearTimeout(discTimer.current);setPartnerEndedScreen(true);setTimeout(()=>{cleanup();playSound('end');setEndReason('partner');setShowRating(true);},1500);return;}
               }catch{}
               setEndReason('network');setShowDisc(false);
-              await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'network_disconnect'})}).catch(()=>{});
+              await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'network_disconnect',used_relay:usedRelay.current})}).catch(()=>{});
               cleanup();playSound('end');setShowRating(true);
             },15000);
           }
@@ -2049,13 +2109,13 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   const hangup=async()=>{
     intentionalHangup.current=true;
     ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye',reason:'hangup'}));
-    try{await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'hangup'})});}catch{}
+    try{await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'hangup',used_relay:usedRelay.current})});}catch{}
     playSound('end');cleanup();setShowRating(true);
   };
 
   const rate=async(rating)=>{
     try{
-      const r=await fetch(`${API_URL}/api/matching/rate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,rating})});
+      const r=await fetch(`${API_URL}/api/matching/rate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,rating,used_relay:usedRelay.current})});
       const d=await r.json();
       if(d.rp_awarded)playSound('points');
     }catch{}
