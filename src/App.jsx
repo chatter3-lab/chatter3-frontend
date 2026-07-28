@@ -1287,7 +1287,7 @@ function AllUsersTab({user,post}){
         <div className="admin-section">
           <div style={{overflowX:'auto'}}>
             <table className="admin-table">
-              <thead><tr><th>#</th><th>Username</th><th>Nickname</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Status</th><th>Joined</th></tr></thead>
+              <thead><tr><th>#</th><th>Username</th><th>Nickname</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Badge</th><th>Status</th><th>Joined</th></tr></thead>
               <tbody>
                 {users.map((u,i)=>(
                   <tr key={u.id}>
@@ -1300,6 +1300,18 @@ function AllUsersTab({user,post}){
                     <td style={{textTransform:'capitalize'}}>{u.english_level}</td>
                     <td style={{color:'#1d4ed8',fontWeight:700}}>{u.fp_balance??0}</td>
                     <td style={{color:'#15803d',fontWeight:700}}>{(u.rp_balance||0).toFixed(1)}</td>
+                    <td>
+                      <button
+                        onClick={async()=>{
+                          const d=await post(`/api/admin/user/${u.id}/founding-member`,{});
+                          if(d.success!==false)setUsers(prev=>prev.map(x=>x.id===u.id?{...x,founding_member_override:d.founding_member_override}:x));
+                        }}
+                        style={{background:u.founding_member_override?'linear-gradient(135deg,#f59e0b,#f97316)':'#334155',color:'white',border:'none',borderRadius:10,padding:'3px 10px',fontSize:'.72rem',fontWeight:700,cursor:'pointer'}}
+                        title={u.founding_member_override?'Remove Founding Member badge':'Grant Founding Member badge'}
+                      >
+                        {u.founding_member_override?'🏆 FM':'—'}
+                      </button>
+                    </td>
                     <td>{u.is_banned?<span className="badge-pill banned">Banned</span>:u.is_admin?<span className="badge-pill admin">Admin</span>:'—'}</td>
                     <td style={{fontSize:'.75rem',color:'#94a3b8'}}>{u.created_at?.slice(0,10)}</td>
                   </tr>
