@@ -1331,8 +1331,10 @@ function AllUsersTab({user,post}){
 }
 
 function HealthTab({user,post}){
+  const[health,setHealth]=useState(null);
   const[usage,setUsage]=useState(null);
   useEffect(()=>{
+    post('/api/admin/stats',{}).then(setHealth).catch(()=>{});
     post('/api/admin/usage',{}).then(setUsage).catch(()=>{});
   },[]);
 
