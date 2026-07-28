@@ -1486,7 +1486,7 @@ function HealthTab({user,post}){
         const avgDurMin=Math.round(avgDur/60);
         const avgDurSec=Math.round(avgDur%60);
         const mbPerMin=2.5;
-        const mbPerCall=mbPerMin*avgDur;
+        const mbPerCall=mbPerMin*(avgDur/60);
         // Free tier limits
         const CF_WORKERS_DAY=100000;
         const CF_D1_WRITES_DAY=100000;
