@@ -1424,6 +1424,81 @@ function HealthTab({user,post}){
         </table>
         <p style={{fontSize:'.72rem',color:'#94a3b8',margin:'.5rem 0 0'}}>Note: Actual bandwidth depends on call duration and video quality. Monitor at <a href="https://chatter3.metered.live/dashboard" target="_blank" rel="noopener" style={{color:'#60a5fa'}}>chatter3.metered.live/dashboard</a></p>
       </div>
+
+      {usage&&usage.sessions&&(()=>{
+        const avgDur=usage.sessions.avg_duration||300;
+        const avgDurMin=Math.round(avgDur/60);
+        const avgDurSec=Math.round(avgDur%60);
+        const mbPerMin=2.5;
+        const mbPerCall=mbPerMin*avgDur;
+        // Free tier limits
+        const CF_WORKERS_DAY=100000;
+        const CF_D1_WRITES_DAY=100000;
+        const CF_DO_DAY=1000000;
+        const METERED_MONTH_GB=50;
+        const MB_PER_GB=1024;
+        // Capacity calculations (each session ~10 API calls, ~5 D1 writes, ~100 DO msgs, ~12.5MB TURN)
+        const apiCallsPerSession=10;
+        const d1WritesPerSession=5;
+        const doMsgsPerSession=100;
+        const maxSessionsDay_api=Math.floor(CF_WORKERS_DAY/apiCallsPerSession);
+        const maxSessionsDay_d1=Math.floor(CF_D1_WRITES_DAY/d1WritesPerSession);
+        const maxSessionsDay_do=Math.floor(CF_DO_DAY/doMsgsPerSession);
+        const maxCallsMonth_turn=Math.floor((METERED_MONTH_GB*MB_PER_GB)/mbPerCall);
+        const maxCallsDay_turn=Math.floor(maxCallsMonth_turn/30);
+        const bottleneck=Math.min(maxSessionsDay_api,maxSessionsDay_d1,maxSessionsDay_do,maxCallsDay_turn);
+        const bottleneckLabel=bottleneck===maxCallsDay_turn?'TURN Bandwidth':bottleneck===maxSessionsDay_d1?'D1 Writes':bottleneck===maxSessionsDay_api?'Worker Requests':'Durable Objects';
+        // Usage percentages
+        const todaySessions=usage.sessions.today||0;
+        const monthSessions=usage.sessions.this_month||0;
+        const apiPct=usage.daily?.api_requests?((usage.daily.api_requests/CF_WORKERS_DAY)*100):0;
+        const d1Pct=usage.daily?.d1_writes?((usage.daily.d1_writes/CF_D1_WRITES_DAY)*100):0;
+        const doPct=usage.daily?.do_requests?((usage.daily.do_requests/CF_DO_DAY)*100):0;
+        const turnPct=usage.monthly?.api_requests?((todaySessions*mbPerCall/MB_PER_GB/METERED_MONTH_GB)*100*30):0;
+        return(
+          <div className="admin-section" style={{marginTop:'1rem'}}>
+            <h3>📊 Capacity Planning (Free Tier Limits)</h3>
+            <p style={{fontSize:'.78rem',color:'#94a3b8',margin:'0 0 .75rem'}}>Max concurrent calls based on current free tier constraints. Current bottleneck: <strong style={{color:'#f59e0b'}}>{bottleneckLabel}</strong></p>
+
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:'.5rem',marginBottom:'1rem'}}>
+              <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+                <div style={{fontSize:'1.4rem',fontWeight:800,color:'#22c55e'}}>{bottleneck.toLocaleString()}</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Max Sessions/Day</div>
+                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>Overall bottleneck</div>
+              </div>
+              <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+                <div style={{fontSize:'1.4rem',fontWeight:800,color:'#60a5fa'}}>{Math.round(bottleneck/30).toLocaleString()}</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Max Sessions/Month</div>
+                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>At current avg duration</div>
+              </div>
+              <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+                <div style={{fontSize:'1.4rem',fontWeight:800,color:'#a78bfa'}}>{Math.round(bottleneck*avgDur/3600)}</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Max Concurrent Calls</div>
+                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>If all active simultaneously</div>
+              </div>
+            </div>
+
+            <UsageBar label={`Worker Requests (${usage.daily?.api_requests||0} today)`} used={usage.daily?.api_requests||0} limit={CF_WORKERS_DAY}/>
+            <UsageBar label={`D1 Writes (${usage.daily?.d1_writes||0} today)`} used={usage.daily?.d1_writes||0} limit={CF_D1_WRITES_DAY}/>
+            <UsageBar label={`Durable Object Requests (${usage.daily?.do_requests||0} today)`} used={usage.daily?.do_requests||0} limit={CF_DO_DAY}/>
+            <UsageBar label={`TURN Bandwidth (~${Math.round(todaySessions*mbPerCall)}MB today est.)`} used={todaySessions*mbPerCall} limit={METERED_MONTH_GB*MB_PER_GB/30}/>
+
+            <table className="admin-table" style={{marginTop:'.75rem'}}>
+              <tbody>
+                <tr><td style={{fontWeight:600}}>Avg Session Duration</td><td>{avgDurMin}m {avgDurSec}s</td><td style={{color:'#94a3b8'}}>Based on last 30 days</td></tr>
+                <tr><td style={{fontWeight:600}}>Est. MB per Call</td><td>{mbPerCall.toFixed(1)} MB</td><td style={{color:'#94a3b8'}}>~2.5 MB/min (video + audio)</td></tr>
+                <tr><td style={{fontWeight:600}}>TURN Free Tier</td><td>{METERED_MONTH_GB} GB/month</td><td style={{color:'#94a3b8'}}>metered.ca free plan</td></tr>
+                <tr><td style={{fontWeight:600}}>Cloudflare Workers</td><td>{CF_WORKERS_DAY.toLocaleString()}/day</td><td style={{color:'#94a3b8'}}>~10 API calls per session</td></tr>
+                <tr><td style={{fontWeight:600}}>D1 Writes</td><td>{CF_D1_WRITES_DAY.toLocaleString()}/day</td><td style={{color:'#94a3b8'}}>~5 writes per session</td></tr>
+                <tr><td style={{fontWeight:600}}>Durable Objects</td><td>{CF_DO_DAY.toLocaleString()}/day</td><td style={{color:'#94a3b8'}}>~100 signaling msgs per session</td></tr>
+                <tr><td style={{fontWeight:600}}>Sessions Today</td><td style={{fontWeight:700,color:todaySessions>bottleneck?'#ef4444':'#22c55e'}}>{todaySessions}</td><td style={{color:'#94a3b8'}}>{bottleneck>0?((todaySessions/bottleneck)*100).toFixed(1):0}% of daily capacity</td></tr>
+                <tr><td style={{fontWeight:600}}>Sessions This Month</td><td style={{fontWeight:700}}>{monthSessions}</td><td style={{color:'#94a3b8'}}>{Math.round(bottleneck/30)>0?((monthSessions/(bottleneck/30*30))*100).toFixed(1):0}% of monthly capacity</td></tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
+
       <div className="admin-section" style={{marginTop:'1rem'}}>
         <h3>🎁 Launch Promotions</h3>
         <table className="admin-table">
