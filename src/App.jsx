@@ -1972,6 +1972,65 @@ function PreCallView({session,onStart,onCancel}){
 }
 
 // ─────────────────────────────────────────────────────────────────
+// FEEDBACK MODAL
+// ─────────────────────────────────────────────────────────────────
+function FeedbackModal({userId,onClose}){
+  const[category,setCategory]=useState('general');
+  const[message,setMessage]=useState('');
+  const[sending,setSending]=useState(false);
+  const[done,setDone]=useState(false);
+  const[rpAwarded,setRpAwarded]=useState(0);
+  const submit=async()=>{
+    if(!message.trim()||sending)return;
+    setSending(true);
+    try{
+      const r=await fetch(`${API_URL}/api/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,category,message:message.trim()})});
+      const d=await r.json();
+      if(d.success){setDone(true);setRpAwarded(d.rp_awarded||0);}
+    }catch{}
+    setSending(false);
+  };
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:16}}>
+      <div style={{background:'white',borderRadius:16,maxWidth:440,width:'100%',padding:28,position:'relative',boxShadow:'0 20px 60px rgba(0,0,0,.3)'}}>
+        <button onClick={onClose} style={{position:'absolute',top:12,right:12,background:'none',border:'none',fontSize:'1.3rem',cursor:'pointer',color:'#9ca3af'}}>✕</button>
+        {done?(
+          <div style={{textAlign:'center',padding:'1rem 0'}}>
+            <div style={{fontSize:'2.5rem',marginBottom:12}}>✅</div>
+            <h3 style={{fontFamily:'Sora,sans-serif',margin:'0 0 8px',color:'#1a1a2e'}}>Thank you for your feedback!</h3>
+            <p style={{fontSize:'.88rem',color:'#6b7280',margin:'0 0 12px'}}>Your input helps us improve Chatter3.</p>
+            {rpAwarded>0&&<p style={{fontSize:'.82rem',color:'#4f8ef7',fontWeight:600}}>+{rpAwarded} RP earned!</p>}
+            <button onClick={onClose} style={{marginTop:12,padding:'10px 24px',background:'#4f8ef7',color:'white',border:'none',borderRadius:8,cursor:'pointer',fontWeight:600}}>Done</button>
+          </div>
+        ):(
+          <div>
+            <h3 style={{fontFamily:'Sora,sans-serif',margin:'0 0 4px',color:'#1a1a2e',fontSize:'1.1rem'}}>Send Feedback</h3>
+            <p style={{fontSize:'.82rem',color:'#6b7280',margin:'0 0 16px'}}>Help us improve Chatter3. Your feedback is sent directly to our team.</p>
+            <div style={{marginBottom:12}}>
+              <label style={{display:'block',fontSize:'.82rem',fontWeight:600,color:'#374151',marginBottom:4}}>Category</label>
+              <select value={category} onChange={e=>setCategory(e.target.value)} style={{width:'100%',padding:'10px 12px',border:'1px solid #d1d5db',borderRadius:8,fontSize:'.88rem',background:'white'}}>
+                <option value="general">General Feedback</option>
+                <option value="bug">Bug Report</option>
+                <option value="feature">Feature Request</option>
+                <option value="improvement">Improvement Suggestion</option>
+              </select>
+            </div>
+            <div style={{marginBottom:16}}>
+              <label style={{display:'block',fontSize:'.82rem',fontWeight:600,color:'#374151',marginBottom:4}}>Message</label>
+              <textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder="Tell us what's on your mind..." rows={5} style={{width:'100%',padding:'10px 12px',border:'1px solid #d1d5db',borderRadius:8,fontSize:'.88rem',resize:'vertical',boxSizing:'border-box',fontFamily:'inherit'}}/>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={onClose} style={{flex:1,padding:'10px',background:'#f5f5f5',border:'1px solid #ddd',borderRadius:8,cursor:'pointer',fontSize:'.88rem'}}>Cancel</button>
+              <button onClick={submit} disabled={!message.trim()||sending} style={{flex:1,padding:'10px',background:message.trim()?'#4f8ef7':'#ccc',color:'white',border:'none',borderRadius:8,cursor:message.trim()?'pointer':'not-allowed',fontWeight:600,fontSize:'.88rem'}}>{sending?'Sending…':'Submit'}</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
 // VIDEO ROOM VIEW
 // ─────────────────────────────────────────────────────────────────
 function VideoRoomView({user,session,callStartedAt,onEnd}){
@@ -2209,6 +2268,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
 function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
   const[form,setForm]=useState({nickname:user.nickname||user.username||'',country:user.country||'',native_language:user.native_language||'',english_level:user.english_level||'beginner',bio:user.bio||'',avatar_url:user.avatar_url||''});
   const[history,setHistory]=useState([]);
+  const[showFeedback,setShowFeedback]=useState(false);
   const fileRef=useRef(null);
   useEffect(()=>{
     fetch(`${API_URL}/api/user/history`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id})}).then(r=>r.json()).then(d=>{if(d.success)setHistory(d.history);});
@@ -2237,9 +2297,11 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
           </select>
         </div>
         <button className="save-btn" onClick={save}>Save Profile</button>
+        <button onClick={()=>setShowFeedback(true)} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>💬 Send Feedback</button>
         <button onClick={onShowOnboarding} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>👋 View Introduction Again</button>
         <button onClick={onBack} style={{marginTop:9,padding:'9px',width:'100%',background:'#f5f5f5',border:'1px solid #ddd',borderRadius:'6px',cursor:'pointer',fontSize:'.88rem'}}>Back</button>
       </div>
+      {showFeedback&&<FeedbackModal userId={user.id} onClose={()=>setShowFeedback(false)}/>}
       <div className="history-list">
         <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',color:'#1a1a2e',margin:'0 0 .875rem'}}>Recent Conversations</h3>
         {history.length===0&&<p style={{color:'#9ca3af',fontSize:'.88rem'}}>No calls yet. Find a partner to get started!</p>}
