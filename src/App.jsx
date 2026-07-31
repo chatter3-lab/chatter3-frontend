@@ -1305,6 +1305,11 @@ function AllUsersTab({user,post}){
   const[page,setPage]=useState(0);
   const[loading,setLoading]=useState(true);
   const[total,setTotal]=useState(0);
+  const[showForm,setShowForm]=useState(false);
+  const[editingUser,setEditingUser]=useState(null);
+  const[form,setForm]=useState({username:'',email:'',english_level:'beginner',country:'',native_language:''});
+  const[formError,setFormError]=useState('');
+  const[formSaving,setFormSaving]=useState(false);
   const PAGE=50;
 
   const load=async(p=0)=>{
@@ -1326,17 +1331,73 @@ function AllUsersTab({user,post}){
     a.click();
   };
 
+  const openAdd=()=>{setEditingUser(null);setForm({username:'',email:'',english_level:'beginner',country:'',native_language:''});setFormError('');setShowForm(true);};
+  const openEdit=(u)=>{setEditingUser(u);setForm({username:u.username,email:u.email,english_level:u.english_level||'beginner',country:u.country||'',native_language:u.native_language||'',nickname:u.nickname||''});setFormError('');setShowForm(true);};
+
+  const saveUser=async()=>{
+    setFormSaving(true);setFormError('');
+    try{
+      if(editingUser){
+        const d=await post(`/api/admin/user/${editingUser.id}/update`,{admin_id:user.id,...form});
+        if(d.error){setFormError(d.error);setFormSaving(false);return;}
+        if(d.success)setUsers(prev=>prev.map(u=>u.id===editingUser.id?d.user:u));
+      }else{
+        const d=await post('/api/admin/user/create',{admin_id:user.id,...form});
+        if(d.error){setFormError(d.error);setFormSaving(false);return;}
+        if(d.success){setUsers(prev=>[d.user,...prev]);setTotal(t=>t+1);}
+      }
+      setShowForm(false);
+    }catch{setFormError('Request failed');}
+    setFormSaving(false);
+  };
+
+  const deleteUser=async(u)=>{
+    if(!confirm(`Delete user "${u.username}"? This cannot be undone.`))return;
+    const d=await post(`/api/admin/user/${u.id}/delete`,{admin_id:user.id});
+    if(d.error){alert(d.error);return;}
+    if(d.success){setUsers(prev=>prev.filter(x=>x.id!==u.id));setTotal(t=>t-1);}
+  };
+
+  const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
+
   return(
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:'.5rem'}}>
         <p style={{margin:0,fontSize:'.88rem',color:'#64748b'}}>{total} total users · page {page+1} of {Math.ceil(total/PAGE)||1}</p>
-        <button className="save-settings-btn" style={{margin:0}} onClick={exportCSV}>⬇ Export All as CSV</button>
+        <div style={{display:'flex',gap:'.5rem'}}>
+          <button className="save-settings-btn" style={{margin:0,background:'#22c55e'}} onClick={openAdd}>+ Add User</button>
+          <button className="save-settings-btn" style={{margin:0}} onClick={exportCSV}>⬇ Export CSV</button>
+        </div>
       </div>
+
+      {showForm&&(
+        <div style={{background:'white',border:'1px solid #e2e8f0',borderRadius:12,padding:20,marginBottom:'1rem',boxShadow:'0 2px 8px rgba(0,0,0,.06)'}}>
+          <h4 style={{margin:'0 0 12px',fontSize:'.95rem'}}>{editingUser?'Edit User':'Add New User'}</h4>
+          {formError&&<p style={{color:'#ef4444',fontSize:'.82rem',margin:'0 0 8px'}}>{formError}</p>}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.75rem'}}>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Username *</label><input value={form.username} onChange={upd('username')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Email *</label><input value={form.email} onChange={upd('email')} type="email" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Nickname</label><input value={form.nickname||''} onChange={upd('nickname')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>English Level</label>
+              <select value={form.english_level} onChange={upd('english_level')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}>
+                <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
+              </select>
+            </div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Country</label><input value={form.country} onChange={upd('country')} placeholder="e.g. JP" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Native Language</label><input value={form.native_language} onChange={upd('native_language')} placeholder="e.g. Japanese" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+          </div>
+          <div style={{display:'flex',gap:'.5rem',marginTop:12}}>
+            <button onClick={()=>setShowForm(false)} style={{padding:'8px 16px',background:'#f5f5f5',border:'1px solid #ddd',borderRadius:6,cursor:'pointer',fontSize:'.88rem'}}>Cancel</button>
+            <button onClick={saveUser} disabled={formSaving||!form.username||!form.email} style={{padding:'8px 16px',background:form.username&&form.email?'#4f8ef7':'#ccc',color:'white',border:'none',borderRadius:6,cursor:form.username&&form.email?'pointer':'not-allowed',fontWeight:600,fontSize:'.88rem'}}>{formSaving?'Saving…':editingUser?'Update':'Create'}</button>
+          </div>
+        </div>
+      )}
+
       {loading?<p style={{color:'#9ca3af'}}>Loading…</p>:(
         <div className="admin-section">
           <div style={{overflowX:'auto'}}>
             <table className="admin-table">
-              <thead><tr><th>#</th><th>Username</th><th>Nickname</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Badge</th><th>Status</th><th>Joined</th></tr></thead>
+              <thead><tr><th>#</th><th>Username</th><th>Nickname</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Badge</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
               <tbody>
                 {users.map((u,i)=>(
                   <tr key={u.id}>
@@ -1363,6 +1424,12 @@ function AllUsersTab({user,post}){
                     </td>
                     <td>{u.is_banned?<span className="badge-pill banned">Banned</span>:u.is_admin?<span className="badge-pill admin">Admin</span>:'—'}</td>
                     <td style={{fontSize:'.75rem',color:'#94a3b8'}}>{u.created_at?.slice(0,10)}</td>
+                    <td>
+                      <div style={{display:'flex',gap:4}}>
+                        <button onClick={()=>openEdit(u)} style={{background:'#4f8ef7',color:'white',border:'none',borderRadius:6,padding:'3px 8px',fontSize:'.7rem',cursor:'pointer'}} title="Edit">✏️</button>
+                        {!u.is_admin&&<button onClick={()=>deleteUser(u)} style={{background:'#ef4444',color:'white',border:'none',borderRadius:6,padding:'3px 8px',fontSize:'.7rem',cursor:'pointer'}} title="Delete">🗑️</button>}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
