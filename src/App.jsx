@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const API_URL = 'https://api.chatter3.com';
@@ -457,7 +457,7 @@ function ProfileGate({user,onComplete,onDismiss}){
       <div className="profile-gate-card">
         <div style={{fontSize:'2.75rem',marginBottom:'.75rem'}}>🌍</div>
         <h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.25rem',fontWeight:800,color:'#1a1a2e',margin:'0 0 .4rem'}}>One quick thing…</h2>
-        <p style={{color:'#6b7280',fontSize:'.88rem',marginBottom:'1.25rem',lineHeight:1.5}}>Tell us where you're from and your native language — we use this to find you better conversation partners.</p>
+        <p style={{color:'#6b7280',fontSize:'.88rem',marginBottom:'1.25rem',lineHeight:'1.5'}}>Tell us where you're from and your native language — we use this to find you better conversation partners.</p>
         {err&&<div className="error-message">{err}</div>}
         <div style={{marginBottom:'.55rem'}}><CountrySelect value={country} onChange={setCountry} required/></div>
         <input className="profile-gate-input" placeholder="Native language (e.g. Japanese)" value={lang} onChange={e=>setLang(e.target.value)}/>
@@ -1930,6 +1930,7 @@ function MatchingView({user,onCancel,onMatch}){
   const[timedOut,setTimedOut]=useState(false);
   const stopRingRef=useRef(null);
   const t0=useRef(Date.now());
+  const[matchTip]=useState(()=>STARTERS[Math.floor(Math.random()*STARTERS.length)]('your partner'));
 
   useEffect(()=>{
     stopRingRef.current=startRinging();
@@ -2004,6 +2005,10 @@ function MatchingView({user,onCancel,onMatch}){
       {elapsed>=15&&noLevel&&<p style={{fontSize:'.78rem',color:'#f59e0b',maxWidth:260,textAlign:'center',margin:'.4rem 0'}}>⚠️ {user.mvp_mode?'No users available':'No '+user.english_level+'-level users available'}. Continuing to search…</p>}
       <div className="progress-bar"><div className="progress-fill" style={{width:`${Math.min(100,(elapsed/MATCH_TIMEOUT)*100)}%`,background:elapsed>60?'#f59e0b':'#4f8ef7'}}/></div>
       <p style={{fontSize:'.72rem',color:'#9ca3af',margin:'0 0 .875rem'}}>{MATCH_TIMEOUT-elapsed}s remaining</p>
+      <div style={{background:'rgba(79,142,247,0.1)',border:'1px solid rgba(79,142,247,0.25)',borderRadius:12,padding:'.75rem 1rem',maxWidth:320,textAlign:'center',margin:'0 0 .875rem'}}>
+        <p style={{fontSize:'.75rem',fontWeight:600,color:'#4f8ef7',margin:'0 0 .35rem'}}>While you wait...</p>
+        <p style={{fontSize:'.72rem',color:'#94a3b8',margin:0}}>{matchTip}</p>
+      </div>
       <button onClick={cancel} className="cancel-btn">Cancel Search</button>
     </div>
   );
@@ -2278,7 +2283,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   if(err)return(
     <div className="matching-screen">
       <p style={{color:'red',fontWeight:600}}>{err}</p>
-      <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'1rem',maxWidth:320,textAlign:'left',margin:'.75rem 0',fontSize:'.83rem',color:'#92400e',lineHeight:1.55}}>
+      <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'1rem',maxWidth:320,textAlign:'left',margin:'.75rem 0',fontSize:'.83rem',color:'#92400e',lineHeight:1.5}}>
         <strong>📱 iPhone / Safari users:</strong> Camera permission resets after each session in Safari. To keep it permanent:<br/>
         1. Tap <strong>Share → Add to Home Screen</strong> to install as an app — permissions persist like Android.<br/>
         2. Or go to <strong>Settings → Safari → Camera</strong> and set to <em>Allow</em>.
