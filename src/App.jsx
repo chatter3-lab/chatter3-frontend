@@ -1332,7 +1332,7 @@ function AllUsersTab({user,post}){
   };
 
   const openAdd=()=>{setEditingUser(null);setForm({username:'',email:'',english_level:'beginner',country:'',native_language:''});setFormError('');setShowForm(true);};
-  const openEdit=(u)=>{setEditingUser(u);setForm({username:u.username,email:u.email,english_level:u.english_level||'beginner',country:u.country||'',native_language:u.native_language||'',nickname:u.nickname||''});setFormError('');setShowForm(true);};
+  const openEdit=(u)=>{setEditingUser(u);setForm({username:u.username,email:u.email,english_level:u.english_level||'beginner',country:u.country||'',native_language:u.native_language||''});setFormError('');setShowForm(true);};
 
   const saveUser=async()=>{
     setFormSaving(true);setFormError('');
@@ -1377,7 +1377,7 @@ function AllUsersTab({user,post}){
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.75rem'}}>
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Username *</label><input value={form.username} onChange={upd('username')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Email *</label><input value={form.email} onChange={upd('email')} type="email" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
-            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Nickname</label><input value={form.nickname||''} onChange={upd('nickname')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Username</label><input value={form.username} onChange={upd('username')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>English Level</label>
               <select value={form.english_level} onChange={upd('english_level')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}>
                 <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
@@ -1397,13 +1397,12 @@ function AllUsersTab({user,post}){
         <div className="admin-section">
           <div style={{overflowX:'auto'}}>
             <table className="admin-table">
-              <thead><tr><th>#</th><th>Username</th><th>Nickname</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Badge</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+              <thead><tr><th>#</th><th>Username</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Badge</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
               <tbody>
                 {users.map((u,i)=>(
                   <tr key={u.id}>
                     <td style={{color:'#94a3b8',fontSize:'.72rem'}}>{page*PAGE+i+1}</td>
                     <td><strong>{u.username}</strong></td>
-                    <td>{u.nickname||'—'}</td>
                     <td style={{fontSize:'.78rem',color:'#64748b'}}>{u.email}</td>
                     <td>{u.country?`${getFlag(u.country)} ${countryName(u.country)}`:'—'}</td>
                     <td>{u.native_language||'—'}</td>
@@ -2382,7 +2381,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
 // PROFILE VIEW
 // ─────────────────────────────────────────────────────────────────
 function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
-  const[form,setForm]=useState({nickname:user.nickname||user.username||'',country:user.country||'',native_language:user.native_language||'',english_level:user.english_level||'beginner',bio:user.bio||'',avatar_url:user.avatar_url||''});
+  const[form,setForm]=useState({username:user.username||'',country:user.country||'',native_language:user.native_language||'',english_level:user.english_level||'beginner',bio:user.bio||'',avatar_url:user.avatar_url||''});
   const[history,setHistory]=useState([]);
   const[showFeedback,setShowFeedback]=useState(false);
   const fileRef=useRef(null);
@@ -2397,14 +2396,14 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
       <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,color:'#1a1a2e',margin:0}}>Edit Profile</h2>{user.founding_member&&<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🏆 Founding Member</span>}</div>
       <div className="profile-section">
         <div className="profile-avatar">
-          {form.avatar_url?<img src={form.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt="Profile"/>:(form.nickname||user.username).charAt(0).toUpperCase()}
+          {form.avatar_url?<img src={form.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt="Profile"/>:(form.username||user.username).charAt(0).toUpperCase()}
         </div>
         <div style={{textAlign:'center',marginBottom:'1.1rem'}}>
           <input type="file" accept="image/*" onChange={onFile} style={{display:'none'}} ref={fileRef}/>
           <button className="upload-btn" onClick={()=>fileRef.current.click()}><UploadIcon style={{width:13,height:13,marginRight:4}}/> Upload Picture</button>
           <p style={{fontSize:'.72rem',color:'#9ca3af',margin:'3px 0 0'}}>Auto-compressed on upload.</p>
         </div>
-        <div className="form-group"><label>Nickname</label><input value={form.nickname} onChange={upd('nickname')}/></div>
+        <div className="form-group"><label>Username</label><input value={form.username} onChange={upd('username')}/></div>
         <div className="form-group"><label>Country</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))}/></div>
         <div className="form-group"><label>Native Language</label><input value={form.native_language} onChange={upd('native_language')} placeholder="e.g. Japanese"/></div>
         <div className="form-group"><label>English Level</label>
