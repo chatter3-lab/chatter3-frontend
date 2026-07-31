@@ -705,7 +705,6 @@ function AdminSettingsPanel({user}){
   const[customDur,setCustomDur]=useState('0');
   const[promoFpFree,setPromoFpFree]=useState('0');
   const[promoInitRp,setPromoInitRp]=useState('0');
-  const[promoBadge,setPromoBadge]=useState('0');
   const[newMemberDays,setNewMemberDays]=useState('30');
   const[mvpMode,setMvpMode]=useState(false);
 
@@ -719,7 +718,6 @@ function AdminSettingsPanel({user}){
         setCustomDur(m.custom_call_duration||'0');
         setPromoFpFree(m.promo_fp_free_days||'0');
         setPromoInitRp(m.promo_initial_rp||'0');
-        setPromoBadge(m.promo_badge_days||'0');
         setNewMemberDays(m.new_member_days||'30');
         setMvpMode(m.mvp_mode==='true');
       }
@@ -738,7 +736,6 @@ function AdminSettingsPanel({user}){
       post('/api/admin/settings/update',{key:'custom_call_duration',value:customDur}),
       post('/api/admin/settings/update',{key:'promo_fp_free_days',value:promoFpFree}),
       post('/api/admin/settings/update',{key:'promo_initial_rp',value:promoInitRp}),
-      post('/api/admin/settings/update',{key:'promo_badge_days',value:promoBadge}),
       post('/api/admin/settings/update',{key:'new_member_days',value:newMemberDays}),
       post('/api/admin/settings/update',{key:'mvp_mode',value:mvpMode?'true':'false'}),
     ]);
@@ -807,17 +804,6 @@ function AdminSettingsPanel({user}){
           <input type="number" className="duration-input" min="0" max="100" value={promoInitRp} onChange={e=>setPromoInitRp(e.target.value)}/>
           <span style={{fontSize:'.8rem',color:'#6b7280'}}>RP (0 = off)</span>
           {parseInt(promoInitRp)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● Active</span>}
-        </div>
-      </div>
-      <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
-        <div className="setting-info">
-          <div className="setting-name">Founding Member Badge (days)</div>
-          <div className="setting-desc">Show a "Founding Member" badge for this many days after registration. Set 0 to disable.</div>
-        </div>
-        <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
-          <input type="number" className="duration-input" min="0" max="365" value={promoBadge} onChange={e=>setPromoBadge(e.target.value)}/>
-          <span style={{fontSize:'.8rem',color:'#6b7280'}}>days (0 = off)</span>
-          {parseInt(promoBadge)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● Active</span>}
         </div>
       </div>
       <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
@@ -1379,7 +1365,7 @@ function AllUsersTab({user,post}){
         <div className="admin-section">
           <div style={{overflowX:'auto'}}>
             <table className="admin-table">
-              <thead><tr><th>#</th><th>Username</th><th>Display Name</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Badge</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+              <thead><tr><th>#</th><th>Username</th><th>Display Name</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Badge</th><th>New</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
               <tbody>
                 {users.map((u,i)=>(
                   <tr key={u.id}>
@@ -1404,6 +1390,7 @@ function AllUsersTab({user,post}){
                         {u.founding_member_override?'🏆 FM':'—'}
                       </button>
                     </td>
+                    <td>{u.is_new_member?<span style={{padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.68rem',fontWeight:700}}>🆕 NEW</span>:'—'}</td>
                     <td>{u.is_banned?<span className="badge-pill banned">Banned</span>:u.is_admin?<span className="badge-pill admin">Admin</span>:'—'}</td>
                     <td style={{fontSize:'.75rem',color:'#94a3b8'}}>{u.created_at?.slice(0,10)}</td>
                     <td>
