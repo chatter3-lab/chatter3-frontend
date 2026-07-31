@@ -1994,10 +1994,12 @@ function MatchingView({user,onCancel,onMatch}){
         <div className="sonar-core">🔍</div>
       </div>
       <p className="match-status">{status}</p>
-      <p className="match-sub">Finding a <span style={{fontWeight:600,textTransform:'capitalize'}}>{user.english_level}</span> level partner…</p>
-      <div className="level-badge">📊 {user.english_level} · {user.english_level==='beginner'?'5':'10'} min sessions</div>
+      {user.mvp_mode
+        ?<p className="match-sub">Finding a conversation partner…</p>
+        :<p className="match-sub">Finding a <span style={{fontWeight:600,textTransform:'capitalize'}}>{user.english_level}</span> level partner…</p>}
+      <div className="level-badge">📊 {user.mvp_mode?'All levels':user.english_level} · {user.mvp_mode||user.english_level==='beginner'?'5':'10'} min sessions</div>
       {total>0&&<div className="online-badge"><span className="online-dot"/>{total===1?'1 person online':`${total} people online now`}</div>}
-      {elapsed>=15&&noLevel&&<p style={{fontSize:'.78rem',color:'#f59e0b',maxWidth:260,textAlign:'center',margin:'.4rem 0'}}>⚠️ No {user.english_level}-level users available. Continuing to search…</p>}
+      {elapsed>=15&&noLevel&&<p style={{fontSize:'.78rem',color:'#f59e0b',maxWidth:260,textAlign:'center',margin:'.4rem 0'}}>⚠️ {user.mvp_mode?'No users available':'No '+user.english_level+'-level users available'}. Continuing to search…</p>}
       <div className="progress-bar"><div className="progress-fill" style={{width:`${Math.min(100,(elapsed/MATCH_TIMEOUT)*100)}%`,background:elapsed>60?'#f59e0b':'#4f8ef7'}}/></div>
       <p style={{fontSize:'.72rem',color:'#9ca3af',margin:'0 0 .875rem'}}>{MATCH_TIMEOUT-elapsed}s remaining</p>
       <button onClick={cancel} className="cancel-btn">Cancel Search</button>
