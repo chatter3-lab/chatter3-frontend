@@ -2411,7 +2411,8 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
           </select>
         </div>
         <button className="save-btn" onClick={save}>Save Profile</button>
-        <button onClick={()=>{setShowPwChange(!showPwChange);setPwErr('');setPwMsg('');}} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>🔒 {user.has_password?'Change Password':'Set Password'}</button>
+        {user.password_hash!=='google_oauth_user'&&<>
+        <button onClick={()=>{setShowPwChange(!showPwChange);setPwErr('');setPwMsg('');}} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>&#x1f512; {user.has_password?'Change Password':'Set Password'}</button>
         {showPwChange&&(
           <div style={{marginTop:8,padding:'12px',background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'8px'}}>
             <div style={{fontWeight:600,fontSize:'.85rem',marginBottom:8}}>{user.has_password?'Change Password':'Set Password'}</div>
@@ -2423,6 +2424,7 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
             <button className="save-btn" onClick={changePassword} style={{width:'100%'}}>{user.has_password?'Update Password':'Set Password'}</button>
           </div>
         )}
+        </>}
         <button onClick={()=>setShowFeedback(true)} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>💬 Send Feedback</button>
         <button onClick={onShowOnboarding} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>👋 View Introduction Again</button>
         <button onClick={onBack} style={{marginTop:9,padding:'9px',width:'100%',background:'#f5f5f5',border:'1px solid #ddd',borderRadius:'6px',cursor:'pointer',fontSize:'.88rem'}}>Back</button>
