@@ -1179,7 +1179,7 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
                   <div style={{display:'flex',gap:.5,flexWrap:'wrap',marginTop:'.4rem'}}>
                     {selectedUser.user?.is_admin&&<span className="badge-pill admin">Admin</span>}
                     {selectedUser.user?.is_banned&&<span className="badge-pill banned">Banned</span>}
-                    <span style={{fontSize:'.78rem',color:'#94a3b8'}}>{selectedUser.user?.country} · {selectedUser.user?.english_level}</span>
+                    <span style={{fontSize:'.78rem',color:'#94a3b8'}}>{selectedUser.user?.country?`${getFlag(selectedUser.user.country)} ${countryName(selectedUser.user.country)}`:'—'} · {selectedUser.user?.english_level}</span>
                   </div>
                 </div>
                 <button onClick={()=>setSelectedUser(null)} style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:.9}}>✕ Close</button>
@@ -1222,7 +1222,7 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
                         <td style={{textTransform:'capitalize'}}>{u.english_level}</td>
                         <td style={{color:'#1d4ed8',fontWeight:700}}>{u.fp_balance??0}</td>
                         <td style={{color:'#15803d',fontWeight:700}}>{(u.rp_balance||0).toFixed(1)}</td>
-                        <td>{u.country||'—'}</td>
+                        <td>{u.country?`${getFlag(u.country)} ${countryName(u.country)}`:'—'}</td>
                         <td>{u.is_banned?<span className="badge-pill banned">Banned</span>:u.is_admin?<span className="badge-pill admin">Admin</span>:'—'}</td>
                         <td><button className="act-btn adjust" onClick={()=>loadUserDetail(u.id)}>Details</button></td>
                       </tr>
@@ -2064,7 +2064,7 @@ function PreCallView({session,onStart,onCancel}){
         </div>
         <h2 className="precall-name">{name}{partner.founding_member&&<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>🏆 Founding Member</span>}{partner.is_new_member&&<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#22c55e',letterSpacing:'.03em'}}>🆕 New Member</span>}</h2>
         <div className="precall-chips">
-          {partner.country&&<span className="chip country">{getFlag(partner.country)} {partner.country}</span>}
+          {partner.country&&<span className="chip country">{getFlag(partner.country)} {countryName(partner.country)}</span>}
           {partner.native_language&&<span className="chip lang">🗣️ {partner.native_language}</span>}
           {partner.english_level&&<span className="chip level">{LEVEL[partner.english_level]||partner.english_level}</span>}
         </div>
@@ -2369,7 +2369,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
           <div>
             <p style={{fontSize:'.82rem',color:'#999',margin:0}}>Talking to</p>
             <p style={{fontWeight:700,fontSize:'1rem',margin:0}}>{session.partner?.username}</p>
-            {session.partner?.country&&<p style={{fontSize:'.78rem',color:'#6b7280',margin:'1px 0 0'}}>{getFlag(session.partner.country)} {session.partner.country}</p>}
+            {session.partner?.country&&<p style={{fontSize:'.78rem',color:'#6b7280',margin:'1px 0 0'}}>{getFlag(session.partner.country)} {countryName(session.partner.country)}</p>}
             <button className="report-btn" onClick={()=>setShowReport(true)}>⚑ Report</button>
           </div>
           <button onClick={hangup} className="control-btn-end"><PhoneOff style={{width:17,height:17}}/> End Call</button>
