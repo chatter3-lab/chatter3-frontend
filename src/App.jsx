@@ -855,15 +855,9 @@ function AdminSettingsPanel({user}){
 function AdminDashboard({user,onBack}){
   const[tab,setTab]=useState('analytics');
   const[stats,setStats]=useState(null);
-  const[users,setUsers]=useState([]);
   const[reports,setReports]=useState([]);
-  const[searchQ,setSearchQ]=useState('');
   const[reportFilter,setReportFilter]=useState('pending');
   const[loading,setLoading]=useState(false);
-  const[selectedUser,setSelectedUser]=useState(null);
-  const[adjustFP,setAdjustFP]=useState('');
-  const[adjustRP,setAdjustRP]=useState('');
-  const[banReason,setBanReason]=useState('');
 
   const post=(path,body)=>fetch(`${API_URL}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_id:user.id,...body})}).then(r=>r.json());
 
@@ -1110,12 +1104,6 @@ function AdminDashboard({user,onBack}){
     }
   },[tab]);
 
-  const searchUsers=async()=>{
-    setLoading(true);
-    const d=await post('/api/admin/users',{query:searchQ});
-    setUsers(d.users||[]);setLoading(false);
-  };
-
   const loadReports=async()=>{
     setLoading(true);
     const d=await post('/api/admin/reports',{status:reportFilter});
@@ -1123,27 +1111,6 @@ function AdminDashboard({user,onBack}){
   };
 
   useEffect(()=>{if(tab==='reports')loadReports();},[tab,reportFilter]);
-
-  const loadUserDetail=async(uid)=>{
-    const d=await post(`/api/admin/user/${uid}`,{});
-    setSelectedUser(d);
-  };
-
-  const doAdjust=async(uid)=>{
-    await post(`/api/admin/user/${uid}/adjust`,{fp_delta:parseFloat(adjustFP)||0,rp_delta:parseFloat(adjustRP)||0});
-    alert('Balances updated.'); loadUserDetail(uid); setAdjustFP(''); setAdjustRP('');
-  };
-
-  const doBan=async(uid)=>{
-    if(!banReason.trim()){alert('Enter a reason.');return;}
-    await post(`/api/admin/user/${uid}/ban`,{reason:banReason});
-    alert('User banned.'); setBanReason(''); loadUserDetail(uid);
-  };
-
-  const doUnban=async(uid)=>{
-    await post(`/api/admin/user/${uid}/unban`,{});
-    alert('User unbanned.'); loadUserDetail(uid);
-  };
 
   const doReportAction=async(rid,action,note='')=>{
     await post(`/api/admin/report/${rid}/action`,{action,note});
@@ -1160,81 +1127,12 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
         <button className="header-btn btn-logout" onClick={onBack}>← Back</button>
       </div>
       <div className="admin-tabs">
-        {['analytics','users','reports','settings','all-users','health'].map(t=>(
+        {['analytics','users','reports','settings','health'].map(t=>(
           <button key={t} className={`admin-tab ${tab===t?'active':''}`} style={{textTransform:'capitalize'}} onClick={()=>setTab(t)}>{t.replace('-',' ')}</button>
         ))}
       </div>
       {tab==='analytics' && renderAnalytics(stats, maxSessions)}
-      {tab==='users'&&(
-        <>
-          <div className="search-row">
-            <input className="search-input" placeholder="Search by username, email, or nickname…" value={searchQ} onChange={e=>setSearchQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&searchUsers()}/>
-            <button className="search-btn" onClick={searchUsers}>Search</button>
-          </div>
-          {selectedUser&&(
-            <div className="admin-section" style={{marginBottom:'1rem',borderLeft:'3px solid #4f8ef7'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'.5rem'}}>
-                <div>
-                  <h3 style={{margin:0}}>{selectedUser.user?.nickname||selectedUser.user?.username} <span style={{fontWeight:400,color:'#94a3b8',fontSize:'.82rem'}}>{selectedUser.user?.email}</span></h3>
-                  <div style={{display:'flex',gap:.5,flexWrap:'wrap',marginTop:'.4rem'}}>
-                    {selectedUser.user?.is_admin&&<span className="badge-pill admin">Admin</span>}
-                    {selectedUser.user?.is_banned&&<span className="badge-pill banned">Banned</span>}
-                    <span style={{fontSize:'.78rem',color:'#94a3b8'}}>{selectedUser.user?.country?`${getFlag(selectedUser.user.country)} ${countryName(selectedUser.user.country)}`:'—'} · {selectedUser.user?.english_level}</span>
-                  </div>
-                </div>
-                <button onClick={()=>setSelectedUser(null)} style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:.9}}>✕ Close</button>
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'.5rem',margin:'.875rem 0',background:'#f8fafc',borderRadius:8,padding:'.75rem'}}>
-                <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#1d4ed8'}}>{selectedUser.user?.fp_balance??0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>FP</div></div>
-                <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#15803d'}}>{(selectedUser.user?.rp_balance||0).toFixed(1)}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>RP</div></div>
-                <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem'}}>{selectedUser.sessions?.length||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>Sessions</div></div>
-                <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#ef4444'}}>{selectedUser.reports_received||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>Reports</div></div>
-              </div>
-              <p style={{margin:'0 0 .5rem',fontSize:'.82rem',fontWeight:600,color:'#374151'}}>Adjust Balances</p>
-              <div className="inline-form">
-                <input placeholder="FP delta (e.g. +2 or -1)" value={adjustFP} onChange={e=>setAdjustFP(e.target.value)}/>
-                <input placeholder="RP delta (e.g. +1.5)" value={adjustRP} onChange={e=>setAdjustRP(e.target.value)}/>
-                <button onClick={()=>doAdjust(selectedUser.user?.id)}>Apply</button>
-              </div>
-              {!selectedUser.user?.is_banned?(
-                <>
-                  <p style={{margin:'.875rem 0 .4rem',fontSize:'.82rem',fontWeight:600,color:'#374151'}}>Ban User</p>
-                  <div className="inline-form">
-                    <input placeholder="Ban reason (required)" value={banReason} onChange={e=>setBanReason(e.target.value)} style={{flex:2}}/>
-                    <button style={{background:'#ef4444'}} onClick={()=>doBan(selectedUser.user?.id)}>Ban</button>
-                  </div>
-                </>
-              ):(
-                <button className="act-btn unban" style={{marginTop:'.75rem'}} onClick={()=>doUnban(selectedUser.user?.id)}>✓ Unban User</button>
-              )}
-            </div>
-          )}
-          {loading?<p style={{color:'#9ca3af'}}>Searching…</p>:users.length>0&&(
-            <div className="admin-section">
-              <h3>{users.length} results</h3>
-              <div style={{overflowX:'auto'}}>
-                <table className="admin-table">
-                  <thead><tr><th>User</th><th>Level</th><th>FP</th><th>RP</th><th>Country</th><th>Status</th><th></th></tr></thead>
-                  <tbody>
-                    {users.map(u=>(
-                      <tr key={u.id}>
-                        <td><strong>{u.nickname||u.username}</strong><br/><span style={{color:'#94a3b8',fontSize:'.75rem'}}>{u.email}</span></td>
-                        <td style={{textTransform:'capitalize'}}>{u.english_level}</td>
-                        <td style={{color:'#1d4ed8',fontWeight:700}}>{u.fp_balance??0}</td>
-                        <td style={{color:'#15803d',fontWeight:700}}>{(u.rp_balance||0).toFixed(1)}</td>
-                        <td>{u.country?`${getFlag(u.country)} ${countryName(u.country)}`:'—'}</td>
-                        <td>{u.is_banned?<span className="badge-pill banned">Banned</span>:u.is_admin?<span className="badge-pill admin">Admin</span>:'—'}</td>
-                        <td><button className="act-btn adjust" onClick={()=>loadUserDetail(u.id)}>Details</button></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-          {users.length===0&&!loading&&searchQ&&<p style={{color:'#9ca3af',textAlign:'center'}}>No results. Try a different query.</p>}
-        </>
-      )}
+      {tab==='users'&&(<UsersTab user={user} post={post}/>)}
       {tab==='reports'&&(
         <>
           <div style={{display:'flex',gap:'.5rem',marginBottom:'1rem',flexWrap:'wrap'}}>
@@ -1276,9 +1174,6 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
       {tab==='settings'&&(
         <AdminSettingsPanel user={user}/>
       )}
-      {tab==='all-users'&&(
-        <AllUsersTab user={user} post={post}/>
-      )}
       {tab==='health'&&(
         <HealthTab stats={stats} user={user} post={post}/>
       )}
@@ -1286,16 +1181,22 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
   );
 }
 
-function AllUsersTab({user,post}){
+function UsersTab({user,post}){
   const[users,setUsers]=useState([]);
   const[page,setPage]=useState(0);
   const[loading,setLoading]=useState(true);
   const[total,setTotal]=useState(0);
+  const[searchQ,setSearchQ]=useState('');
+  const[searchMode,setSearchMode]=useState(false);
   const[showForm,setShowForm]=useState(false);
   const[editingUser,setEditingUser]=useState(null);
   const[form,setForm]=useState({username:'',email:'',english_level:'beginner',country:'',native_language:''});
   const[formError,setFormError]=useState('');
   const[formSaving,setFormSaving]=useState(false);
+  const[selectedUser,setSelectedUser]=useState(null);
+  const[adjustFP,setAdjustFP]=useState('');
+  const[adjustRP,setAdjustRP]=useState('');
+  const[banReason,setBanReason]=useState('');
   const PAGE=50;
 
   const load=async(p=0)=>{
@@ -1305,7 +1206,16 @@ function AllUsersTab({user,post}){
     setLoading(false);
   };
 
-  useEffect(()=>{load(page);},[page]);
+  useEffect(()=>{if(!searchMode)load(page);},[page,searchMode]);
+
+  const searchUsers=async()=>{
+    if(!searchQ.trim()){clearSearch();return;}
+    setLoading(true);setSearchMode(true);
+    const d=await post('/api/admin/users',{query:searchQ});
+    setUsers(d.users||[]);setTotal(d.users?.length||0);setLoading(false);
+  };
+
+  const clearSearch=()=>{setSearchQ('');setSearchMode(false);setPage(0);};
 
   const exportCSV=async()=>{
     const d=await post('/api/admin/users/export',{});
@@ -1313,7 +1223,7 @@ function AllUsersTab({user,post}){
     const blob=new Blob([d.csv],{type:'text/csv'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
-    a.download=`chatter3_users_${new Date().toISOString().slice(0,10)}.csv`;
+    a.download='chatter3_users_'+new Date().toISOString().slice(0,10)+'.csv';
     a.click();
   };
 
@@ -1324,7 +1234,7 @@ function AllUsersTab({user,post}){
     setFormSaving(true);setFormError('');
     try{
       if(editingUser){
-        const d=await post(`/api/admin/user/${editingUser.id}/update`,{admin_id:user.id,...form});
+        const d=await post('/api/admin/user/'+editingUser.id+'/update',{admin_id:user.id,...form});
         if(d.error){setFormError(d.error);setFormSaving(false);return;}
         if(d.success)setUsers(prev=>prev.map(u=>u.id===editingUser.id?d.user:u));
       }else{
@@ -1333,17 +1243,38 @@ function AllUsersTab({user,post}){
         if(d.success){setUsers(prev=>[d.user,...prev]);setTotal(t=>t+1);}
       }
       setShowForm(false);
-    }catch{setFormError('Request failed');}
+    }catch(e){setFormError('Request failed');}
     setFormSaving(false);
   };
 
   const deleteUser=async(u)=>{
-    if(!confirm(`Delete user "${u.username}"? This cannot be undone.`))return;
+    if(!confirm('Delete user "'+u.username+'"? This cannot be undone.'))return;
     try{
-      const d=await post(`/api/admin/user/${u.id}/delete`,{admin_id:user.id});
+      const d=await post('/api/admin/user/'+u.id+'/delete',{admin_id:user.id});
       if(d.error){alert(d.error);return;}
       if(d.success){setUsers(prev=>prev.filter(x=>x.id!==u.id));setTotal(t=>t-1);}
     }catch(e){alert('Failed to delete user: '+e.message);}
+  };
+
+  const loadUserDetail=async(uid)=>{
+      const d=await post('/api/admin/user/'+uid,{});
+    setSelectedUser(d);
+  };
+
+  const doAdjust=async(uid)=>{
+    await post('/api/admin/user/'+uid+'/adjust',{fp_delta:parseFloat(adjustFP)||0,rp_delta:parseFloat(adjustRP)||0});
+    alert('Balances updated.');loadUserDetail(uid);setAdjustFP('');setAdjustRP('');
+  };
+
+  const doBan=async(uid)=>{
+    if(!banReason.trim()){alert('Enter a reason.');return;}
+    await post('/api/admin/user/'+uid+'/ban',{reason:banReason});
+    alert('User banned.');setBanReason('');loadUserDetail(uid);
+  };
+
+  const doUnban=async(uid)=>{
+    await post('/api/admin/user/'+uid+'/unban',{});
+    alert('User unbanned.');loadUserDetail(uid);
   };
 
   const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
@@ -1351,12 +1282,58 @@ function AllUsersTab({user,post}){
   return(
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:'.5rem'}}>
-        <p style={{margin:0,fontSize:'.88rem',color:'#64748b'}}>{total} total users · page {page+1} of {Math.ceil(total/PAGE)||1}</p>
+        <p style={{margin:0,fontSize:'.88rem',color:'#64748b'}}>
+          {searchMode?users.length+' search results':total+' total users · page '+(page+1)+' of '+Math.ceil(total/PAGE||1)}
+        </p>
         <div style={{display:'flex',gap:'.5rem'}}>
           <button className="save-settings-btn" style={{margin:0,background:'#22c55e'}} onClick={openAdd}>+ Add User</button>
           <button className="save-settings-btn" style={{margin:0}} onClick={exportCSV}>⬇ Export CSV</button>
         </div>
       </div>
+
+      <div className="search-row">
+        <input className="search-input" placeholder="Search by username, email, or nickname…" value={searchQ} onChange={e=>setSearchQ(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')searchUsers();if(e.key==='Escape')clearSearch();}}/>
+        {searchMode?<button className="search-btn" onClick={clearSearch} style={{background:'#64748b'}}>Clear</button>:<button className="search-btn" onClick={searchUsers}>Search</button>}
+      </div>
+
+      {selectedUser&&(
+        <div className="admin-section" style={{marginBottom:'1rem',borderLeft:'3px solid #4f8ef7'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'.5rem'}}>
+            <div>
+              <h3 style={{margin:0}}>{selectedUser.user?.nickname||selectedUser.user?.username} <span style={{fontWeight:400,color:'#94a3b8',fontSize:'.82rem'}}>{selectedUser.user?.email}</span></h3>
+              <div style={{display:'flex',gap:.5,flexWrap:'wrap',marginTop:'.4rem'}}>
+                {selectedUser.user?.is_admin&&<span className="badge-pill admin">Admin</span>}
+                {selectedUser.user?.is_banned&&<span className="badge-pill banned">Banned</span>}
+                <span style={{fontSize:'.78rem',color:'#94a3b8'}}>{selectedUser.user?.country?getFlag(selectedUser.user.country)+' '+countryName(selectedUser.user.country):'—'} · {selectedUser.user?.english_level}</span>
+              </div>
+            </div>
+            <button onClick={()=>setSelectedUser(null)} style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:.9}}>✕ Close</button>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'.5rem',margin:'.875rem 0',background:'#f8fafc',borderRadius:8,padding:'.75rem'}}>
+            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#1d4ed8'}}>{selectedUser.user?.fp_balance??0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>FP</div></div>
+            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#15803d'}}>{(selectedUser.user?.rp_balance||0).toFixed(1)}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>RP</div></div>
+            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem'}}>{selectedUser.sessions?.length||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>Sessions</div></div>
+            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#ef4444'}}>{selectedUser.reports_received||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>Reports</div></div>
+          </div>
+          <p style={{margin:'0 0 .5rem',fontSize:'.82rem',fontWeight:600,color:'#374151'}}>Adjust Balances</p>
+          <div className="inline-form">
+            <input placeholder="FP delta (e.g. +2 or -1)" value={adjustFP} onChange={e=>setAdjustFP(e.target.value)}/>
+            <input placeholder="RP delta (e.g. +1.5)" value={adjustRP} onChange={e=>setAdjustRP(e.target.value)}/>
+            <button onClick={()=>doAdjust(selectedUser.user?.id)}>Apply</button>
+          </div>
+          {!selectedUser.user?.is_banned?(
+            <>
+              <p style={{margin:'.875rem 0 .4rem',fontSize:'.82rem',fontWeight:600,color:'#374151'}}>Ban User</p>
+              <div className="inline-form">
+                <input placeholder="Ban reason (required)" value={banReason} onChange={e=>setBanReason(e.target.value)} style={{flex:2}}/>
+                <button style={{background:'#ef4444'}} onClick={()=>doBan(selectedUser.user?.id)}>Ban</button>
+              </div>
+            </>
+          ):(
+            <button className="act-btn unban" style={{marginTop:'.75rem'}} onClick={()=>doUnban(selectedUser.user?.id)}>✓ Unban User</button>
+          )}
+        </div>
+      )}
 
       {showForm&&(
         <div style={{background:'white',border:'1px solid #e2e8f0',borderRadius:12,padding:20,marginBottom:'1rem',boxShadow:'0 2px 8px rgba(0,0,0,.06)'}}>
@@ -1366,13 +1343,12 @@ function AllUsersTab({user,post}){
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Username *</label><input value={form.username} onChange={upd('username')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Display Name</label><input value={form.nickname||''} onChange={upd('nickname')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Email *</label><input value={form.email} onChange={upd('email')} type="email" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
-            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Username</label><input value={form.username} onChange={upd('username')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>English Level</label>
               <select value={form.english_level} onChange={upd('english_level')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}>
                 <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
               </select>
             </div>
-            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Country</label><input value={form.country} onChange={upd('country')} placeholder="e.g. JP" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Country</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))}/></div>
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Native Language</label><input value={form.native_language} onChange={upd('native_language')} placeholder="e.g. Japanese" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
           </div>
           <div style={{display:'flex',gap:'.5rem',marginTop:12}}>
@@ -1382,7 +1358,9 @@ function AllUsersTab({user,post}){
         </div>
       )}
 
-      {loading?<p style={{color:'#9ca3af'}}>Loading…</p>:(
+      {loading?<p style={{color:'#9ca3af'}}>{searchMode?'Searching…':'Loading…'}</p>:users.length===0?(
+        <p style={{color:'#9ca3af',textAlign:'center'}}>{searchMode?'No results. Try a different query.':'No users found.'}</p>
+      ):(
         <div className="admin-section">
           <div style={{overflowX:'auto'}}>
             <table className="admin-table">
@@ -1390,11 +1368,11 @@ function AllUsersTab({user,post}){
               <tbody>
                 {users.map((u,i)=>(
                   <tr key={u.id}>
-                    <td style={{color:'#94a3b8',fontSize:'.72rem'}}>{page*PAGE+i+1}</td>
+                    <td style={{color:'#94a3b8',fontSize:'.72rem'}}>{searchMode?i+1:page*PAGE+i+1}</td>
                     <td><strong>{u.username}</strong></td>
                     <td>{u.nickname||'—'}</td>
                     <td style={{fontSize:'.78rem',color:'#64748b'}}>{u.email}</td>
-                    <td>{u.country?`${getFlag(u.country)} ${countryName(u.country)}`:'—'}</td>
+                    <td>{u.country?getFlag(u.country)+' '+countryName(u.country):'—'}</td>
                     <td>{u.native_language||'—'}</td>
                     <td style={{textTransform:'capitalize'}}>{u.english_level}</td>
                     <td style={{color:'#1d4ed8',fontWeight:700}}>{u.fp_balance??0}</td>
@@ -1402,7 +1380,7 @@ function AllUsersTab({user,post}){
                     <td>
                       <button
                         onClick={async()=>{
-                          const d=await post(`/api/admin/user/${u.id}/founding-member`,{});
+                          const d=await post('/api/admin/user/'+u.id+'/founding-member',{});
                           if(d.success!==false)setUsers(prev=>prev.map(x=>x.id===u.id?{...x,founding_member_override:d.founding_member_override}:x));
                         }}
                         style={{background:u.founding_member_override?'linear-gradient(135deg,#f59e0b,#f97316)':'#334155',color:'white',border:'none',borderRadius:10,padding:'3px 10px',fontSize:'.72rem',fontWeight:700,cursor:'pointer'}}
@@ -1411,11 +1389,12 @@ function AllUsersTab({user,post}){
                         {u.founding_member_override?'🏆 FM':'—'}
                       </button>
                     </td>
-                    <td>{u.is_new_member?<span style={{padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.68rem',fontWeight:700}}>🆕 NEW</span>:'—'}</td>
+                    <td>{u.is_new_member?<span style={{padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.68rem',fontWeight:700}}>NEW</span>:'—'}</td>
                     <td>{u.is_banned?<span className="badge-pill banned">Banned</span>:u.is_admin?<span className="badge-pill admin">Admin</span>:'—'}</td>
                     <td style={{fontSize:'.75rem',color:'#94a3b8'}}>{u.created_at?.slice(0,10)}</td>
                     <td>
                       <div style={{display:'flex',gap:4}}>
+                        <button className="act-btn adjust" onClick={()=>loadUserDetail(u.id)} style={{fontSize:'.7rem'}}>Details</button>
                         <button onClick={()=>openEdit(u)} style={{background:'#4f8ef7',color:'white',border:'none',borderRadius:6,padding:'3px 8px',fontSize:'.7rem',cursor:'pointer'}} title="Edit">✏️</button>
                         {!u.is_admin&&<button onClick={()=>deleteUser(u)} style={{background:'#ef4444',color:'white',border:'none',borderRadius:6,padding:'3px 8px',fontSize:'.7rem',cursor:'pointer'}} title="Delete">🗑️</button>}
                       </div>
@@ -1425,11 +1404,13 @@ function AllUsersTab({user,post}){
               </tbody>
             </table>
           </div>
-          <div style={{display:'flex',gap:'.5rem',marginTop:'.875rem',justifyContent:'center'}}>
-            <button className="act-btn" disabled={page===0} onClick={()=>setPage(p=>p-1)}>← Prev</button>
-            <span style={{padding:'4px 12px',fontSize:'.83rem',color:'#64748b'}}>{page*PAGE+1}–{Math.min((page+1)*PAGE,total)} of {total}</span>
-            <button className="act-btn" disabled={(page+1)*PAGE>=total} onClick={()=>setPage(p=>p+1)}>Next →</button>
-          </div>
+          {!searchMode&&(
+            <div style={{display:'flex',gap:'.5rem',marginTop:'.875rem',justifyContent:'center'}}>
+              <button className="act-btn" disabled={page===0} onClick={()=>setPage(p=>p-1)}>← Prev</button>
+              <span style={{padding:'4px 12px',fontSize:'.83rem',color:'#64748b'}}>{page*PAGE+1}–{Math.min((page+1)*PAGE,total)+' of '+total}</span>
+              <button className="act-btn" disabled={(page+1)*PAGE>=total} onClick={()=>setPage(p=>p+1)}>Next →</button>
+            </div>
+          )}
         </div>
       )}
     </div>
