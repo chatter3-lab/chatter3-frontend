@@ -697,13 +697,6 @@ function FriendsModal({user,onClose}){
 
 // ── Admin Dashboard ─────────────────────────────────────────────
 // ── Admin Settings Panel ────────────────────────────────────────
-function isPromoActiveUI(start,end){
-  const now=Date.now();
-  if(start&&new Date(start).getTime()>now)return false;
-  if(end&&new Date(end).getTime()<now)return false;
-  return true;
-}
-
 function AdminSettingsPanel({user}){
   const[settings,setSettings]=useState({matching_by_level:'true',matching_diff_country:'true',matching_diff_language:'true',custom_call_duration:'0',promo_fp_free_days:'0',promo_initial_rp:'0',promo_badge_days:'0'});
   const[loading,setLoading]=useState(true);
@@ -713,12 +706,6 @@ function AdminSettingsPanel({user}){
   const[promoFpFree,setPromoFpFree]=useState('0');
   const[promoInitRp,setPromoInitRp]=useState('0');
   const[promoBadge,setPromoBadge]=useState('0');
-  const[promoFpStart,setPromoFpStart]=useState('');
-  const[promoFpEnd,setPromoFpEnd]=useState('');
-  const[promoRpStart,setPromoRpStart]=useState('');
-  const[promoRpEnd,setPromoRpEnd]=useState('');
-  const[promoBadgeStart,setPromoBadgeStart]=useState('');
-  const[promoBadgeEnd,setPromoBadgeEnd]=useState('');
   const[newMemberDays,setNewMemberDays]=useState('30');
   const[mvpMode,setMvpMode]=useState(false);
 
@@ -733,12 +720,6 @@ function AdminSettingsPanel({user}){
         setPromoFpFree(m.promo_fp_free_days||'0');
         setPromoInitRp(m.promo_initial_rp||'0');
         setPromoBadge(m.promo_badge_days||'0');
-        setPromoFpStart(m.promo_fp_start||'');
-        setPromoFpEnd(m.promo_fp_end||'');
-        setPromoRpStart(m.promo_rp_start||'');
-        setPromoRpEnd(m.promo_rp_end||'');
-        setPromoBadgeStart(m.promo_badge_start||'');
-        setPromoBadgeEnd(m.promo_badge_end||'');
         setNewMemberDays(m.new_member_days||'30');
         setMvpMode(m.mvp_mode==='true');
       }
@@ -758,12 +739,6 @@ function AdminSettingsPanel({user}){
       post('/api/admin/settings/update',{key:'promo_fp_free_days',value:promoFpFree}),
       post('/api/admin/settings/update',{key:'promo_initial_rp',value:promoInitRp}),
       post('/api/admin/settings/update',{key:'promo_badge_days',value:promoBadge}),
-      post('/api/admin/settings/update',{key:'promo_fp_start',value:promoFpStart}),
-      post('/api/admin/settings/update',{key:'promo_fp_end',value:promoFpEnd}),
-      post('/api/admin/settings/update',{key:'promo_rp_start',value:promoRpStart}),
-      post('/api/admin/settings/update',{key:'promo_rp_end',value:promoRpEnd}),
-      post('/api/admin/settings/update',{key:'promo_badge_start',value:promoBadgeStart}),
-      post('/api/admin/settings/update',{key:'promo_badge_end',value:promoBadgeEnd}),
       post('/api/admin/settings/update',{key:'new_member_days',value:newMemberDays}),
       post('/api/admin/settings/update',{key:'mvp_mode',value:mvpMode?'true':'false'}),
     ]);
@@ -820,14 +795,7 @@ function AdminSettingsPanel({user}){
         <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
           <input type="number" className="duration-input" min="0" max="365" value={promoFpFree} onChange={e=>setPromoFpFree(e.target.value)}/>
           <span style={{fontSize:'.8rem',color:'#6b7280'}}>days (0 = off)</span>
-        </div>
-        <div style={{display:'flex',gap:'.5rem',alignItems:'center',marginTop:4}}>
-          <label style={{fontSize:'.78rem',color:'#6b7280'}}>Campaign:</label>
-          <input type="date" value={promoFpStart} onChange={e=>setPromoFpStart(e.target.value)} style={{padding:'4px 8px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.78rem'}}/>
-          <span style={{fontSize:'.78rem',color:'#6b7280'}}>to</span>
-          <input type="date" value={promoFpEnd} onChange={e=>setPromoFpEnd(e.target.value)} style={{padding:'4px 8px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.78rem'}}/>
-          {!promoFpStart&&!promoFpEnd&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>Active (no dates = always on)</span>}
-          {promoFpStart||promoFpEnd?<span style={{fontSize:'.7rem',fontWeight:600,color:isPromoActiveUI(promoFpStart,promoFpEnd)?'#22c55e':'#ef4444'}}>{isPromoActiveUI(promoFpStart,promoFpEnd)?'● Active':'● Inactive'}</span>:null}
+          {parseInt(promoFpFree)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● Active</span>}
         </div>
       </div>
       <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
@@ -838,14 +806,7 @@ function AdminSettingsPanel({user}){
         <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
           <input type="number" className="duration-input" min="0" max="100" value={promoInitRp} onChange={e=>setPromoInitRp(e.target.value)}/>
           <span style={{fontSize:'.8rem',color:'#6b7280'}}>RP (0 = off)</span>
-        </div>
-        <div style={{display:'flex',gap:'.5rem',alignItems:'center',marginTop:4}}>
-          <label style={{fontSize:'.78rem',color:'#6b7280'}}>Campaign:</label>
-          <input type="date" value={promoRpStart} onChange={e=>setPromoRpStart(e.target.value)} style={{padding:'4px 8px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.78rem'}}/>
-          <span style={{fontSize:'.78rem',color:'#6b7280'}}>to</span>
-          <input type="date" value={promoRpEnd} onChange={e=>setPromoRpEnd(e.target.value)} style={{padding:'4px 8px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.78rem'}}/>
-          {!promoRpStart&&!promoRpEnd&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>Active (no dates = always on)</span>}
-          {promoRpStart||promoRpEnd?<span style={{fontSize:'.7rem',fontWeight:600,color:isPromoActiveUI(promoRpStart,promoRpEnd)?'#22c55e':'#ef4444'}}>{isPromoActiveUI(promoRpStart,promoRpEnd)?'● Active':'● Inactive'}</span>:null}
+          {parseInt(promoInitRp)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● Active</span>}
         </div>
       </div>
       <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
@@ -856,14 +817,7 @@ function AdminSettingsPanel({user}){
         <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
           <input type="number" className="duration-input" min="0" max="365" value={promoBadge} onChange={e=>setPromoBadge(e.target.value)}/>
           <span style={{fontSize:'.8rem',color:'#6b7280'}}>days (0 = off)</span>
-        </div>
-        <div style={{display:'flex',gap:'.5rem',alignItems:'center',marginTop:4}}>
-          <label style={{fontSize:'.78rem',color:'#6b7280'}}>Campaign:</label>
-          <input type="date" value={promoBadgeStart} onChange={e=>setPromoBadgeStart(e.target.value)} style={{padding:'4px 8px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.78rem'}}/>
-          <span style={{fontSize:'.78rem',color:'#6b7280'}}>to</span>
-          <input type="date" value={promoBadgeEnd} onChange={e=>setPromoBadgeEnd(e.target.value)} style={{padding:'4px 8px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.78rem'}}/>
-          {!promoBadgeStart&&!promoBadgeEnd&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>Active (no dates = always on)</span>}
-          {promoBadgeStart||promoBadgeEnd?<span style={{fontSize:'.7rem',fontWeight:600,color:isPromoActiveUI(promoBadgeStart,promoBadgeEnd)?'#22c55e':'#ef4444'}}>{isPromoActiveUI(promoBadgeStart,promoBadgeEnd)?'● Active':'● Inactive'}</span>:null}
+          {parseInt(promoBadge)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● Active</span>}
         </div>
       </div>
       <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
@@ -874,6 +828,7 @@ function AdminSettingsPanel({user}){
         <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
           <input type="number" className="duration-input" min="0" max="365" value={newMemberDays} onChange={e=>setNewMemberDays(e.target.value)}/>
           <span style={{fontSize:'.8rem',color:'#6b7280'}}>days (0 = off, default 30)</span>
+          {parseInt(newMemberDays)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● Active</span>}
         </div>
       </div>
       <div className="setting-row">
