@@ -1302,8 +1302,8 @@ function UsersTab({user,post}){
             <div>
               <h3 style={{margin:0}}>{selectedUser.user?.nickname||selectedUser.user?.username} <span style={{fontWeight:400,color:'#94a3b8',fontSize:'.82rem'}}>{selectedUser.user?.email}</span></h3>
               <div style={{display:'flex',gap:.5,flexWrap:'wrap',marginTop:'.4rem'}}>
-                {selectedUser.user?.is_admin&&<span className="badge-pill admin">Admin</span>}
-                {selectedUser.user?.is_banned&&<span className="badge-pill banned">Banned</span>}
+                {selectedUser.user?.is_admin?<span className="badge-pill admin">Admin</span>:null}
+                {selectedUser.user?.is_banned?<span className="badge-pill banned">Banned</span>:null}
                 <span style={{fontSize:'.78rem',color:'#94a3b8'}}>{selectedUser.user?.country?getFlag(selectedUser.user.country)+' '+countryName(selectedUser.user.country):'—'} · {selectedUser.user?.english_level}</span>
               </div>
             </div>
