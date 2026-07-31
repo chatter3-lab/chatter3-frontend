@@ -614,7 +614,7 @@ function FriendsModal({user,onClose}){
         {f.avatar_url?<img src={f.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt=""/>:(f.nickname||f.username||'?').charAt(0).toUpperCase()}
       </div>
       <div className="friend-info">
-        <div className="friend-name">{f.nickname||f.username}{f.founding_member&&<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>🏆 FM</span>}</div>
+        <div className="friend-name">{f.nickname||f.username}{f.founding_member&&<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>🏆 FM</span>}{f.is_new_member&&<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>🆕 NEW</span>}</div>
         <div className="friend-sub">{f.country?`${getFlag(f.country)} ${countryName(f.country)}`:''}{f.english_level?` · ${f.english_level}`:''}</div>
       </div>
       {actions}
@@ -719,6 +719,8 @@ function AdminSettingsPanel({user}){
   const[promoRpEnd,setPromoRpEnd]=useState('');
   const[promoBadgeStart,setPromoBadgeStart]=useState('');
   const[promoBadgeEnd,setPromoBadgeEnd]=useState('');
+  const[newMemberDays,setNewMemberDays]=useState('30');
+  const[mvpMode,setMvpMode]=useState(false);
 
   const post=(p,b)=>fetch(`${API_URL}${p}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_id:user.id,...b})}).then(r=>r.json());
 
@@ -737,6 +739,8 @@ function AdminSettingsPanel({user}){
         setPromoRpEnd(m.promo_rp_end||'');
         setPromoBadgeStart(m.promo_badge_start||'');
         setPromoBadgeEnd(m.promo_badge_end||'');
+        setNewMemberDays(m.new_member_days||'30');
+        setMvpMode(m.mvp_mode==='true');
       }
       setLoading(false);
     });
@@ -760,6 +764,8 @@ function AdminSettingsPanel({user}){
       post('/api/admin/settings/update',{key:'promo_rp_end',value:promoRpEnd}),
       post('/api/admin/settings/update',{key:'promo_badge_start',value:promoBadgeStart}),
       post('/api/admin/settings/update',{key:'promo_badge_end',value:promoBadgeEnd}),
+      post('/api/admin/settings/update',{key:'new_member_days',value:newMemberDays}),
+      post('/api/admin/settings/update',{key:'mvp_mode',value:mvpMode?'true':'false'}),
     ]);
     setSettings(prev=>({...prev,custom_call_duration:customDur,promo_fp_free_days:promoFpFree,promo_initial_rp:promoInitRp,promo_badge_days:promoBadge}));
     setSaving(false);setSaved(true);setTimeout(()=>setSaved(false),3000);
@@ -859,6 +865,26 @@ function AdminSettingsPanel({user}){
           {!promoBadgeStart&&!promoBadgeEnd&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>Active (no dates = always on)</span>}
           {promoBadgeStart||promoBadgeEnd?<span style={{fontSize:'.7rem',fontWeight:600,color:isPromoActiveUI(promoBadgeStart,promoBadgeEnd)?'#22c55e':'#ef4444'}}>{isPromoActiveUI(promoBadgeStart,promoBadgeEnd)?'● Active':'● Inactive'}</span>:null}
         </div>
+      </div>
+      <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
+        <div className="setting-info">
+          <div className="setting-name">New Member Badge (days)</div>
+          <div className="setting-desc">Show a "🆕 New Member" badge for this many days after registration. Set 0 to disable.</div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
+          <input type="number" className="duration-input" min="0" max="365" value={newMemberDays} onChange={e=>setNewMemberDays(e.target.value)}/>
+          <span style={{fontSize:'.8rem',color:'#6b7280'}}>days (0 = off, default 30)</span>
+        </div>
+      </div>
+      <div className="setting-row">
+        <div className="setting-info">
+          <div className="setting-name">MVP Stage Mode</div>
+          <div className="setting-desc">When ON, all calls are fixed at 5 minutes regardless of user level. Keeps the experience simple during MVP.</div>
+        </div>
+        <label className="toggle">
+          <input type="checkbox" checked={mvpMode} onChange={()=>setMvpMode(v=>!v)}/>
+          <span className="toggle-slider"/>
+        </label>
       </div>
       <button className="save-settings-btn" onClick={saveAll} disabled={saving}>{saving?'Saving…':saved?'✓ Saved!':'Save Settings'}</button>
     </div>
@@ -1771,7 +1797,7 @@ export default function App(){
               <div><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="header-logo-img"/></div>
               {user&&(
                 <div className="user-info">
-                  <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member&&<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🏆 Founding Member</span>}</span>
+                   <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member&&<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🏆 Founding Member</span>}{user.is_new_member&&<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🆕 New Member</span>}</span>
                   <div className="header-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 Friends</button>
                   {user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ Admin</button>}
@@ -2062,7 +2088,7 @@ function PreCallView({session,onStart,onCancel}){
             {partner.avatar_url?<img src={partner.avatar_url} alt={name}/>:<span style={{fontFamily:'Sora,sans-serif',fontSize:'2.2rem',fontWeight:800,color:'white'}}>{name.charAt(0).toUpperCase()}</span>}
           </div>
         </div>
-        <h2 className="precall-name">{name}{partner.founding_member&&<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>🏆 Founding Member</span>}</h2>
+        <h2 className="precall-name">{name}{partner.founding_member&&<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>🏆 Founding Member</span>}{partner.is_new_member&&<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#22c55e',letterSpacing:'.03em'}}>🆕 New Member</span>}</h2>
         <div className="precall-chips">
           {partner.country&&<span className="chip country">{getFlag(partner.country)} {partner.country}</span>}
           {partner.native_language&&<span className="chip lang">🗣️ {partner.native_language}</span>}
@@ -2395,7 +2421,7 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
   const save=async()=>{const r=await fetch(`${API_URL}/api/user/update`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:user.id,...form})});const d=await r.json();if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));onUpdate(u);alert('Profile Saved!');}};
   return(
     <div className="dashboard-container">
-      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,color:'#1a1a2e',margin:0}}>Edit Profile</h2>{user.founding_member&&<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🏆 Founding Member</span>}</div>
+      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,color:'#1a1a2e',margin:0}}>Edit Profile</h2>{user.founding_member&&<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🏆 Founding Member</span>}{user.is_new_member&&<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🆕 New Member</span>}</div>
       <div className="profile-section">
         <div className="profile-avatar">
           {form.avatar_url?<img src={form.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt="Profile"/>:(form.username||user.username).charAt(0).toUpperCase()}
