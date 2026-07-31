@@ -6,7 +6,7 @@ const WS_URL = 'wss://api.chatter3.com';
 const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com";
 const RP_TO_FP = 3; // 3 RP → 1 FP
 const MATCH_TIMEOUT = 60;
-const TURNSTILE_SITEKEY = "0x4AAAAAAA_qBz1nX3e8Yv_q"; // Replace with real sitekey from Cloudflare dashboard
+const TURNSTILE_SITEKEY = "0x4AAAAAAEDFDp7g8QNRwN79";
 
 // ── Turnstile Widget ────────────────────────────────────────
 function TurnstileWidget({onVerify,onExpire}){
