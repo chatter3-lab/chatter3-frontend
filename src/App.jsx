@@ -1320,9 +1320,11 @@ function AllUsersTab({user,post}){
 
   const deleteUser=async(u)=>{
     if(!confirm(`Delete user "${u.username}"? This cannot be undone.`))return;
-    const d=await post(`/api/admin/user/${u.id}/delete`,{admin_id:user.id});
-    if(d.error){alert(d.error);return;}
-    if(d.success){setUsers(prev=>prev.filter(x=>x.id!==u.id));setTotal(t=>t-1);}
+    try{
+      const d=await post(`/api/admin/user/${u.id}/delete`,{admin_id:user.id});
+      if(d.error){alert(d.error);return;}
+      if(d.success){setUsers(prev=>prev.filter(x=>x.id!==u.id));setTotal(t=>t-1);}
+    }catch(e){alert('Failed to delete user: '+e.message);}
   };
 
   const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
