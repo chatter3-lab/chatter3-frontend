@@ -6,6 +6,25 @@ const WS_URL = 'wss://api.chatter3.com';
 const GOOGLE_CLIENT_ID = "935611169333-7rdmfeic279un9jdl03vior15463aaba.apps.googleusercontent.com";
 const RP_TO_FP = 3; // 3 RP → 1 FP
 const MATCH_TIMEOUT = 60;
+const TURNSTILE_SITEKEY = "0x4AAAAAAA_qBz1nX3e8Yv_q"; // Replace with real sitekey from Cloudflare dashboard
+
+// ── Turnstile Widget ────────────────────────────────────────
+function TurnstileWidget({onVerify,onExpire}){
+  const ref=useRef(null);
+  const widgetId=useRef(null);
+  useEffect(()=>{
+    if(!ref.current||!window.turnstile)return;
+    widgetId.current=window.turnstile.render(ref.current,{
+      sitekey:TURNSTILE_SITEKEY,
+      callback:onVerify,
+      'expired-callback':onExpire,
+      theme:'light',
+      size:'normal'
+    });
+    return()=>{if(widgetId.current&&window.turnstile)window.turnstile.remove(widgetId.current);};
+  },[]);
+  return <div ref={ref} style={{margin:'12px 0'}}/>;
+}
 
 // ── ISO 3166-1 Countries ─────────────────────────────────────
 const COUNTRIES=[{code:'AF',name:'Afghanistan'},{code:'AL',name:'Albania'},{code:'DZ',name:'Algeria'},{code:'AD',name:'Andorra'},{code:'AO',name:'Angola'},{code:'AG',name:'Antigua and Barbuda'},{code:'AR',name:'Argentina'},{code:'AM',name:'Armenia'},{code:'AU',name:'Australia'},{code:'AT',name:'Austria'},{code:'AZ',name:'Azerbaijan'},{code:'BS',name:'Bahamas'},{code:'BH',name:'Bahrain'},{code:'BD',name:'Bangladesh'},{code:'BB',name:'Barbados'},{code:'BY',name:'Belarus'},{code:'BE',name:'Belgium'},{code:'BZ',name:'Belize'},{code:'BJ',name:'Benin'},{code:'BT',name:'Bhutan'},{code:'BO',name:'Bolivia'},{code:'BA',name:'Bosnia and Herzegovina'},{code:'BW',name:'Botswana'},{code:'BR',name:'Brazil'},{code:'BN',name:'Brunei'},{code:'BG',name:'Bulgaria'},{code:'BF',name:'Burkina Faso'},{code:'BI',name:'Burundi'},{code:'CV',name:'Cabo Verde'},{code:'KH',name:'Cambodia'},{code:'CM',name:'Cameroon'},{code:'CA',name:'Canada'},{code:'CF',name:'Central African Republic'},{code:'TD',name:'Chad'},{code:'CL',name:'Chile'},{code:'CN',name:'China'},{code:'CO',name:'Colombia'},{code:'KM',name:'Comoros'},{code:'CG',name:'Congo'},{code:'CD',name:'Congo (DRC)'},{code:'CR',name:'Costa Rica'},{code:'HR',name:'Croatia'},{code:'CU',name:'Cuba'},{code:'CY',name:'Cyprus'},{code:'CZ',name:'Czech Republic'},{code:'DK',name:'Denmark'},{code:'DJ',name:'Djibouti'},{code:'DM',name:'Dominica'},{code:'DO',name:'Dominican Republic'},{code:'EC',name:'Ecuador'},{code:'EG',name:'Egypt'},{code:'SV',name:'El Salvador'},{code:'GQ',name:'Equatorial Guinea'},{code:'ER',name:'Eritrea'},{code:'EE',name:'Estonia'},{code:'SZ',name:'Eswatini'},{code:'ET',name:'Ethiopia'},{code:'FJ',name:'Fiji'},{code:'FI',name:'Finland'},{code:'FR',name:'France'},{code:'GA',name:'Gabon'},{code:'GM',name:'Gambia'},{code:'GE',name:'Georgia'},{code:'DE',name:'Germany'},{code:'GH',name:'Ghana'},{code:'GR',name:'Greece'},{code:'GD',name:'Grenada'},{code:'GT',name:'Guatemala'},{code:'GN',name:'Guinea'},{code:'GW',name:'Guinea-Bissau'},{code:'GY',name:'Guyana'},{code:'HT',name:'Haiti'},{code:'HN',name:'Honduras'},{code:'HK',name:'Hong Kong'},{code:'HU',name:'Hungary'},{code:'IS',name:'Iceland'},{code:'IN',name:'India'},{code:'ID',name:'Indonesia'},{code:'IR',name:'Iran'},{code:'IQ',name:'Iraq'},{code:'IE',name:'Ireland'},{code:'IL',name:'Israel'},{code:'IT',name:'Italy'},{code:'JM',name:'Jamaica'},{code:'JP',name:'Japan'},{code:'JO',name:'Jordan'},{code:'KZ',name:'Kazakhstan'},{code:'KE',name:'Kenya'},{code:'KI',name:'Kiribati'},{code:'KW',name:'Kuwait'},{code:'KG',name:'Kyrgyzstan'},{code:'LA',name:'Laos'},{code:'LV',name:'Latvia'},{code:'LB',name:'Lebanon'},{code:'LS',name:'Lesotho'},{code:'LR',name:'Liberia'},{code:'LY',name:'Libya'},{code:'LI',name:'Liechtenstein'},{code:'LT',name:'Lithuania'},{code:'LU',name:'Luxembourg'},{code:'MG',name:'Madagascar'},{code:'MW',name:'Malawi'},{code:'MY',name:'Malaysia'},{code:'MV',name:'Maldives'},{code:'ML',name:'Mali'},{code:'MT',name:'Malta'},{code:'MH',name:'Marshall Islands'},{code:'MR',name:'Mauritania'},{code:'MU',name:'Mauritius'},{code:'MX',name:'Mexico'},{code:'FM',name:'Micronesia'},{code:'MD',name:'Moldova'},{code:'MC',name:'Monaco'},{code:'MN',name:'Mongolia'},{code:'ME',name:'Montenegro'},{code:'MA',name:'Morocco'},{code:'MZ',name:'Mozambique'},{code:'MM',name:'Myanmar'},{code:'NA',name:'Namibia'},{code:'NR',name:'Nauru'},{code:'NP',name:'Nepal'},{code:'NL',name:'Netherlands'},{code:'NZ',name:'New Zealand'},{code:'NI',name:'Nicaragua'},{code:'NE',name:'Niger'},{code:'NG',name:'Nigeria'},{code:'NO',name:'Norway'},{code:'OM',name:'Oman'},{code:'PK',name:'Pakistan'},{code:'PW',name:'Palau'},{code:'PA',name:'Panama'},{code:'PG',name:'Papua New Guinea'},{code:'PY',name:'Paraguay'},{code:'PE',name:'Peru'},{code:'PH',name:'Philippines'},{code:'PL',name:'Poland'},{code:'PT',name:'Portugal'},{code:'PR',name:'Puerto Rico'},{code:'QA',name:'Qatar'},{code:'RO',name:'Romania'},{code:'RU',name:'Russia'},{code:'RW',name:'Rwanda'},{code:'KN',name:'Saint Kitts and Nevis'},{code:'LC',name:'Saint Lucia'},{code:'VC',name:'Saint Vincent and the Grenadines'},{code:'WS',name:'Samoa'},{code:'SM',name:'San Marino'},{code:'SA',name:'Saudi Arabia'},{code:'SN',name:'Senegal'},{code:'RS',name:'Serbia'},{code:'SC',name:'Seychelles'},{code:'SL',name:'Sierra Leone'},{code:'SG',name:'Singapore'},{code:'SK',name:'Slovakia'},{code:'SI',name:'Slovenia'},{code:'SB',name:'Solomon Islands'},{code:'SO',name:'Somalia'},{code:'ZA',name:'South Africa'},{code:'KR',name:'South Korea'},{code:'SS',name:'South Sudan'},{code:'ES',name:'Spain'},{code:'LK',name:'Sri Lanka'},{code:'SD',name:'Sudan'},{code:'SR',name:'Suriname'},{code:'SE',name:'Sweden'},{code:'CH',name:'Switzerland'},{code:'SY',name:'Syria'},{code:'TW',name:'Taiwan'},{code:'TJ',name:'Tajikistan'},{code:'TZ',name:'Tanzania'},{code:'TH',name:'Thailand'},{code:'TL',name:'Timor-Leste'},{code:'TG',name:'Togo'},{code:'TO',name:'Tonga'},{code:'TT',name:'Trinidad and Tobago'},{code:'TN',name:'Tunisia'},{code:'TR',name:'Turkey'},{code:'TM',name:'Turkmenistan'},{code:'UG',name:'Uganda'},{code:'UA',name:'Ukraine'},{code:'AE',name:'United Arab Emirates'},{code:'GB',name:'United Kingdom'},{code:'US',name:'United States'},{code:'UY',name:'Uruguay'},{code:'UZ',name:'Uzbekistan'},{code:'VU',name:'Vanuatu'},{code:'VE',name:'Venezuela'},{code:'VN',name:'Vietnam'},{code:'YE',name:'Yemen'},{code:'ZM',name:'Zambia'},{code:'ZW',name:'Zimbabwe'}];
@@ -1774,14 +1793,17 @@ function AuthView({onLogin}){
   const[terms,setTerms]=useState(false);
   const[form,setForm]=useState({email:'',password:'',username:'',english_level:'beginner',country:'',native_language:''});
   const[err,setErr]=useState('');
+  const[turnstileToken,setTurnstileToken]=useState('');
   const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
 
   const submit=async(e)=>{
     e.preventDefault();
     if(reg&&!terms){setErr('Please accept the Terms of Service, Privacy Policy, and Refund Policy.');return;}
+    if(!turnstileToken){setErr('Please complete the verification.');return;}
     setLoading(true);setErr('');
     try{
-      const r=await fetch(`${API_URL}${reg?'/api/auth/register':'/api/auth/login'}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(form)});
+      const body={...form,turnstileToken};
+      const r=await fetch(`${API_URL}${reg?'/api/auth/register':'/api/auth/login'}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
       if(d.success)onLogin(d.user);else setErr(d.error||'Authentication failed');
     }catch{setErr('Network error.');}finally{setLoading(false);}
@@ -1816,13 +1838,14 @@ function AuthView({onLogin}){
             </div>
           </>}
           <div className="form-group"><label>Email</label><input type="email" value={form.email} onChange={upd('email')} required/></div>
-          <div className="form-group"><label>Password</label><input type="password" value={form.password} onChange={upd('password')} required/></div>
+          <div className="form-group"><label>Password</label><input type="password" value={form.password} onChange={upd('password')} required minLength={6}/></div>
           {reg&&(
             <div className="terms-row">
               <input type="checkbox" id="terms" checked={terms} onChange={e=>setTerms(e.target.checked)}/>
               <label htmlFor="terms">I agree to the <a href="https://chatter3.com/terms-of-service" target="_blank" rel="noopener noreferrer">Terms of Service</a>, <a href="https://chatter3.com/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>, and <a href="https://chatter3.com/refund-policy" target="_blank" rel="noopener noreferrer">Refund Policy</a>.</label>
             </div>
           )}
+          <TurnstileWidget onVerify={setTurnstileToken} onExpire={()=>setTurnstileToken('')}/>
           <button type="submit" disabled={loading||(reg&&!terms)} style={{opacity:reg&&!terms?.55:1,cursor:reg&&!terms?'not-allowed':'pointer'}}>
             {loading?'Loading…':reg?'Create Account':'Sign In'}
           </button>
@@ -2363,6 +2386,10 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
   const[form,setForm]=useState({username:user.username||'',nickname:user.nickname||'',country:user.country||'',native_language:user.native_language||'',english_level:user.english_level||'beginner',bio:user.bio||'',avatar_url:user.avatar_url||''});
   const[history,setHistory]=useState([]);
   const[showFeedback,setShowFeedback]=useState(false);
+  const[showPwChange,setShowPwChange]=useState(false);
+  const[pwForm,setPwForm]=useState({current_password:'',new_password:'',confirm_password:''});
+  const[pwErr,setPwErr]=useState('');
+  const[pwMsg,setPwMsg]=useState('');
   const fileRef=useRef(null);
   useEffect(()=>{
     fetch(`${API_URL}/api/user/history`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id})}).then(r=>r.json()).then(d=>{if(d.success)setHistory(d.history);});
@@ -2370,6 +2397,17 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
   const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
   const onFile=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();const rd=new FileReader();rd.onload=ev=>{img.onload=()=>{const M=800;let{width:w,height:h}=img;if(w>M||h>M){const r=Math.min(M/w,M/h);w=Math.round(w*r);h=Math.round(h*r);}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);setForm(p=>({...p,avatar_url:c.toDataURL('image/jpeg',.75)}));};img.src=ev.target.result;};rd.readAsDataURL(f);};
   const save=async()=>{const r=await fetch(`${API_URL}/api/user/update`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:user.id,...form})});const d=await r.json();if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));onUpdate(u);alert('Profile Saved!');}};
+  const changePassword=async()=>{
+    setPwErr('');setPwMsg('');
+    if(!pwForm.new_password){setPwErr('New password is required');return;}
+    if(pwForm.new_password.length<6){setPwErr('Password must be at least 6 characters');return;}
+    if(pwForm.new_password!==pwForm.confirm_password){setPwErr('Passwords do not match');return;}
+    try{
+      const r=await fetch(`${API_URL}/api/auth/change-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id,current_password:pwForm.current_password,new_password:pwForm.new_password})});
+      const d=await r.json();
+      if(d.success){setPwMsg('Password updated!');setPwForm({current_password:'',new_password:'',confirm_password:''});setTimeout(()=>setShowPwChange(false),1500);}else{setPwErr(d.error||'Failed to change password');}
+    }catch{setPwErr('Network error');}
+  };
   return(
     <div className="dashboard-container">
       <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,color:'#1a1a2e',margin:0}}>Edit Profile</h2>{user.founding_member&&<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🏆 Founding Member</span>}{user.is_new_member&&<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🆕 New Member</span>}</div>
@@ -2392,6 +2430,18 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
           </select>
         </div>
         <button className="save-btn" onClick={save}>Save Profile</button>
+        <button onClick={()=>{setShowPwChange(!showPwChange);setPwErr('');setPwMsg('');}} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>🔒 {user.has_password?'Change Password':'Set Password'}</button>
+        {showPwChange&&(
+          <div style={{marginTop:8,padding:'12px',background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'8px'}}>
+            <div style={{fontWeight:600,fontSize:'.85rem',marginBottom:8}}>{user.has_password?'Change Password':'Set Password'}</div>
+            {pwErr&&<div style={{color:'#ef4444',fontSize:'.8rem',marginBottom:6}}>{pwErr}</div>}
+            {pwMsg&&<div style={{color:'#22c55e',fontSize:'.8rem',marginBottom:6}}>{pwMsg}</div>}
+            {user.has_password&&<div className="form-group"><label>Current Password</label><input type="password" value={pwForm.current_password} onChange={e=>setPwForm(f=>({...f,current_password:e.target.value}))}/></div>}
+            <div className="form-group"><label>New Password</label><input type="password" value={pwForm.new_password} onChange={e=>setPwForm(f=>({...f,new_password:e.target.value}))} minLength={6}/></div>
+            <div className="form-group"><label>Confirm New Password</label><input type="password" value={pwForm.confirm_password} onChange={e=>setPwForm(f=>({...f,confirm_password:e.target.value}))} minLength={6}/></div>
+            <button className="save-btn" onClick={changePassword} style={{width:'100%'}}>{user.has_password?'Update Password':'Set Password'}</button>
+          </div>
+        )}
         <button onClick={()=>setShowFeedback(true)} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>💬 Send Feedback</button>
         <button onClick={onShowOnboarding} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>👋 View Introduction Again</button>
         <button onClick={onBack} style={{marginTop:9,padding:'9px',width:'100%',background:'#f5f5f5',border:'1px solid #ddd',borderRadius:'6px',cursor:'pointer',fontSize:'.88rem'}}>Back</button>
