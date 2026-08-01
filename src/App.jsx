@@ -8,6 +8,15 @@ const RP_TO_FP = 3; // 3 RP → 1 FP
 const MATCH_TIMEOUT = 60;
 const TURNSTILE_SITEKEY = "0x4AAAAAAEDFDp7g8QNRwN79";
 
+const getToken=()=>localStorage.getItem('chatter3_token')||'';
+const authFetch=(url,opts={})=>{
+  const token=getToken();
+  const headers={...opts.headers,'Content-Type':'application/json'};
+  if(token)headers['Authorization']=`Bearer ${token}`;
+  else console.error('authFetch: NO TOKEN for',url);
+  return fetch(url,{...opts,headers});
+};
+
 // ── Turnstile Widget ────────────────────────────────────────
 function TurnstileWidget({onVerify,onExpire}){
   const ref=useRef(null);
@@ -72,7 +81,7 @@ const startRinging = () => {
 // ── Country helpers ────────────────────────────────────────── 
 
 // ── Conversation starters ────────────────────────────────────
-const STARTERS=[(p)=>`Ask ${p} what the most popular food is in their country!`,(p)=>`Ask ${p} what music or shows are trending where they live!`,(p)=>`Ask ${p} what they enjoy doing on weekends!`,(p)=>`Ask ${p} what made them want to learn English!`,(p)=>`Ask ${p} to describe something unique about their hometown!`];
+const STARTERS=[(p)=>`Ask ${p} what the most popular food is in their country!`,(p)=>`Ask ${p} what music or shows are trending where they live!`,(p)=>`Ask ${p} what they enjoy doing on weekends!`,(p)=>`Ask ${p} what made them want to practice English conversation!`,(p)=>`Ask ${p} to describe something unique about their hometown!`];
 
 // ── Onboarding slides ────────────────────────────────────────
 const SLIDES=[
@@ -465,7 +474,7 @@ function ProfileGate({user,onComplete,onDismiss}){
     if(!country.trim()||!lang.trim()){setErr('Both fields are required.');return;}
     setLoading(true);setErr('');
     try{
-      const r=await fetch(`${API_URL}/api/user/update`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:user.id,nickname:user.nickname,english_level:user.english_level,bio:user.bio,avatar_url:user.avatar_url,country:country.trim(),native_language:lang.trim()})});
+      const r=await authFetch(`${API_URL}/api/user/update`,{method:'POST',body:JSON.stringify({nickname:user.nickname,english_level:user.english_level,bio:user.bio,avatar_url:user.avatar_url,country:country.trim(),native_language:lang.trim()})});
       const d=await r.json();
       if(d.success){const u={...user,country:country.trim(),native_language:lang.trim()};localStorage.setItem('chatter3_user',JSON.stringify(u));onComplete(u);}
       else setErr('Failed to save.');
@@ -497,7 +506,7 @@ function ExchangeModal({user,onClose,onDone}){
   const exchange=async()=>{
     setLoading(true);setErr('');
     try{
-      const r=await fetch(`${API_URL}/api/user/exchange-rp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id,quantity:qty})});
+      const r=await authFetch(`${API_URL}/api/user/exchange-rp`,{method:'POST',body:JSON.stringify({quantity:qty})});
       const d=await r.json();
       if(d.success)onDone(d.fp,d.rp);
       else setErr(d.error||'Exchange failed.');
@@ -533,7 +542,7 @@ function ExchangeModal({user,onClose,onDone}){
 
 // ── Report Modal ────────────────────────────────────────────────
 const REPORT_REASONS=['Inappropriate or offensive language','Harassment or bullying','Spam or scam behavior','Explicit or adult content','Impersonation','Other'];
-function ReportModal({targetUser,sessionId,reporterUserId,onClose}){
+function ReportModal({targetUser,sessionId,onClose}){
   const[reason,setReason]=useState('');
   const[submitting,setSubmitting]=useState(false);
   const[done,setDone]=useState(null);
@@ -541,8 +550,8 @@ function ReportModal({targetUser,sessionId,reporterUserId,onClose}){
     if(action!=='block'&&!reason)return;
     setSubmitting(true);
     try{
-      if(action==='report'||action==='both')await fetch(`${API_URL}/api/report`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reporter_id:reporterUserId,reported_id:targetUser.id,session_id:sessionId,reason})});
-      if(action==='block'||action==='both')await fetch(`${API_URL}/api/block`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({blocker_id:reporterUserId,blocked_id:targetUser.id})});
+      if(action==='report'||action==='both')await authFetch(`${API_URL}/api/report`,{method:'POST',body:JSON.stringify({reported_id:targetUser.id,session_id:sessionId,reason})});
+      if(action==='block'||action==='both')await authFetch(`${API_URL}/api/block`,{method:'POST',body:JSON.stringify({blocked_id:targetUser.id})});
       setDone(action);
     }catch{setDone(action);}finally{setSubmitting(false);}
   };
@@ -586,7 +595,7 @@ function FriendsModal({user,onClose}){
   const[inviteStats,setInviteStats]=useState({total:0,used:0});
   const[loading,setLoading]=useState(false);
 
-  const post=(p,b)=>fetch(`${API_URL}${p}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id,...b})}).then(r=>r.json());
+  const post=(p,b)=>authFetch(`${API_URL}${p}`,{method:'POST',body:JSON.stringify(b||{})}).then(r=>r.json());
 
   useEffect(()=>{
     post('/api/friends/list',{}).then(d=>{if(d.success){setFriends(d.friends||[]);setPending(d.pending_requests||[]);}});
@@ -602,7 +611,7 @@ function FriendsModal({user,onClose}){
   };
 
   const sendRequest=async(rid)=>{
-    await fetch(`${API_URL}/api/friends/request`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sender_id:user.id,receiver_id:rid})});
+    await authFetch(`${API_URL}/api/friends/request`,{method:'POST',body:JSON.stringify({receiver_id:rid})});
     setSearchRes(sr=>sr.filter(u=>u.id!==rid));
     alert('Friend request sent!');
   };
@@ -621,9 +630,9 @@ function FriendsModal({user,onClose}){
   const copyLink=()=>{navigator.clipboard.writeText(inviteUrl).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);});};
 
   const shareLink=async(platform)=>{
-    const msg=`Join me on Chatter3 — practice English with real people! ${inviteUrl}`;
+    const msg=`Join me on Chatter3 — practice English conversation with real people! ${inviteUrl}`;
     if(platform==='native'&&navigator.share){await navigator.share({title:'Join Chatter3',text:msg,url:inviteUrl});return;}
-    const urls={whatsapp:`https://wa.me/?text=${encodeURIComponent(msg)}`,twitter:`https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}`,telegram:`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent('Join me on Chatter3 — practice English with real people!')}`,line:`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(inviteUrl)}`};
+    const urls={whatsapp:`https://wa.me/?text=${encodeURIComponent(msg)}`,twitter:`https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}`,telegram:`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent('Join me on Chatter3 — practice English conversation with real people!')}`,line:`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(inviteUrl)}`};
     if(urls[platform])window.open(urls[platform],'_blank');
   };
 
@@ -633,7 +642,7 @@ function FriendsModal({user,onClose}){
         {f.avatar_url?<img src={f.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt=""/>:(f.nickname||f.username||'?').charAt(0).toUpperCase()}
       </div>
       <div className="friend-info">
-        <div className="friend-name">{f.nickname||f.username}{f.founding_member&&<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>🏆 FM</span>}{f.is_new_member&&<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>🆕 NEW</span>}</div>
+        <div className="friend-name">{f.nickname||f.username}{f.founding_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>🏆 FM</span>:null}{f.is_new_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>🆕 NEW</span>:null}</div>
         <div className="friend-sub">{f.country?`${getFlag(f.country)} ${countryName(f.country)}`:''}{f.english_level?` · ${f.english_level}`:''}</div>
       </div>
       {actions}
@@ -727,7 +736,7 @@ function AdminSettingsPanel({user}){
   const[newMemberDays,setNewMemberDays]=useState('30');
   const[mvpMode,setMvpMode]=useState(false);
 
-  const post=(p,b)=>fetch(`${API_URL}${p}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_id:user.id,...b})}).then(r=>r.json());
+  const post=(p,b)=>authFetch(`${API_URL}${p}`,{method:'POST',body:JSON.stringify(b||{})}).then(r=>r.json());
 
   useEffect(()=>{
     post('/api/admin/settings',{}).then(d=>{
@@ -758,7 +767,7 @@ function AdminSettingsPanel({user}){
       post('/api/admin/settings/update',{key:'new_member_days',value:newMemberDays}),
       post('/api/admin/settings/update',{key:'mvp_mode',value:mvpMode?'true':'false'}),
     ]);
-    setSettings(prev=>({...prev,custom_call_duration:customDur,promo_fp_free_days:promoFpFree,promo_initial_rp:promoInitRp,promo_badge_days:promoBadge}));
+    setSettings(prev=>({...prev,custom_call_duration:customDur,promo_fp_free_days:promoFpFree,promo_initial_rp:promoInitRp,new_member_days:newMemberDays}));
     setSaving(false);setSaved(true);setTimeout(()=>setSaved(false),3000);
   };
 
@@ -771,7 +780,7 @@ function AdminSettingsPanel({user}){
     <div className="admin-section">
       <h3>🎛️ Matching Settings <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— shared across all admins</span></h3>
       {[
-        {key:'matching_by_level',name:'Match by English Level',desc:'Only match users at the same proficiency level (Beginner / Intermediate / Advanced)'},
+        {key:'matching_by_level',name:'Match by English conversation Level',desc:'Only match users at the same proficiency level (Beginner / Intermediate / Advanced)'},
         {key:'matching_diff_country',name:'Prefer Different Countries',desc:'Prioritize matching users from different countries for cross-cultural practice'},
         {key:'matching_diff_language',name:'Prefer Different Native Languages',desc:'Prioritize matching users with different native languages'},
       ].map(({key,name,desc})=>(
@@ -859,7 +868,7 @@ function AdminDashboard({user,onBack}){
   const[reportFilter,setReportFilter]=useState('pending');
   const[loading,setLoading]=useState(false);
 
-  const post=(path,body)=>fetch(`${API_URL}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_id:user.id,...body})}).then(r=>r.json());
+  const post=(path,body)=>authFetch(`${API_URL}${path}`,{method:'POST',body:JSON.stringify(body||{})}).then(r=>r.json());
 
   const renderAnalytics = (stats, maxSessions) => {
     if (!stats) return null;
@@ -1197,6 +1206,7 @@ function UsersTab({user,post}){
   const[adjustFP,setAdjustFP]=useState('');
   const[adjustRP,setAdjustRP]=useState('');
   const[banReason,setBanReason]=useState('');
+  const[statuses,setStatuses]=useState({});
   const PAGE=50;
 
   const load=async(p=0)=>{
@@ -1206,7 +1216,20 @@ function UsersTab({user,post}){
     setLoading(false);
   };
 
+  const fetchStatuses=async()=>{
+    const ids=users.map(u=>u.id);
+    if(!ids.length)return;
+    const d=await post('/api/admin/users/status',{user_ids:ids});
+    if(d.success)setStatuses(d.statuses||{});
+  };
+
   useEffect(()=>{if(!searchMode)load(page);},[page,searchMode]);
+  useEffect(()=>{if(users.length>0)fetchStatuses();},[users]);
+  useEffect(()=>{
+    if(!users.length)return;
+    const iv=setInterval(fetchStatuses,10000);
+    return()=>clearInterval(iv);
+  },[users.map(u=>u.id).join(',')]);
 
   const searchUsers=async()=>{
     if(!searchQ.trim()){clearSearch();return;}
@@ -1234,11 +1257,11 @@ function UsersTab({user,post}){
     setFormSaving(true);setFormError('');
     try{
       if(editingUser){
-        const d=await post('/api/admin/user/'+editingUser.id+'/update',{admin_id:user.id,...form});
+        const d=await post('/api/admin/user/'+editingUser.id+'/update',form);
         if(d.error){setFormError(d.error);setFormSaving(false);return;}
         if(d.success)setUsers(prev=>prev.map(u=>u.id===editingUser.id?d.user:u));
       }else{
-        const d=await post('/api/admin/user/create',{admin_id:user.id,...form});
+        const d=await post('/api/admin/user/create',form);
         if(d.error){setFormError(d.error);setFormSaving(false);return;}
         if(d.success){setUsers(prev=>[d.user,...prev]);setTotal(t=>t+1);}
       }
@@ -1250,7 +1273,7 @@ function UsersTab({user,post}){
   const deleteUser=async(u)=>{
     if(!confirm('Delete user "'+u.username+'"? This cannot be undone.'))return;
     try{
-      const d=await post('/api/admin/user/'+u.id+'/delete',{admin_id:user.id});
+      const d=await post('/api/admin/user/'+u.id+'/delete');
       if(d.error){alert(d.error);return;}
       if(d.success){setUsers(prev=>prev.filter(x=>x.id!==u.id));setTotal(t=>t-1);}
     }catch(e){alert('Failed to delete user: '+e.message);}
@@ -1343,7 +1366,7 @@ function UsersTab({user,post}){
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Username *</label><input value={form.username} onChange={upd('username')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Display Name</label><input value={form.nickname||''} onChange={upd('nickname')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Email *</label><input value={form.email} onChange={upd('email')} type="email" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
-            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>English Level</label>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>English conversation Level</label>
               <select value={form.english_level} onChange={upd('english_level')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}>
                 <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
               </select>
@@ -1364,7 +1387,7 @@ function UsersTab({user,post}){
         <div className="admin-section">
           <div style={{overflowX:'auto'}}>
             <table className="admin-table">
-              <thead><tr><th>#</th><th>Username</th><th>Display Name</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Badge</th><th>New</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+              <thead><tr><th>#</th><th>Username</th><th>Display Name</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Badge</th><th>New</th><th>Online</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
               <tbody>
                 {users.map((u,i)=>(
                   <tr key={u.id}>
@@ -1390,13 +1413,20 @@ function UsersTab({user,post}){
                       </button>
                     </td>
                     <td>{u.is_new_member?<span style={{padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.68rem',fontWeight:700}}>NEW</span>:'—'}</td>
+                    <td style={{textAlign:'center'}}>{(()=>{
+                      const s=statuses[u.id]||'offline';
+                      const colors={online:'#22c55e',searching:'#3b82f6',in_call:'#f97316',offline:'#d1d5db'};
+                      const labels={online:'Online',searching:'Searching',in_call:'In Call',offline:'Offline'};
+                      const pulse=s!=='offline';
+                      return<span title={labels[s]} style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:colors[s],...(pulse?{boxShadow:'0 0 6px '+colors[s]}:{})}}/>;
+                    })()}</td>
                     <td>{u.is_banned?<span className="badge-pill banned">Banned</span>:u.is_admin?<span className="badge-pill admin">Admin</span>:'—'}</td>
                     <td style={{fontSize:'.75rem',color:'#94a3b8'}}>{u.created_at?.slice(0,10)}</td>
                     <td>
                       <div style={{display:'flex',gap:4}}>
                         <button className="act-btn adjust" onClick={()=>loadUserDetail(u.id)} style={{fontSize:'.7rem'}}>Details</button>
                         <button onClick={()=>openEdit(u)} style={{background:'#4f8ef7',color:'white',border:'none',borderRadius:6,padding:'3px 8px',fontSize:'.7rem',cursor:'pointer'}} title="Edit">✏️</button>
-                        {!u.is_admin&&<button onClick={()=>deleteUser(u)} style={{background:'#ef4444',color:'white',border:'none',borderRadius:6,padding:'3px 8px',fontSize:'.7rem',cursor:'pointer'}} title="Delete">🗑️</button>}
+                        {!u.is_admin?<button onClick={()=>deleteUser(u)} style={{background:'#ef4444',color:'white',border:'none',borderRadius:6,padding:'3px 8px',fontSize:'.7rem',cursor:'pointer'}} title="Delete">🗑️</button>:null}
                       </div>
                     </td>
                   </tr>
@@ -1671,6 +1701,8 @@ export default function App(){
 
   useEffect(()=>{
     const saved=localStorage.getItem('chatter3_user');
+    const token=localStorage.getItem('chatter3_token');
+    if(saved&&!token){localStorage.removeItem('chatter3_user');return;}
     if(saved){const u=JSON.parse(saved);setUser(u);setView('dashboard');checkSession(u.id);}
   },[]);
 
@@ -1684,7 +1716,7 @@ export default function App(){
   }, [user]);
 
   const checkSession=async(uid)=>{
-    try{const r=await fetch(`${API_URL}/api/matching/session/${uid}`);const d=await r.json();
+    try{const r=await authFetch(`${API_URL}/api/matching/session/${uid}`);const d=await r.json();
       if(d.active_session){
         const age=Date.now()-new Date(d.session.created_at).getTime();
         if(age<300000){setSession(d.session);setCallStartedAt(Date.now());setView('video');}
@@ -1692,7 +1724,7 @@ export default function App(){
   };
 
   const refreshUser=async(uid)=>{
-    try{const r=await fetch(`${API_URL}/api/user/${uid}`);const d=await r.json();
+    try{const r=await authFetch(`${API_URL}/api/user/${uid}`);const d=await r.json();
       if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));setUser(u);}}catch{}
   };
 
@@ -1701,11 +1733,12 @@ export default function App(){
   const handleLogin=(u)=>{
     setAndSaveUser(u);setView('dashboard');
     if(!localStorage.getItem('chatter3_onboarding_seen'))setShowOnboarding(true);
+    else if(u.auth_provider==='google'&&(!u.country||!u.native_language))setShowProfileGate(true);
   };
 
   const handleLogout=async()=>{
-    if(user)try{await fetch(`${API_URL}/api/matching/leave`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id})});}catch{}
-    localStorage.removeItem('chatter3_user');setUser(null);setView('auth');
+    if(user)try{await authFetch(`${API_URL}/api/matching/leave`,{method:'POST',body:JSON.stringify({})});}catch{}
+    localStorage.removeItem('chatter3_user');localStorage.removeItem('chatter3_token');setUser(null);setView('auth');
   };
 
   const handleFindPartner=async()=>{
@@ -1713,7 +1746,7 @@ export default function App(){
     if(!user.country||!user.native_language){setShowProfileGate(true);return;}
     // Check FP balance
     try{
-      const r=await fetch(`${API_URL}/api/user/balances/${user.id}`);
+      const r=await authFetch(`${API_URL}/api/user/balances/${user.id}`);
       const d=await r.json();
       const fp=d.fp??0;const rp=d.rp??0;
       const isFM=!!d.founding_member;
@@ -1741,10 +1774,10 @@ export default function App(){
               <div><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="header-logo-img"/></div>
               {user&&(
                 <div className="user-info">
-                   <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member&&<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🏆 Founding Member</span>}{user.is_new_member&&<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🆕 New Member</span>}</span>
+                   <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🏆 Founding Member</span>:null}{user.is_new_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🆕 New Member</span>:null}</span>
                   <div className="header-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 Friends</button>
-                  {user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ Admin</button>}
+                  {user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ Admin</button>:null}
                   <button className="header-btn btn-logout" onClick={handleLogout}>Logout</button>
                 </div>
               )}
@@ -1755,10 +1788,10 @@ export default function App(){
         <main className="app-content">
           {view==='dashboard'&&user&&<DashboardView user={user} onNavigate={setView} onFindPartner={handleFindPartner} onExchange={()=>setShowExchange(true)} onRefreshUser={()=>refreshUser(user.id)}/>}
           {view==='matching'&&user&&<MatchingView user={user} onCancel={()=>setView('dashboard')} onMatch={s=>{setSession(s);setView('precall');}}/>}
-          {view==='precall'&&user&&session&&<PreCallView session={session} onStart={()=>{setCallStartedAt(Date.now());setView('video');}} onCancel={async()=>{try{await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'cancelled'})});}catch{}setSession(null);setView('matching');}}/>}
+          {view==='precall'&&user&&session&&<PreCallView session={session} onStart={()=>{setCallStartedAt(Date.now());setView('video');}} onCancel={async()=>{try{await authFetch(`${API_URL}/api/matching/end`,{method:'POST',body:JSON.stringify({session_id:session.id,reason:'cancelled'})});}catch{}setSession(null);setView('matching');}}/>}
           {view==='video'&&user&&session&&<VideoRoomView user={user} session={session} callStartedAt={callStartedAt} onEnd={()=>{setSession(null);setCallStartedAt(null);refreshUser(user.id);setView('dashboard');}}/>}
           {view==='profile'&&user&&<ProfileView user={user} onBack={()=>setView('dashboard')} onUpdate={setAndSaveUser} onShowOnboarding={()=>setShowOnboarding(true)}/>}
-          {view==='admin'&&user&&user.is_admin&&<AdminDashboard user={user} onBack={()=>setView('dashboard')}/>}
+          {view==='admin'&&user&&user.is_admin?<AdminDashboard user={user} onBack={()=>setView('dashboard')}/>:null}
         </main>
       </div>
     </GoogleOAuthProvider>
@@ -1786,7 +1819,7 @@ function AuthView({onLogin}){
       const body={...form,turnstileToken};
       const r=await fetch(`${API_URL}${reg?'/api/auth/register':'/api/auth/login'}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
-      if(d.success)onLogin(d.user);else setErr(d.error||'Authentication failed');
+      if(d.success){if(d.token)localStorage.setItem('chatter3_token',d.token);onLogin(d.user);}else setErr(d.error||'Authentication failed');
     }catch{setErr('Network error.');}finally{setLoading(false);}
   };
 
@@ -1795,7 +1828,7 @@ function AuthView({onLogin}){
     try{
       const r=await fetch(`${API_URL}/api/auth/google`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential:cr.credential})});
       const d=await r.json();
-      if(d.success)onLogin(d.user);else setErr(d.error||'Google auth failed');
+      if(d.success){if(d.token)localStorage.setItem('chatter3_token',d.token);onLogin(d.user);}else setErr(d.detail||d.error||'Google auth failed');
     }catch{setErr('Network error.');}finally{setLoading(false);}
   };
 
@@ -1804,7 +1837,7 @@ function AuthView({onLogin}){
       <div className="auth-box">
         <div className="auth-header">
           <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="auth-logo"/>
-          <p className="auth-subtitle">Master English with real people</p>
+          <p className="auth-subtitle">Master English conversation with real people</p>
         </div>
         {err&&<div className="error-message">{err}</div>}
         <form onSubmit={submit} className="register-form">
@@ -1812,7 +1845,7 @@ function AuthView({onLogin}){
             <div className="form-group"><label>Username</label><input value={form.username} onChange={upd('username')} required/></div>
             <div className="form-group"><label>Country of Origin</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))} required/></div>
             <div className="form-group"><label>Native Language</label><input value={form.native_language} onChange={upd('native_language')} required placeholder="e.g. Japanese"/></div>
-            <div className="form-group"><label>English Level</label>
+            <div className="form-group"><label>English conversation Level</label>
               <select value={form.english_level} onChange={upd('english_level')}>
                 <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
               </select>
@@ -1827,7 +1860,7 @@ function AuthView({onLogin}){
             </div>
           )}
           <TurnstileWidget onVerify={setTurnstileToken} onExpire={()=>setTurnstileToken('')}/>
-          <button type="submit" disabled={loading||(reg&&!terms)} style={{opacity:reg&&!terms?.55:1,cursor:reg&&!terms?'not-allowed':'pointer'}}>
+          <button type="submit" disabled={loading||(reg&&!terms)} style={{opacity:reg&&!terms?0.55:1,cursor:reg&&!terms?'not-allowed':'pointer'}}>
             {loading?'Loading…':reg?'Create Account':'Sign In'}
           </button>
         </form>
@@ -1866,7 +1899,7 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
     <div className="dashboard-container">
       <div className="welcome-message">
         <h2>Ready to start a conversation?</h2>
-        <p>Your English practice journey begins here!</p>
+        <p>Your English conversation practice journey begins here!</p>
         {totalOnline>0&&(
           <div style={{display:'flex',justifyContent:'center',marginBottom:'.75rem'}}>
             <span className="dashboard-online-pill">
@@ -1956,12 +1989,12 @@ function MatchingView({user,onCancel,onMatch}){
     const search=async()=>{
       try{
         if(!matched){
-          const r=await fetch(`${API_URL}/api/matching/join`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id,english_level:user.english_level,country:user.country,native_language:(user.native_language||'').trim().toLowerCase()})});
+          const r=await authFetch(`${API_URL}/api/matching/join`,{method:'POST',body:JSON.stringify({english_level:user.english_level,country:user.country,native_language:(user.native_language||'').trim().toLowerCase()})});
           const d=await r.json();
           if(d.error==='insufficient_fp'){stopRingRef.current?.();onCancel();return;}
           if(d.matched){setMatched(true);setStatus('Partner found!');stopRingRef.current?.();}
         }
-        const sr=await fetch(`${API_URL}/api/matching/session/${user.id}`);
+                const sr=await authFetch(`${API_URL}/api/matching/session/${user.id}`);
         const sd=await sr.json();
         if(sd.active_session){clearInterval(polling);setStatus('Connecting…');onMatch(sd.session);}
       }catch{setStatus('Connection error. Retrying…');}
@@ -1972,7 +2005,7 @@ function MatchingView({user,onCancel,onMatch}){
 
   const cancel=async()=>{
     stopRingRef.current?.();
-    try{await fetch(`${API_URL}/api/matching/leave`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id})});}catch{}
+    try{await authFetch(`${API_URL}/api/matching/leave`,{method:'POST',body:JSON.stringify({})});}catch{}
     onCancel();
   };
 
@@ -2043,7 +2076,7 @@ function PreCallView({session,onStart,onCancel}){
             {partner.avatar_url?<img src={partner.avatar_url} alt={name}/>:<span style={{fontFamily:'Sora,sans-serif',fontSize:'2.2rem',fontWeight:800,color:'white'}}>{name.charAt(0).toUpperCase()}</span>}
           </div>
         </div>
-        <h2 className="precall-name">{name}{partner.founding_member&&<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>🏆 Founding Member</span>}{partner.is_new_member&&<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#22c55e',letterSpacing:'.03em'}}>🆕 New Member</span>}</h2>
+        <h2 className="precall-name">{name}{partner.founding_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>🏆 Founding Member</span>:null}{partner.is_new_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#22c55e',letterSpacing:'.03em'}}>🆕 New Member</span>:null}</h2>
         <div className="precall-chips">
           {partner.country&&<span className="chip country">{getFlag(partner.country)} {countryName(partner.country)}</span>}
           {partner.native_language&&<span className="chip lang">🗣️ {partner.native_language}</span>}
@@ -2082,7 +2115,7 @@ function FeedbackModal({userId,onClose}){
     if(!message.trim()||sending)return;
     setSending(true);
     try{
-      const r=await fetch(`${API_URL}/api/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,category,message:message.trim()})});
+      const r=await authFetch(`${API_URL}/api/feedback`,{method:'POST',body:JSON.stringify({category,message:message.trim()})});
       const d=await r.json();
       if(d.success){setDone(true);setRpAwarded(d.rp_awarded||0);}
     }catch{}
@@ -2184,19 +2217,19 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
           }
           if((s==='failed')&&!hasConnected.current){
             logConn('failed',{never_connected:true});
-            fetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id})}).catch(()=>{});
+            authFetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',body:JSON.stringify({session_id:session.id})}).catch(()=>{});
           }
           if((s==='disconnected'||s==='failed') && !intentionalHangup.current && !partnerHungUp.current){
             discTimer.current=setTimeout(()=>setShowDisc(true),3000);
             autoTimer.current=setTimeout(async()=>{
               // Check server-side if partner already ended the call
               try{
-                const sr=await fetch(`${API_URL}/api/matching/session/${user.id}`);
+        const sr=await authFetch(`${API_URL}/api/matching/session/${user.id}`);
                 const sd=await sr.json();
                 if(!sd.active_session){partnerHungUp.current=true;clearTimeout(discTimer.current);setPartnerEndedScreen(true);setTimeout(()=>{cleanup();playSound('end');setEndReason('partner');setShowRating(true);},1500);return;}
               }catch{}
               setEndReason('network');setShowDisc(false);
-              await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'network_disconnect',used_relay:usedRelay.current})}).catch(()=>{});
+              await authFetch(`${API_URL}/api/matching/end`,{method:'POST',body:JSON.stringify({session_id:session.id,reason:'network_disconnect',used_relay:usedRelay.current})}).catch(()=>{});
               cleanup();playSound('end');setShowRating(true);
             },15000);
           }
@@ -2208,7 +2241,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         // Connection timeout: if not connected within 30s, refund FP and end session
         connTimeout.current=setTimeout(()=>{
           if(!hasConnected.current){
-            fetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id})}).catch(()=>{});
+            authFetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',body:JSON.stringify({session_id:session.id})}).catch(()=>{});
             cleanup();playSound('end');setShowRating(true);
           }
         },30000);
@@ -2231,7 +2264,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
             } else {
               // Never connected — just end
               clearTimeout(connTimeout.current);
-              fetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id})}).catch(()=>{});
+              authFetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',body:JSON.stringify({session_id:session.id})}).catch(()=>{});
               cleanup();playSound('end');setEndReason('partner');setShowRating(true);
             }
           }
@@ -2246,7 +2279,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
       }catch{setErr('Could not access camera/microphone');}
     };
     const logConn=(event_type,event_data)=>{
-      fetch(`${API_URL}/api/connection/event`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,event_type,event_data,user_agent:navigator.userAgent})}).catch(()=>{});
+      authFetch(`${API_URL}/api/connection/event`,{method:'POST',body:JSON.stringify({session_id:session.id,event_type,event_data,user_agent:navigator.userAgent})}).catch(()=>{});
     };
     const flushRC=async()=>{if(!pc.current)return;while(rcQ.current.length>0)try{await pc.current.addIceCandidate(rcQ.current.shift());}catch{}};
     const beforeUnload=()=>{ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye'}));};
@@ -2266,13 +2299,13 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   const hangup=async()=>{
     intentionalHangup.current=true;
     ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye',reason:'hangup'}));
-    try{await fetch(`${API_URL}/api/matching/end`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,reason:'hangup',used_relay:usedRelay.current})});}catch{}
+    try{await authFetch(`${API_URL}/api/matching/end`,{method:'POST',body:JSON.stringify({session_id:session.id,reason:'hangup',used_relay:usedRelay.current})});}catch{}
     playSound('end');cleanup();setShowRating(true);
   };
 
   const rate=async(rating)=>{
     try{
-      const r=await fetch(`${API_URL}/api/matching/rate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:session.id,user_id:user.id,rating,used_relay:usedRelay.current})});
+      const r=await authFetch(`${API_URL}/api/matching/rate`,{method:'POST',body:JSON.stringify({session_id:session.id,rating,used_relay:usedRelay.current})});
       const d=await r.json();
       if(d.rp_awarded)playSound('points');
     }catch{}
@@ -2302,7 +2335,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/>
         <span className="video-compact-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</span>
       </div>
-      {showReport&&<ReportModal targetUser={session.partner} sessionId={session.id} reporterUserId={user.id} onClose={()=>setShowReport(false)}/>}
+        {showReport&&<ReportModal targetUser={session.partner} sessionId={session.id} onClose={()=>setShowReport(false)}/>}
       <div className="video-container">
         <video ref={rv} autoPlay playsInline className="video-el"/>
         <video ref={lv} autoPlay playsInline muted className="video-el local"/>
@@ -2373,25 +2406,25 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
   const[pwMsg,setPwMsg]=useState('');
   const fileRef=useRef(null);
   useEffect(()=>{
-    fetch(`${API_URL}/api/user/history`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id})}).then(r=>r.json()).then(d=>{if(d.success)setHistory(d.history);});
+    authFetch(`${API_URL}/api/user/history`,{method:'POST',body:JSON.stringify({})}).then(r=>r.json()).then(d=>{if(d.success)setHistory(d.history);});
   },[]);
   const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
   const onFile=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();const rd=new FileReader();rd.onload=ev=>{img.onload=()=>{const M=800;let{width:w,height:h}=img;if(w>M||h>M){const r=Math.min(M/w,M/h);w=Math.round(w*r);h=Math.round(h*r);}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);setForm(p=>({...p,avatar_url:c.toDataURL('image/jpeg',.75)}));};img.src=ev.target.result;};rd.readAsDataURL(f);};
-  const save=async()=>{const r=await fetch(`${API_URL}/api/user/update`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:user.id,...form})});const d=await r.json();if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));onUpdate(u);alert('Profile Saved!');}};
+  const save=async()=>{const r=await authFetch(`${API_URL}/api/user/update`,{method:'POST',body:JSON.stringify({...form})});const d=await r.json();if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));onUpdate(u);alert('Profile Saved!');}};
   const changePassword=async()=>{
     setPwErr('');setPwMsg('');
     if(!pwForm.new_password){setPwErr('New password is required');return;}
     if(pwForm.new_password.length<6){setPwErr('Password must be at least 6 characters');return;}
     if(pwForm.new_password!==pwForm.confirm_password){setPwErr('Passwords do not match');return;}
     try{
-      const r=await fetch(`${API_URL}/api/auth/change-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id,current_password:pwForm.current_password,new_password:pwForm.new_password})});
+      const r=await authFetch(`${API_URL}/api/auth/change-password`,{method:'POST',body:JSON.stringify({current_password:pwForm.current_password,new_password:pwForm.new_password})});
       const d=await r.json();
       if(d.success){setPwMsg('Password updated!');setPwForm({current_password:'',new_password:'',confirm_password:''});setTimeout(()=>setShowPwChange(false),1500);}else{setPwErr(d.error||'Failed to change password');}
     }catch{setPwErr('Network error');}
   };
   return(
     <div className="dashboard-container">
-      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,color:'#1a1a2e',margin:0}}>Edit Profile</h2>{user.founding_member&&<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🏆 Founding Member</span>}{user.is_new_member&&<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🆕 New Member</span>}</div>
+      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,color:'#1a1a2e',margin:0}}>Edit Profile</h2>{user.founding_member?<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🏆 Founding Member</span>:null}{user.is_new_member?<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🆕 New Member</span>:null}</div>
       <div className="profile-section">
         <div className="profile-avatar">
           {form.avatar_url?<img src={form.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt="Profile"/>:(form.username||user.username).charAt(0).toUpperCase()}
@@ -2405,13 +2438,13 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
         <div className="form-group"><label>Display Name</label><input value={form.nickname} onChange={upd('nickname')} placeholder="How others see you"/></div>
         <div className="form-group"><label>Country</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))}/></div>
         <div className="form-group"><label>Native Language</label><input value={form.native_language} onChange={upd('native_language')} placeholder="e.g. Japanese"/></div>
-        <div className="form-group"><label>English Level</label>
+        <div className="form-group"><label>English conversation Level</label>
           <select value={form.english_level} onChange={upd('english_level')}>
             <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
           </select>
         </div>
         <button className="save-btn" onClick={save}>Save Profile</button>
-        {user.password_hash!=='google_oauth_user'&&<>
+        {user.auth_provider!=='google'&&<>
         <button onClick={()=>{setShowPwChange(!showPwChange);setPwErr('');setPwMsg('');}} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>&#x1f512; {user.has_password?'Change Password':'Set Password'}</button>
         {showPwChange&&(
           <div style={{marginTop:8,padding:'12px',background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'8px'}}>
