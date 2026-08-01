@@ -2148,7 +2148,13 @@ function MatchingView({user,onCancel,onMatch}){
         if(!matched){
           const r=await authFetch(`${API_URL}/api/matching/join`,{method:'POST',body:JSON.stringify({english_level:user.english_level,country:user.country,native_language:(user.native_language||'').trim().toLowerCase()})});
           const d=await r.json();
-          if(d.error==='insufficient_fp'){stopRingRef.current?.();onCancel();return;}
+          if(d.error==='insufficient_fp'){
+            // Check if partner already matched us before bailing
+            const sr=await authFetch(`${API_URL}/api/matching/session/${user.id}`);
+            const sd=await sr.json();
+            if(sd.active_session){clearInterval(polling);setStatus('Connecting…');onMatch(sd.session);return;}
+            stopRingRef.current?.();onCancel();return;
+          }
           if(d.matched){setMatched(true);setStatus('Partner found!');stopRingRef.current?.();}
         }
                 const sr=await authFetch(`${API_URL}/api/matching/session/${user.id}`);
