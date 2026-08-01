@@ -1729,8 +1729,12 @@ export default function App(){
   const[showFriends,setShowFriends]=useState(false);
   const[maintenance,setMaintenance]=useState(null);
   const[maintenanceMsg,setMaintenanceMsg]=useState('');
+  const[resetToken,setResetToken]=useState(null);
 
   useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const tokenParam=params.get('token');
+    if(tokenParam){setResetToken(tokenParam);setView('reset');window.history.replaceState({},'',window.location.pathname);}
     fetch(`${API_URL}/api/status`).then(r=>r.json()).then(d=>{
       if(d.maintenance){setMaintenance(true);setMaintenanceMsg(d.maintenanceMessage||'We are currently performing maintenance. Please check back later.');}
       else{setMaintenance(false);}
@@ -1817,7 +1821,9 @@ export default function App(){
         {showExchange&&user&&<ExchangeModal user={user} onClose={()=>setShowExchange(false)} onDone={(fp,rp)=>{setAndSaveUser({...user,fp_balance:fp,rp_balance:rp});setShowExchange(false);if(fp>=1)setView('matching');}}/>}
         {showFriends&&user&&<FriendsModal user={user} onClose={()=>setShowFriends(false)}/>}
 
-        {view==='auth'&&<AuthView onLogin={handleLogin}/>}
+        {view==='auth'&&<AuthView onLogin={handleLogin} setView={setView}/>}
+        {view==='forgot'&&<ForgotPasswordView onBack={()=>setView('auth')}/>}
+        {view==='reset'&&resetToken&&<ResetPasswordView token={resetToken} onBack={()=>setView('auth')}/>}
 
         {view!=='auth'&&view!=='video'&&view!=='precall'&&(
           <header className="app-header">
@@ -1852,9 +1858,106 @@ export default function App(){
 }
 
 // ─────────────────────────────────────────────────────────────────
+// FORGOT PASSWORD VIEW
+// ─────────────────────────────────────────────────────────────────
+function ForgotPasswordView({onBack}){
+  const[email,setEmail]=useState('');
+  const[loading,setLoading]=useState(false);
+  const[err,setErr]=useState('');
+  const[sent,setSent]=useState(false);
+
+  const submit=async(e)=>{
+    e.preventDefault();
+    setLoading(true);setErr('');
+    try{
+      const r=await fetch(`${API_URL}/api/auth/forgot-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+      const d=await r.json();
+      if(d.success)setSent(true);else setErr(d.error||'Something went wrong');
+    }catch{setErr('Network error.');}finally{setLoading(false);}
+  };
+
+  return(
+    <div className="auth-container">
+      <div className="auth-box">
+        <div className="auth-header">
+          <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="auth-logo"/>
+          <p className="auth-subtitle">Reset your password</p>
+        </div>
+        {err&&<div className="error-message">{err}</div>}
+        {sent?(
+          <div style={{textAlign:'center'}}>
+            <div style={{fontSize:'2rem',marginBottom:'.75rem'}}>📧</div>
+            <p style={{fontSize:'.92rem',color:'#374151',margin:'0 0 .5rem'}}>Check your inbox</p>
+            <p style={{fontSize:'.82rem',color:'#6b7280',margin:0}}>If an account exists with <strong>{email}</strong>, we've sent a password reset link. The link expires in 1 hour.</p>
+            <button className="auth-link" onClick={onBack} style={{marginTop:'1.25rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.88rem',cursor:'pointer'}}>← Back to Sign In</button>
+          </div>
+        ):(
+          <form onSubmit={submit} className="register-form">
+            <p style={{fontSize:'.85rem',color:'#6b7280',margin:'0 0 1rem'}}>Enter your email address and we'll send you a link to reset your password.</p>
+            <div className="form-group"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></div>
+            <button type="submit" disabled={loading}>{loading?'Sending…':'Send Reset Link'}</button>
+            <button type="button" className="auth-link" onClick={onBack} style={{marginTop:'.75rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.85rem',cursor:'pointer',width:'100%'}}>← Back to Sign In</button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// RESET PASSWORD VIEW
+// ─────────────────────────────────────────────────────────────────
+function ResetPasswordView({token,onBack}){
+  const[password,setPassword]=useState('');
+  const[confirm,setConfirm]=useState('');
+  const[loading,setLoading]=useState(false);
+  const[err,setErr]=useState('');
+  const[success,setSuccess]=useState(false);
+
+  const submit=async(e)=>{
+    e.preventDefault();
+    if(password!==confirm){setErr('Passwords do not match');return;}
+    if(password.length<6){setErr('Password must be at least 6 characters');return;}
+    setLoading(true);setErr('');
+    try{
+      const r=await fetch(`${API_URL}/api/auth/reset-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,new_password:password})});
+      const d=await r.json();
+      if(d.success)setSuccess(true);else setErr(d.error||'Something went wrong');
+    }catch{setErr('Network error.');}finally{setLoading(false);}
+  };
+
+  return(
+    <div className="auth-container">
+      <div className="auth-box">
+        <div className="auth-header">
+          <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="auth-logo"/>
+          <p className="auth-subtitle">Set new password</p>
+        </div>
+        {err&&<div className="error-message">{err}</div>}
+        {success?(
+          <div style={{textAlign:'center'}}>
+            <div style={{fontSize:'2rem',marginBottom:'.75rem'}}>✅</div>
+            <p style={{fontSize:'.92rem',color:'#374151',margin:'0 0 .5rem'}}>Password updated!</p>
+            <p style={{fontSize:'.82rem',color:'#6b7280',margin:0}}>Your password has been changed. You can now sign in with your new password.</p>
+            <button className="auth-link" onClick={onBack} style={{marginTop:'1.25rem',background:'#4f46e5',color:'white',border:'none',borderRadius:8,padding:'10px 24px',fontSize:'.88rem',cursor:'pointer'}}>Sign In</button>
+          </div>
+        ):(
+          <form onSubmit={submit} className="register-form">
+            <div className="form-group"><label>New Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={6}/></div>
+            <div className="form-group"><label>Confirm New Password</label><input type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} required minLength={6}/></div>
+            <button type="submit" disabled={loading}>{loading?'Updating…':'Update Password'}</button>
+            <button type="button" className="auth-link" onClick={onBack} style={{marginTop:'.75rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.85rem',cursor:'pointer',width:'100%'}}>← Back to Sign In</button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
 // AUTH VIEW
 // ─────────────────────────────────────────────────────────────────
-function AuthView({onLogin}){
+function AuthView({onLogin,setView}){
   const[reg,setReg]=useState(false);
   const[loading,setLoading]=useState(false);
   const[terms,setTerms]=useState(false);
@@ -1906,6 +2009,7 @@ function AuthView({onLogin}){
           </>}
           <div className="form-group"><label>Email</label><input type="email" value={form.email} onChange={upd('email')} required/></div>
           <div className="form-group"><label>Password</label><input type="password" value={form.password} onChange={upd('password')} required minLength={6}/></div>
+          {!reg&&<div style={{textAlign:'right',marginTop:'-8px',marginBottom:'8px'}}><button type="button" className="auth-link" onClick={()=>setView('forgot')} style={{background:'none',border:'none',color:'#4f46e5',fontSize:'.82rem',cursor:'pointer',padding:0}}>Forgot Password?</button></div>}
           {reg&&(
             <div className="terms-row">
               <input type="checkbox" id="terms" checked={terms} onChange={e=>setTerms(e.target.checked)}/>
