@@ -387,12 +387,17 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .search-btn{padding:9px 18px;background:#1e293b;color:white;border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;}
 .action-row{display:flex;gap:.5rem;flex-wrap:wrap;}
 .act-btn{padding:5px 12px;border:1.5px solid #e5e7eb;border-radius:6px;background:white;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-subtle{padding:9px;width:100%;background:#f5f5f5;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:.88rem;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-accent-outline{padding:9px;width:100%;background:#f0f4ff;border:1px solid #c7d7fc;border-radius:6px;cursor:pointer;color:#4f46e5;font-size:.88rem;font-family:'DM Sans',sans-serif;transition:all .15s;}
 .act-btn.ban{border-color:#fca5a5;color:#ef4444;}
 .act-btn.unban{border-color:#bbf7d0;color:#10b981;}
 .act-btn.adjust{border-color:#c7d7fc;color:#4f46e5;}
 .act-btn.dismiss{border-color:#e2e8f0;color:#64748b;}
 .act-btn.action{border-color:#fca5a5;color:#ef4444;}
 .act-btn:hover{opacity:.8;}
+.panel-white{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.qty-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid #e5e7eb;background:white;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;}
+.text-muted{color:#6b7280;}
 .chart-row{display:flex;gap:4px;align-items:flex-end;height:80px;margin-top:.75rem;}
 .chart-bar{flex:1;background:linear-gradient(to top,#4f8ef7,#7c3aed);border-radius:3px 3px 0 0;min-height:2px;transition:height .3s;}
 .chart-labels{display:flex;gap:4px;margin-top:3px;}
@@ -510,6 +515,15 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
   .chat-msg{color:#e2e8f0;}
   .chat-msg.system{color:#94a3b8;background:#1e293b;border-color:#2d3a5c;}
   .modal-btn-ghost{color:#94a3b8;}
+  .btn-subtle{background:#1e293b;border-color:#334155;color:#cbd5e1;}
+  .btn-subtle:hover{background:#2d3a5c;}
+  .btn-accent-outline{background:#1e2740;border-color:#2d4a7a;color:#93c5fd;}
+  .btn-accent-outline:hover{background:#1e3a5f;}
+  .act-btn{background:#1a1d2e;border-color:#334155;color:#94a3b8;}
+  .panel-white{background:#1a1d2e;border-color:#2d3a5c;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+  .qty-btn{background:#1a1d2e;border-color:#334155;color:#e2e8f0;}
+  .modal-panel{background:#1a1d2e;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  .text-muted{color:#94a3b8;}
 }
 `;
 
@@ -577,7 +591,7 @@ function ProfileGate({user,onComplete,onDismiss}){
     <div className="profile-gate-overlay">
       <div className="profile-gate-card">
         <div style={{fontSize:'2.75rem',marginBottom:'.75rem'}}>🌍</div>
-        <h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.25rem',fontWeight:800,color:'#1a1a2e',margin:'0 0 .4rem'}}>One quick thing…</h2>
+        <h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.25rem',fontWeight:800,margin:'0 0 .4rem'}}>One quick thing…</h2>
         <p style={{color:'#6b7280',fontSize:'.88rem',marginBottom:'1.25rem',lineHeight:'1.5'}}>Tell us where you're from and your native language — we use this to find you better conversation partners.</p>
         {err&&<div className="error-message">{err}</div>}
         <div style={{marginBottom:'.55rem'}}><CountrySelect value={country} onChange={setCountry} required/></div>
@@ -616,12 +630,12 @@ function ExchangeModal({user,onClose,onDone}){
           <div><div style={{fontSize:'1.5rem',fontWeight:800,color:'#1d4ed8',fontFamily:'Sora,sans-serif'}}>{user.fp_balance||0}</div><div style={{fontSize:'.72rem',color:'#9ca3af'}}>FP Balance</div></div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'.75rem',marginBottom:'.875rem',justifyContent:'center'}}>
-          <button onClick={()=>setQty(Math.max(1,qty-1))} style={{width:34,height:34,borderRadius:'50%',border:'1.5px solid #e5e7eb',background:'white',cursor:'pointer',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center'}}>−</button>
+           <button onClick={()=>setQty(Math.max(1,qty-1))} className="qty-btn">−</button>
           <div style={{textAlign:'center'}}>
-            <div style={{fontFamily:'Sora,sans-serif',fontSize:'1.4rem',fontWeight:800,color:'#1a1a2e'}}>{qty} FP</div>
+            <div style={{fontFamily:'Sora,sans-serif',fontSize:'1.4rem',fontWeight:800}}>{qty} FP</div>
             <div style={{fontSize:'.75rem',color:'#9ca3af'}}>costs {cost} RP</div>
           </div>
-          <button onClick={()=>setQty(qty+1)} style={{width:34,height:34,borderRadius:'50%',border:'1.5px solid #e5e7eb',background:'white',cursor:'pointer',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center'}}>+</button>
+           <button onClick={()=>setQty(qty+1)} className="qty-btn">+</button>
         </div>
         {err&&<div className="error-message">{err}</div>}
         <button className="modal-btn-primary" onClick={exchange} disabled={loading||!canAfford}>
@@ -1460,7 +1474,7 @@ function UsersTab({user,post}){
             <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem'}}>{selectedUser.sessions?.length||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>Sessions</div></div>
             <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#ef4444'}}>{selectedUser.reports_received||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>Reports</div></div>
           </div>
-          <p style={{margin:'0 0 .5rem',fontSize:'.82rem',fontWeight:600,color:'#374151'}}>Adjust Balances</p>
+           <p style={{margin:'0 0 .5rem',fontSize:'.82rem',fontWeight:600}}>Adjust Balances</p>
           <div className="inline-form">
             <input placeholder="FP delta (e.g. +2 or -1)" value={adjustFP} onChange={e=>setAdjustFP(e.target.value)}/>
             <input placeholder="RP delta (e.g. +1.5)" value={adjustRP} onChange={e=>setAdjustRP(e.target.value)}/>
@@ -1468,7 +1482,7 @@ function UsersTab({user,post}){
           </div>
           {!selectedUser.user?.is_banned?(
             <>
-              <p style={{margin:'.875rem 0 .4rem',fontSize:'.82rem',fontWeight:600,color:'#374151'}}>Ban User</p>
+               <p style={{margin:'.875rem 0 .4rem',fontSize:'.82rem',fontWeight:600}}>Ban User</p>
               <div className="inline-form">
                 <input placeholder="Ban reason (required)" value={banReason} onChange={e=>setBanReason(e.target.value)} style={{flex:2}}/>
                 <button style={{background:'#ef4444'}} onClick={()=>doBan(selectedUser.user?.id)}>Ban</button>
@@ -1481,7 +1495,7 @@ function UsersTab({user,post}){
       )}
 
       {showForm&&(
-        <div style={{background:'white',border:'1px solid #e2e8f0',borderRadius:12,padding:20,marginBottom:'1rem',boxShadow:'0 2px 8px rgba(0,0,0,.06)'}}>
+        <div className="panel-white">
           <h4 style={{margin:'0 0 12px',fontSize:'.95rem'}}>{editingUser?'Edit User':'Add New User'}</h4>
           {formError&&<p style={{color:'#ef4444',fontSize:'.82rem',margin:'0 0 8px'}}>{formError}</p>}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.75rem'}}>
@@ -1497,7 +1511,7 @@ function UsersTab({user,post}){
             <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Native Language</label><input value={form.native_language} onChange={upd('native_language')} placeholder="e.g. Japanese" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
           </div>
           <div style={{display:'flex',gap:'.5rem',marginTop:12}}>
-            <button onClick={()=>setShowForm(false)} style={{padding:'8px 16px',background:'#f5f5f5',border:'1px solid #ddd',borderRadius:6,cursor:'pointer',fontSize:'.88rem'}}>Cancel</button>
+            <button onClick={()=>setShowForm(false)} className="btn-subtle" style={{padding:'8px 16px',fontSize:'.88rem'}}>Cancel</button>
             <button onClick={saveUser} disabled={formSaving||!form.username||!form.email} style={{padding:'8px 16px',background:form.username&&form.email?'#4f8ef7':'#ccc',color:'white',border:'none',borderRadius:6,cursor:form.username&&form.email?'pointer':'not-allowed',fontWeight:600,fontSize:'.88rem'}}>{formSaving?'Saving…':editingUser?'Update':'Create'}</button>
           </div>
         </div>
@@ -1902,7 +1916,7 @@ export default function App(){
           <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh',background:'#f8fafc'}}>
             <div style={{textAlign:'center',maxWidth:480,padding:'2rem'}}>
               <div style={{fontSize:'3rem',marginBottom:'.75rem'}}>🔧</div>
-              <h1 style={{fontFamily:'Sora,sans-serif',fontSize:'1.5rem',fontWeight:800,color:'#1a1a2e',margin:'0 0 .5rem'}}>Under Maintenance</h1>
+              <h1 style={{fontFamily:'Sora,sans-serif',fontSize:'1.5rem',fontWeight:800,margin:'0 0 .5rem'}}>Under Maintenance</h1>
               <p style={{fontSize:'.95rem',color:'#64748b',margin:0,lineHeight:1.6}}>{maintenanceMsg}</p>
               <p style={{fontSize:'.8rem',color:'#94a3b8',marginTop:'1.5rem'}}>We'll be back soon. Thank you for your patience!</p>
             </div>
@@ -1980,7 +1994,7 @@ function ForgotPasswordView({onBack}){
         {sent?(
           <div style={{textAlign:'center'}}>
             <div style={{fontSize:'2rem',marginBottom:'.75rem'}}>📧</div>
-            <p style={{fontSize:'.92rem',color:'#374151',margin:'0 0 .5rem'}}>Check your inbox</p>
+             <p style={{fontSize:'.92rem',margin:'0 0 .5rem'}}>Check your inbox</p>
             <p style={{fontSize:'.82rem',color:'#6b7280',margin:0}}>If an account exists with <strong>{email}</strong>, we've sent a password reset link. The link expires in 1 hour.</p>
             <button className="auth-link" onClick={onBack} style={{marginTop:'1.25rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.88rem',cursor:'pointer'}}>← Back to Sign In</button>
           </div>
@@ -2030,7 +2044,7 @@ function ResetPasswordView({token,onBack}){
         {success?(
           <div style={{textAlign:'center'}}>
             <div style={{fontSize:'2rem',marginBottom:'.75rem'}}>✅</div>
-            <p style={{fontSize:'.92rem',color:'#374151',margin:'0 0 .5rem'}}>Password updated!</p>
+             <p style={{fontSize:'.92rem',margin:'0 0 .5rem'}}>Password updated!</p>
             <p style={{fontSize:'.82rem',color:'#6b7280',margin:0}}>Your password has been changed. You can now sign in with your new password.</p>
             <button className="auth-link" onClick={onBack} style={{marginTop:'1.25rem',background:'#4f46e5',color:'white',border:'none',borderRadius:8,padding:'10px 24px',fontSize:'.88rem',cursor:'pointer'}}>Sign In</button>
           </div>
@@ -2197,7 +2211,7 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
           <div className="stat-row"><span className="stat-label" style={{color:'#f59e0b',fontSize:'.8rem'}}>⚠️ No {user.english_level}-level users online right now</span></div>
         )}
         <div className="stat-row" style={{border:'none',paddingTop:'.875rem'}}>
-          <button onClick={()=>onNavigate('profile')} style={{width:'100%',padding:'9px',background:'#f5f5f5',border:'1px solid #ddd',borderRadius:'6px',cursor:'pointer',fontSize:'.88rem'}}>
+          <button onClick={()=>onNavigate('profile')} className="btn-subtle">
             Profile & Conversation History
           </button>
         </div>
@@ -2379,23 +2393,23 @@ function FeedbackModal({userId,onClose}){
   };
   return(
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:16}}>
-      <div style={{background:'white',borderRadius:16,maxWidth:440,width:'100%',padding:28,position:'relative',boxShadow:'0 20px 60px rgba(0,0,0,.3)'}}>
+      <div className="modal-panel">
         <button onClick={onClose} style={{position:'absolute',top:12,right:12,background:'none',border:'none',fontSize:'1.3rem',cursor:'pointer',color:'#9ca3af'}}>✕</button>
         {done?(
           <div style={{textAlign:'center',padding:'1rem 0'}}>
             <div style={{fontSize:'2.5rem',marginBottom:12}}>✅</div>
-            <h3 style={{fontFamily:'Sora,sans-serif',margin:'0 0 8px',color:'#1a1a2e'}}>Thank you for your feedback!</h3>
+            <h3 style={{fontFamily:'Sora,sans-serif',margin:'0 0 8px'}}>Thank you for your feedback!</h3>
             <p style={{fontSize:'.88rem',color:'#6b7280',margin:'0 0 12px'}}>Your input helps us improve Chatter3.</p>
             {rpAwarded>0&&<p style={{fontSize:'.82rem',color:'#4f8ef7',fontWeight:600}}>+{rpAwarded} RP earned!</p>}
             <button onClick={onClose} style={{marginTop:12,padding:'10px 24px',background:'#4f8ef7',color:'white',border:'none',borderRadius:8,cursor:'pointer',fontWeight:600}}>Done</button>
           </div>
         ):(
           <div>
-            <h3 style={{fontFamily:'Sora,sans-serif',margin:'0 0 4px',color:'#1a1a2e',fontSize:'1.1rem'}}>Send Feedback</h3>
-            <p style={{fontSize:'.82rem',color:'#6b7280',margin:'0 0 16px'}}>Help us improve Chatter3. Your feedback is sent directly to our team.</p>
+            <h3 style={{fontFamily:'Sora,sans-serif',margin:'0 0 4px',fontSize:'1.1rem'}}>Send Feedback</h3>
+            <p style={{fontSize:'.82rem',margin:'0 0 16px'}}>Help us improve Chatter3. Your feedback is sent directly to our team.</p>
             <div style={{marginBottom:12}}>
-              <label style={{display:'block',fontSize:'.82rem',fontWeight:600,color:'#374151',marginBottom:4}}>Category</label>
-              <select value={category} onChange={e=>setCategory(e.target.value)} style={{width:'100%',padding:'10px 12px',border:'1px solid #d1d5db',borderRadius:8,fontSize:'.88rem',background:'white'}}>
+              <label style={{display:'block',fontSize:'.82rem',fontWeight:600,marginBottom:4}}>Category</label>
+              <select value={category} onChange={e=>setCategory(e.target.value)} className="admin-select" style={{width:'100%',padding:'10px 12px',borderRadius:8,fontSize:'.88rem'}}>
                 <option value="general">General Feedback</option>
                 <option value="bug">Bug Report</option>
                 <option value="feature">Feature Request</option>
@@ -2403,11 +2417,11 @@ function FeedbackModal({userId,onClose}){
               </select>
             </div>
             <div style={{marginBottom:16}}>
-              <label style={{display:'block',fontSize:'.82rem',fontWeight:600,color:'#374151',marginBottom:4}}>Message</label>
-              <textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder="Tell us what's on your mind..." rows={5} style={{width:'100%',padding:'10px 12px',border:'1px solid #d1d5db',borderRadius:8,fontSize:'.88rem',resize:'vertical',boxSizing:'border-box',fontFamily:'inherit'}}/>
+              <label style={{display:'block',fontSize:'.82rem',fontWeight:600,marginBottom:4}}>Message</label>
+              <textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder="Tell us what's on your mind..." rows={5} className="admin-input" style={{width:'100%',padding:'10px 12px',borderRadius:8,fontSize:'.88rem',resize:'vertical',boxSizing:'border-box',fontFamily:'inherit'}}/>
             </div>
             <div style={{display:'flex',gap:8}}>
-              <button onClick={onClose} style={{flex:1,padding:'10px',background:'#f5f5f5',border:'1px solid #ddd',borderRadius:8,cursor:'pointer',fontSize:'.88rem'}}>Cancel</button>
+              <button onClick={onClose} className="btn-subtle" style={{flex:1,padding:'10px',borderRadius:8,fontSize:'.88rem'}}>Cancel</button>
               <button onClick={submit} disabled={!message.trim()||sending} style={{flex:1,padding:'10px',background:message.trim()?'#4f8ef7':'#ccc',color:'white',border:'none',borderRadius:8,cursor:message.trim()?'pointer':'not-allowed',fontWeight:600,fontSize:'.88rem'}}>{sending?'Sending…':'Submit'}</button>
             </div>
           </div>
@@ -2680,7 +2694,7 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
   };
   return(
     <div className="dashboard-container">
-      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,color:'#1a1a2e',margin:0}}>Edit Profile</h2>{user.founding_member?<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🏆 Founding Member</span>:null}{user.is_new_member?<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🆕 New Member</span>:null}</div>
+      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,margin:0}}>Edit Profile</h2>{user.founding_member?<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🏆 Founding Member</span>:null}{user.is_new_member?<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🆕 New Member</span>:null}</div>
       <div className="profile-section">
         <div className="profile-avatar">
           {form.avatar_url?<img src={form.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt="Profile"/>:(form.username||user.username).charAt(0).toUpperCase()}
@@ -2701,7 +2715,7 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
         </div>
         <button className="save-btn" onClick={save}>Save Profile</button>
         {user.auth_provider!=='google'&&<>
-        <button onClick={()=>{setShowPwChange(!showPwChange);setPwErr('');setPwMsg('');}} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>&#x1f512; {user.has_password?'Change Password':'Set Password'}</button>
+        <button onClick={()=>{setShowPwChange(!showPwChange);setPwErr('');setPwMsg('');}} className="btn-accent-outline">&#x1f512; {user.has_password?'Change Password':'Set Password'}</button>
         {showPwChange&&(
           <div style={{marginTop:8,padding:'12px',background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'8px'}}>
             <div style={{fontWeight:600,fontSize:'.85rem',marginBottom:8}}>{user.has_password?'Change Password':'Set Password'}</div>
@@ -2714,13 +2728,13 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
           </div>
         )}
         </>}
-        <button onClick={()=>setShowFeedback(true)} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>💬 Send Feedback</button>
-        <button onClick={onShowOnboarding} style={{marginTop:9,padding:'9px',width:'100%',background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:'6px',cursor:'pointer',color:'#4f46e5',fontSize:'.88rem'}}>👋 View Introduction Again</button>
-        <button onClick={onBack} style={{marginTop:9,padding:'9px',width:'100%',background:'#f5f5f5',border:'1px solid #ddd',borderRadius:'6px',cursor:'pointer',fontSize:'.88rem'}}>Back</button>
+        <button onClick={()=>setShowFeedback(true)} className="btn-accent-outline">💬 Send Feedback</button>
+        <button onClick={onShowOnboarding} className="btn-accent-outline">👋 View Introduction Again</button>
+        <button onClick={onBack} className="btn-subtle">Back</button>
       </div>
       {showFeedback&&<FeedbackModal userId={user.id} onClose={()=>setShowFeedback(false)}/>}
       <div className="history-list">
-        <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',color:'#1a1a2e',margin:'0 0 .875rem'}}>Recent Conversations</h3>
+        <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',margin:'0 0 .875rem'}}>Recent Conversations</h3>
         {history.length===0&&<p style={{color:'#9ca3af',fontSize:'.88rem'}}>No calls yet. Find a partner to get started!</p>}
         {history.map(h=>(
           <div key={h.id} className="history-item">
