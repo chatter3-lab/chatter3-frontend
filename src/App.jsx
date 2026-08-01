@@ -735,6 +735,8 @@ function AdminSettingsPanel({user}){
   const[promoInitRp,setPromoInitRp]=useState('0');
   const[newMemberDays,setNewMemberDays]=useState('30');
   const[mvpMode,setMvpMode]=useState(false);
+  const[maintenanceMode,setMaintenanceMode]=useState(false);
+  const[maintenanceMsg,setMaintenanceMsg]=useState('');
 
   const post=(p,b)=>authFetch(`${API_URL}${p}`,{method:'POST',body:JSON.stringify(b||{})}).then(r=>r.json());
 
@@ -748,6 +750,8 @@ function AdminSettingsPanel({user}){
         setPromoInitRp(m.promo_initial_rp||'0');
         setNewMemberDays(m.new_member_days||'30');
         setMvpMode(m.mvp_mode==='true');
+        setMaintenanceMode(m.maintenance_mode==='true');
+        setMaintenanceMsg(m.maintenance_message||'');
       }
       setLoading(false);
     });
@@ -766,6 +770,8 @@ function AdminSettingsPanel({user}){
       post('/api/admin/settings/update',{key:'promo_initial_rp',value:promoInitRp}),
       post('/api/admin/settings/update',{key:'new_member_days',value:newMemberDays}),
       post('/api/admin/settings/update',{key:'mvp_mode',value:mvpMode?'true':'false'}),
+      post('/api/admin/settings/update',{key:'maintenance_mode',value:maintenanceMode?'true':'false'}),
+      post('/api/admin/settings/update',{key:'maintenance_message',value:maintenanceMsg}),
     ]);
     setSettings(prev=>({...prev,custom_call_duration:customDur,promo_fp_free_days:promoFpFree,promo_initial_rp:promoInitRp,new_member_days:newMemberDays}));
     setSaving(false);setSaved(true);setTimeout(()=>setSaved(false),3000);
@@ -855,6 +861,29 @@ function AdminSettingsPanel({user}){
           <span className="toggle-slider"/>
         </label>
       </div>
+    </div>
+
+    <div className="admin-section" style={{marginTop:'1rem'}}>
+      <h3>🔧 System <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— maintenance & system controls</span></h3>
+      <div className="setting-row">
+        <div className="setting-info">
+          <div className="setting-name" style={maintenanceMode?{color:'#ef4444'}:{}}>Maintenance Mode {maintenanceMode?'● ACTIVE':''}</div>
+          <div className="setting-desc">When ON, all non-admin users are blocked from using the app and see a maintenance message. Admins can still access everything.</div>
+        </div>
+        <label className="toggle">
+          <input type="checkbox" checked={maintenanceMode} onChange={()=>setMaintenanceMode(v=>!v)}/>
+          <span className="toggle-slider"/>
+        </label>
+      </div>
+      {maintenanceMode&&(
+        <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
+          <div className="setting-info">
+            <div className="setting-name">Maintenance Message</div>
+            <div className="setting-desc">Message shown to non-admin users during maintenance.</div>
+          </div>
+          <textarea value={maintenanceMsg} onChange={e=>setMaintenanceMsg(e.target.value)} placeholder="We are currently performing maintenance. Please check back later." style={{width:'100%',minHeight:60,padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem',resize:'vertical'}}/>
+        </div>
+      )}
       <button className="save-settings-btn" onClick={saveAll} disabled={saving}>{saving?'Saving…':saved?'✓ Saved!':'Save Settings'}</button>
     </div>
     </div>
@@ -1698,6 +1727,15 @@ export default function App(){
   const[showProfileGate,setShowProfileGate]=useState(false);
   const[showExchange,setShowExchange]=useState(false);
   const[showFriends,setShowFriends]=useState(false);
+  const[maintenance,setMaintenance]=useState(null);
+  const[maintenanceMsg,setMaintenanceMsg]=useState('');
+
+  useEffect(()=>{
+    fetch(`${API_URL}/api/status`).then(r=>r.json()).then(d=>{
+      if(d.maintenance){setMaintenance(true);setMaintenanceMsg(d.maintenanceMessage||'We are currently performing maintenance. Please check back later.');}
+      else{setMaintenance(false);}
+    }).catch(()=>setMaintenance(false));
+  },[]);
 
   useEffect(()=>{
     const saved=localStorage.getItem('chatter3_user');
@@ -1761,6 +1799,19 @@ export default function App(){
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="app-container">
         <style>{STYLES}</style>
+        {maintenance===null?(
+          <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh',color:'#94a3b8'}}>Loading…</div>
+        ):maintenance&&!user?.is_admin?(
+          <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh',background:'#f8fafc'}}>
+            <div style={{textAlign:'center',maxWidth:480,padding:'2rem'}}>
+              <div style={{fontSize:'3rem',marginBottom:'.75rem'}}>🔧</div>
+              <h1 style={{fontFamily:'Sora,sans-serif',fontSize:'1.5rem',fontWeight:800,color:'#1a1a2e',margin:'0 0 .5rem'}}>Under Maintenance</h1>
+              <p style={{fontSize:'.95rem',color:'#64748b',margin:0,lineHeight:1.6}}>{maintenanceMsg}</p>
+              <p style={{fontSize:'.8rem',color:'#94a3b8',marginTop:'1.5rem'}}>We'll be back soon. Thank you for your patience!</p>
+            </div>
+          </div>
+        ):(
+        <>
         {showOnboarding&&<OnboardingSlider onComplete={()=>{localStorage.setItem('chatter3_onboarding_seen','1');setShowOnboarding(false);}}/>}
         {showProfileGate&&user&&<ProfileGate user={user} onComplete={u=>{setAndSaveUser(u);setShowProfileGate(false);setView('matching');}} onDismiss={()=>setShowProfileGate(false)}/>}
         {showExchange&&user&&<ExchangeModal user={user} onClose={()=>setShowExchange(false)} onDone={(fp,rp)=>{setAndSaveUser({...user,fp_balance:fp,rp_balance:rp});setShowExchange(false);if(fp>=1)setView('matching');}}/>}
@@ -1793,6 +1844,8 @@ export default function App(){
           {view==='profile'&&user&&<ProfileView user={user} onBack={()=>setView('dashboard')} onUpdate={setAndSaveUser} onShowOnboarding={()=>setShowOnboarding(true)}/>}
           {view==='admin'&&user&&user.is_admin?<AdminDashboard user={user} onBack={()=>setView('dashboard')}/>:null}
         </main>
+        </>
+        )}
       </div>
     </GoogleOAuthProvider>
   );
