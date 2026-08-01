@@ -52,7 +52,7 @@ const countryName=code=>{
 function CountrySelect({value,onChange,required,placeholder='Select your country'}){
   return(
     <select value={value||''} onChange={e=>onChange(e.target.value)} required={required}
-      style={{width:'100%',padding:'9px 12px',border:'1px solid #ddd',borderRadius:6,fontSize:15,boxSizing:'border-box',background:'white',color:value?'#333':'#9ca3af'}}>
+      className="admin-select" style={{width:'100%',padding:'9px 12px',borderRadius:6,fontSize:15,boxSizing:'border-box'}}>
       <option value="" disabled>{placeholder}</option>
       {COUNTRIES.map(c=><option key={c.code} value={c.code}>{getFlag(c.code)} {c.name}</option>)}
     </select>
@@ -398,6 +398,10 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .panel-white{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .qty-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid #e5e7eb;background:white;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;}
 .text-muted{color:#6b7280;}
+.bg-light{background:#f8fafc;}
+.bg-green{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px;padding:.75rem 1rem;text-align:center;margin-bottom:.875rem;}
+.warning-box{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:1rem;max-width:320;text-align:left;margin:.75rem 0;font-size:.83rem;color:#92400e;line-height:1.5;}
+.pw-box{margin-top:8px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;}
 .chart-row{display:flex;gap:4px;align-items:flex-end;height:80px;margin-top:.75rem;}
 .chart-bar{flex:1;background:linear-gradient(to top,#4f8ef7,#7c3aed);border-radius:3px 3px 0 0;min-height:2px;transition:height .3s;}
 .chart-labels{display:flex;gap:4px;margin-top:3px;}
@@ -524,6 +528,13 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
   .qty-btn{background:#1a1d2e;border-color:#334155;color:#e2e8f0;}
   .modal-panel{background:#1a1d2e;box-shadow:0 20px 60px rgba(0,0,0,.6);}
   .text-muted{color:#94a3b8;}
+  .bg-light{background:#1e293b;}
+  .bg-green{background:#0f2918;border-color:#166534;color:#4ade80;}
+  .warning-box{background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.3);color:#fcd34d;}
+  .pw-box{background:#1e293b;border-color:#2d3a5c;}
+  .history-item{background:#1a1d2e;border-color:#2d3a5c;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+  .history-avatar{background:#2d3a5c;color:#cbd5e1;}
+  .history-points{background:#0f2918;border-color:#166534;color:#4ade80;}
 }
 `;
 
@@ -625,7 +636,7 @@ function ExchangeModal({user,onClose,onDone}){
         <div className="modal-icon">🔄</div>
         <h2>Exchange RP for FP</h2>
         <p>Use your Reward Points to get more call time.<br/><strong>{RP_TO_FP} RP = 1 FP</strong> (5 minutes)</p>
-        <div style={{background:'#f8fafc',borderRadius:10,padding:'1rem',marginBottom:'1rem',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.75rem',textAlign:'center'}}>
+         <div className="bg-light" style={{borderRadius:10,padding:'1rem',marginBottom:'1rem',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.75rem',textAlign:'center'}}>
           <div><div style={{fontSize:'1.5rem',fontWeight:800,color:'#15803d',fontFamily:'Sora,sans-serif'}}>{(user.rp_balance||0).toFixed(1)}</div><div style={{fontSize:'.72rem',color:'#9ca3af'}}>RP Balance</div></div>
           <div><div style={{fontSize:'1.5rem',fontWeight:800,color:'#1d4ed8',fontFamily:'Sora,sans-serif'}}>{user.fp_balance||0}</div><div style={{fontSize:'.72rem',color:'#9ca3af'}}>FP Balance</div></div>
         </div>
@@ -805,7 +816,7 @@ function FriendsModal({user,onClose}){
         {tab==='invite'&&(
           <>
             <p style={{textAlign:'center',margin:'0 0 .75rem'}}>Invite friends to Chatter3 and help grow the community!</p>
-            <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:9,padding:'.75rem 1rem',textAlign:'center',marginBottom:'.875rem'}}>
+             <div className="bg-green" style={{borderRadius:9,padding:'.75rem 1rem',textAlign:'center',marginBottom:'.875rem'}}>
               <div style={{fontSize:'1.5rem',fontWeight:800,color:'#15803d',fontFamily:'Sora,sans-serif'}}>{inviteStats.used}</div>
               <div style={{fontSize:'.75rem',color:'#6b7280'}}>friends joined via your invite</div>
             </div>
@@ -1468,7 +1479,7 @@ function UsersTab({user,post}){
             </div>
             <button onClick={()=>setSelectedUser(null)} style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:.9}}>✕ Close</button>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'.5rem',margin:'.875rem 0',background:'#f8fafc',borderRadius:8,padding:'.75rem'}}>
+           <div className="bg-light" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'.5rem',margin:'.875rem 0',borderRadius:8,padding:'.75rem'}}>
             <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#1d4ed8'}}>{selectedUser.user?.fp_balance??0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>FP</div></div>
             <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#15803d'}}>{(selectedUser.user?.rp_balance||0).toFixed(1)}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>RP</div></div>
             <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem'}}>{selectedUser.sessions?.length||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>Sessions</div></div>
@@ -1913,7 +1924,7 @@ export default function App(){
         {maintenance===null?(
           <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh',color:'#94a3b8'}}>Loading…</div>
         ):maintenance&&!user?.is_admin?(
-          <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh',background:'#f8fafc'}}>
+           <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh'}} className="bg-light">
             <div style={{textAlign:'center',maxWidth:480,padding:'2rem'}}>
               <div style={{fontSize:'3rem',marginBottom:'.75rem'}}>🔧</div>
               <h1 style={{fontFamily:'Sora,sans-serif',fontSize:'1.5rem',fontWeight:800,margin:'0 0 .5rem'}}>Under Maintenance</h1>
@@ -2590,7 +2601,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   if(err)return(
     <div className="matching-screen">
       <p style={{color:'red',fontWeight:600}}>{err}</p>
-      <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:8,padding:'1rem',maxWidth:320,textAlign:'left',margin:'.75rem 0',fontSize:'.83rem',color:'#92400e',lineHeight:1.5}}>
+       <div className="warning-box">
         <strong>📱 iPhone / Safari users:</strong> Camera permission resets after each session in Safari. To keep it permanent:<br/>
         1. Tap <strong>Share → Add to Home Screen</strong> to install as an app — permissions persist like Android.<br/>
         2. Or go to <strong>Settings → Safari → Camera</strong> and set to <em>Allow</em>.
@@ -2717,7 +2728,7 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
         {user.auth_provider!=='google'&&<>
         <button onClick={()=>{setShowPwChange(!showPwChange);setPwErr('');setPwMsg('');}} className="btn-accent-outline">&#x1f512; {user.has_password?'Change Password':'Set Password'}</button>
         {showPwChange&&(
-          <div style={{marginTop:8,padding:'12px',background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'8px'}}>
+           <div className="pw-box">
             <div style={{fontWeight:600,fontSize:'.85rem',marginBottom:8}}>{user.has_password?'Change Password':'Set Password'}</div>
             {pwErr&&<div style={{color:'#ef4444',fontSize:'.8rem',marginBottom:6}}>{pwErr}</div>}
             {pwMsg&&<div style={{color:'#22c55e',fontSize:'.8rem',marginBottom:6}}>{pwMsg}</div>}
