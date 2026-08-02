@@ -1847,6 +1847,7 @@ export default function App(){
   const[showFriends,setShowFriends]=useState(false);
   const[maintenance,setMaintenance]=useState(null);
   const[maintenanceMsg,setMaintenanceMsg]=useState('');
+  const[appSettings,setAppSettings]=useState({matching_by_level:'true'});
   const[resetToken,setResetToken]=useState(null);
 
   useEffect(()=>{
@@ -1856,6 +1857,7 @@ export default function App(){
     fetch(`${API_URL}/api/status`).then(r=>r.json()).then(d=>{
       if(d.maintenance){setMaintenance(true);setMaintenanceMsg(d.maintenanceMessage||'We are currently performing maintenance. Please check back later.');}
       else{setMaintenance(false);}
+      if(d.settings)setAppSettings(d.settings);
     }).catch(()=>setMaintenance(false));
   },[]);
 
@@ -1962,7 +1964,7 @@ export default function App(){
 
         <main className="app-content">
           {view==='dashboard'&&user&&<DashboardView user={user} onNavigate={setView} onFindPartner={handleFindPartner} onExchange={()=>setShowExchange(true)} onRefreshUser={()=>refreshUser(user.id)}/>}
-          {view==='matching'&&user&&<MatchingView user={user} onCancel={()=>setView('dashboard')} onMatch={s=>{setSession(s);setView('precall');}}/>}
+           {view==='matching'&&user&&<MatchingView user={user} settings={appSettings} onCancel={()=>setView('dashboard')} onMatch={s=>{setSession(s);setView('precall');}}/>}
           {view==='precall'&&user&&session&&<PreCallView session={session} onStart={()=>{setCallStartedAt(Date.now());setView('video');}} onCancel={async()=>{try{await authFetch(`${API_URL}/api/matching/end`,{method:'POST',body:JSON.stringify({session_id:session.id,reason:'cancelled'})});}catch{}setSession(null);setView('matching');}}/>}
           {view==='video'&&user&&session&&<VideoRoomView user={user} session={session} callStartedAt={callStartedAt} onEnd={()=>{setSession(null);setCallStartedAt(null);refreshUser(user.id);setView('dashboard');}}/>}
           {view==='profile'&&user&&<ProfileView user={user} onBack={()=>setView('dashboard')} onUpdate={setAndSaveUser} onShowOnboarding={()=>setShowOnboarding(true)}/>}
@@ -2157,6 +2159,7 @@ function AuthView({onLogin,setView}){
 function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser}){
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
+  const[settings,setSettings]=useState({matching_by_level:'true'});
   const isFreePeriod=!!user.in_free_period;
   const canCall=balances.fp>=1||isFreePeriod;
 
@@ -2165,6 +2168,7 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
     fetch(`${API_URL}/api/user/balances/${user.id}`).then(r=>r.json()).then(d=>{
       if(d.success){setBalances({fp:d.fp,rp:d.rp});if(d.fp!==user.fp_balance||d.rp!==user.rp_balance)onRefreshUser();}
     }).catch(()=>{});
+    fetch(`${API_URL}/api/status`).then(r=>r.json()).then(d=>{if(d.settings)setSettings(d.settings);}).catch(()=>{});
   },[user.id]);
 
   const totalOnline=online.total||online.searching+online.in_call;
@@ -2218,7 +2222,7 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
         <h3 style={{marginTop:'1.25rem'}}>Your Stats</h3>
         <div className="stat-row"><span className="stat-label">Level</span><span className="stat-value" style={{textTransform:'capitalize'}}>{user.english_level}</span></div>
         <div className="stat-row"><span className="stat-label">Call Duration</span><span className="stat-value">{user.english_level==='beginner'?'5 mins':'10 mins'}</span></div>
-        {totalOnline>0&&sameLevel<=1&&(
+        {settings.matching_by_level==='true'&&totalOnline>0&&sameLevel<=1&&(
           <div className="stat-row"><span className="stat-label" style={{color:'#f59e0b',fontSize:'.8rem'}}>⚠️ No {user.english_level}-level users online right now</span></div>
         )}
         <div className="stat-row" style={{border:'none',paddingTop:'.875rem'}}>
@@ -2234,7 +2238,7 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
 // ─────────────────────────────────────────────────────────────────
 // MATCHING VIEW
 // ─────────────────────────────────────────────────────────────────
-function MatchingView({user,onCancel,onMatch}){
+function MatchingView({user,settings,onCancel,onMatch}){
   const[status,setStatus]=useState('Looking for a partner...');
   const[matched,setMatched]=useState(false);
   const[online,setOnline]=useState({searching:0,in_call:0,by_level:{}});
@@ -2292,7 +2296,7 @@ function MatchingView({user,onCancel,onMatch}){
 
   const total=online.total||online.searching+online.in_call;
   const sameLevel=online.by_level?.[user.english_level]||0;
-  const noLevel=total>0&&sameLevel<=1;
+  const noLevel=settings?.matching_by_level==='true'&&total>0&&sameLevel<=1;
 
   if(timedOut){
     return(
