@@ -1963,7 +1963,7 @@ export default function App(){
         )}
 
         <main className="app-content">
-          {view==='dashboard'&&user&&<DashboardView user={user} onNavigate={setView} onFindPartner={handleFindPartner} onExchange={()=>setShowExchange(true)} onRefreshUser={()=>refreshUser(user.id)}/>}
+          {view==='dashboard'&&user&&<DashboardView user={user} settings={appSettings} onNavigate={setView} onFindPartner={handleFindPartner} onExchange={()=>setShowExchange(true)} onRefreshUser={()=>refreshUser(user.id)}/>}
            {view==='matching'&&user&&<MatchingView user={user} settings={appSettings} onCancel={()=>setView('dashboard')} onMatch={s=>{setSession(s);setView('precall');}}/>}
           {view==='precall'&&user&&session&&<PreCallView session={session} onStart={()=>{setCallStartedAt(Date.now());setView('video');}} onCancel={async()=>{try{await authFetch(`${API_URL}/api/matching/end`,{method:'POST',body:JSON.stringify({session_id:session.id,reason:'cancelled'})});}catch{}setSession(null);setView('matching');}}/>}
           {view==='video'&&user&&session&&<VideoRoomView user={user} session={session} callStartedAt={callStartedAt} onEnd={()=>{setSession(null);setCallStartedAt(null);refreshUser(user.id);setView('dashboard');}}/>}
@@ -2156,10 +2156,9 @@ function AuthView({onLogin,setView}){
 // ─────────────────────────────────────────────────────────────────
 // DASHBOARD VIEW
 // ─────────────────────────────────────────────────────────────────
-function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser}){
+function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefreshUser}){
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
-  const[settings,setSettings]=useState({matching_by_level:'true'});
   const isFreePeriod=!!user.in_free_period;
   const canCall=balances.fp>=1||isFreePeriod;
 
@@ -2168,7 +2167,6 @@ function DashboardView({user,onNavigate,onFindPartner,onExchange,onRefreshUser})
     fetch(`${API_URL}/api/user/balances/${user.id}`).then(r=>r.json()).then(d=>{
       if(d.success){setBalances({fp:d.fp,rp:d.rp});if(d.fp!==user.fp_balance||d.rp!==user.rp_balance)onRefreshUser();}
     }).catch(()=>{});
-    fetch(`${API_URL}/api/status`).then(r=>r.json()).then(d=>{if(d.settings)setSettings(d.settings);}).catch(()=>{});
   },[user.id]);
 
   const totalOnline=online.total||online.searching+online.in_call;
