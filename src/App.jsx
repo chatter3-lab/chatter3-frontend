@@ -1847,7 +1847,7 @@ export default function App(){
   const[showFriends,setShowFriends]=useState(false);
   const[maintenance,setMaintenance]=useState(null);
   const[maintenanceMsg,setMaintenanceMsg]=useState('');
-  const[appSettings,setAppSettings]=useState({matching_by_level:'true'});
+  const[appSettings,setAppSettings]=useState({matching_by_level:'false'});
   const[resetToken,setResetToken]=useState(null);
 
   useEffect(()=>{
