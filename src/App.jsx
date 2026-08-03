@@ -2304,6 +2304,7 @@ function AuthView({onLogin,setView}){
   const[form,setForm]=useState({email:'',password:'',username:'',english_level:'beginner',country:'',native_language:''});
   const[err,setErr]=useState('');
   const[turnstileToken,setTurnstileToken]=useState('');
+  const refParam=new URLSearchParams(window.location.search).get('ref')||'';
   const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
 
   const submit=async(e)=>{
@@ -2312,7 +2313,7 @@ function AuthView({onLogin,setView}){
     if(!turnstileToken){setErr('Please complete the verification.');return;}
     setLoading(true);setErr('');
     try{
-      const body={...form,turnstileToken};
+      const body={...form,turnstileToken,...(refParam?{ref:refParam}:{})};
       const r=await fetch(`${API_URL}${reg?'/api/auth/register':'/api/auth/login'}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
       if(d.success){if(d.token)localStorage.setItem('chatter3_token',d.token);onLogin(d.user);}else setErr(d.error||'Authentication failed');
@@ -2322,7 +2323,7 @@ function AuthView({onLogin,setView}){
   const googleSuccess=async(cr)=>{
     setLoading(true);setErr('');
     try{
-      const r=await fetch(`${API_URL}/api/auth/google`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential:cr.credential})});
+      const r=await fetch(`${API_URL}/api/auth/google`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential:cr.credential,...(refParam?{ref:refParam}:{})})});
       const d=await r.json();
       if(d.success){if(d.token)localStorage.setItem('chatter3_token',d.token);onLogin(d.user);}else setErr(d.detail||d.error||'Google auth failed');
     }catch{setErr('Network error.');}finally{setLoading(false);}
