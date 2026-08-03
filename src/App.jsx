@@ -1933,7 +1933,8 @@ a{color:inherit;text-decoration:none;}
 .lp-faq-item p{color:#6b7280;font-size:.9rem;line-height:1.6;margin:0;}
 .lp-cta-bottom{text-align:center;padding:4rem 1.5rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;margin-top:3rem;}
 .lp-cta-bottom h2{color:white;margin:0 0 1rem;}
-.lp-cta-bottom .lp-cta{background:white;color:#4f46e5;}
+.lp-cta-bottom .lp-cta{background:white;color:#4f46e5;padding:14px 32px;border-radius:10px;font-size:1.05rem;font-weight:700;display:inline-block;text-decoration:none;transition:all .2s;}
+.lp-cta-bottom .lp-cta:hover{opacity:.9;transform:translateY(-2px);}
 @media(prefers-color-scheme:dark){
   .lp{background:#0f1117;color:#e2e8f0;}
   .lp-nav{background:#1a1d2e;}
