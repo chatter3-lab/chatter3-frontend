@@ -1903,8 +1903,10 @@ const LP_STYLES=`
 .lp{font-family:'DM Sans',-apple-system,sans-serif;color:#1a1a2e;background:#f5f5f5;min-height:100vh;}
 .lp-nav{background:white;padding:1rem 0;box-shadow:0 2px 10px rgba(0,0,0,.08);position:sticky;top:0;z-index:100;}
 .lp-nav-inner{max-width:900px;margin:0 auto;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
-.lp-nav a{color:#4f46e5;text-decoration:none;font-weight:700;font-size:1.1rem;}
-.lp-nav .lp-cta{background:linear-gradient(135deg,#4f8ef7,#7c3aed);color:white;padding:8px 20px;border-radius:8px;font-size:.88rem;}
+.lp-nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:#1a1a2e;}
+.lp-nav-logo img{height:36px;width:auto;}
+.lp-nav-logo span{font-family:'Sora',sans-serif;font-weight:800;font-size:1.1rem;}
+.lp-nav .lp-cta{background:linear-gradient(135deg,#4f8ef7,#7c3aed);color:white;padding:8px 20px;border-radius:8px;font-size:.88rem;text-decoration:none;}
 .lp-hero{max-width:900px;margin:0 auto;padding:4rem 1.5rem 3rem;text-align:center;}
 .lp-hero h1{font-family:'Sora',sans-serif;font-size:2.5rem;font-weight:800;line-height:1.2;margin:0 0 1rem;letter-spacing:-.02em;}
 .lp-hero p{font-size:1.15rem;color:#6b7280;line-height:1.6;max-width:600px;margin:0 auto 2rem;}
@@ -1913,7 +1915,7 @@ const LP_STYLES=`
 .lp-section{max-width:900px;margin:0 auto;padding:3rem 1.5rem;}
 .lp-section h2{font-family:'Sora',sans-serif;font-size:1.6rem;font-weight:800;margin:0 0 1.5rem;text-align:center;}
 .lp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;}
-.lp-card{background:white;padding:1.5rem;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.lp-card{background:white;padding:1.5rem;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);text-align:left;}
 .lp-card .lp-icon{font-size:2rem;margin-bottom:.75rem;}
 .lp-card h3{font-family:'Sora',sans-serif;font-size:1.05rem;font-weight:700;margin:0 0 .5rem;}
 .lp-card p{color:#6b7280;font-size:.92rem;line-height:1.6;margin:0;}
@@ -1923,7 +1925,7 @@ const LP_STYLES=`
 .lp-step h3{font-family:'Sora',sans-serif;font-size:1.05rem;font-weight:700;margin:0 0 .4rem;}
 .lp-step p{color:#6b7280;font-size:.92rem;line-height:1.6;margin:0;}
 .lp-faq{max-width:700px;margin:0 auto;}
-.lp-faq-item{border-bottom:1px solid #e5e7eb;padding:1.25rem 0;}
+.lp-faq-item{border-bottom:1px solid #e5e7eb;padding:1.25rem 0;text-align:left;}
 .lp-faq-item h3{font-size:1rem;font-weight:600;margin:0 0 .4rem;cursor:pointer;}
 .lp-faq-item p{color:#6b7280;font-size:.9rem;line-height:1.6;margin:0;}
 .lp-cta-bottom{text-align:center;padding:4rem 1.5rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;margin-top:3rem;}
@@ -1932,6 +1934,7 @@ const LP_STYLES=`
 @media(prefers-color-scheme:dark){
   .lp{background:#0f1117;color:#e2e8f0;}
   .lp-nav{background:#1a1d2e;}
+  .lp-nav-logo span{color:#e2e8f0;}
   .lp-hero h1,.lp-section h2,.lp-step h3,.lp-card h3{color:#e2e8f0;}
   .lp-hero p,.lp-card p,.lp-step p,.lp-faq-item p{color:#94a3b8;}
   .lp-card{background:#1a1d2e;}
@@ -1947,7 +1950,7 @@ function HowItWorksPage(){
   return(
     <div className="lp">
       <style>{LP_STYLES}</style>
-      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/">Chatter3</a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/" className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/><span>Chatter3</span></a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
       <div className="lp-hero">
         <h1>How Chatter3 Works</h1>
         <p>Practice English conversation with real people in minutes. Here's how it works — it's free, fun, and effective.</p>
@@ -1994,7 +1997,7 @@ function ForBeginnersPage(){
   return(
     <div className="lp">
       <style>{LP_STYLES}</style>
-      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/">Chatter3</a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/" className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/><span>Chatter3</span></a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
       <div className="lp-hero">
         <h1>English Conversation for Beginners</h1>
         <p>Just starting your English journey? Chatter3 is the perfect place to practice speaking with real people — no pressure, no judgment.</p>
