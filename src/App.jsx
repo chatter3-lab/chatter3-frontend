@@ -749,8 +749,23 @@ function FriendsModal({user,onClose}){
 
   const shareLink=async(platform)=>{
     const msg=`Join me on Chatter3 — practice English conversation with real people! ${inviteUrl}`;
+    const shortMsg=`Join me on Chatter3 — practice English with real people!`;
     if(platform==='native'&&navigator.share){await navigator.share({title:'Join Chatter3',text:msg,url:inviteUrl});return;}
-    const urls={whatsapp:`https://wa.me/?text=${encodeURIComponent(msg)}`,twitter:`https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}`,telegram:`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent('Join me on Chatter3 — practice English conversation with real people!')}`,line:`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(inviteUrl)}`};
+    if(platform==='copy'){navigator.clipboard.writeText(inviteUrl).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);});return;}
+    if(platform==='email'){window.open(`mailto:?subject=${encodeURIComponent('Join me on Chatter3!')}&body=${encodeURIComponent(msg)}`,'_blank');return;}
+    if(platform==='sms'){window.open(`sms:?body=${encodeURIComponent(msg)}`,'_blank');return;}
+    const urls={
+      whatsapp:`https://wa.me/?text=${encodeURIComponent(msg)}`,
+      facebook:`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(inviteUrl)}&quote=${encodeURIComponent(shortMsg)}`,
+      twitter:`https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}`,
+      linkedin:`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(inviteUrl)}`,
+      reddit:`https://reddit.com/submit?url=${encodeURIComponent(inviteUrl)}&title=${encodeURIComponent(shortMsg)}`,
+      telegram:`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(shortMsg)}`,
+      pinterest:`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(inviteUrl)}&description=${encodeURIComponent(shortMsg)}`,
+      discord:`https://discord.com/channels/@me`,
+      tumblr:`https://www.tumblr.com/share/link?url=${encodeURIComponent(inviteUrl)}&name=${encodeURIComponent('Chatter3')}&description=${encodeURIComponent(shortMsg)}`,
+      line:`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(inviteUrl)}`,
+    };
     if(urls[platform])window.open(urls[platform],'_blank');
   };
 
@@ -828,9 +843,17 @@ function FriendsModal({user,onClose}){
                 <div className="invite-share-row">
                   {navigator.share&&<button className="invite-share-btn" onClick={()=>shareLink('native')}>📤<span>Share</span></button>}
                   <button className="invite-share-btn" onClick={()=>shareLink('whatsapp')}>💬<span>WhatsApp</span></button>
-                  <button className="invite-share-btn" onClick={()=>shareLink('twitter')}>🐦<span>Twitter/X</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('facebook')}>📘<span>Facebook</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('twitter')}>🐦<span>X/Twitter</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('linkedin')}>💼<span>LinkedIn</span></button>
                   <button className="invite-share-btn" onClick={()=>shareLink('telegram')}>✈️<span>Telegram</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('reddit')}>🔴<span>Reddit</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('pinterest')}>📌<span>Pinterest</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('tumblr')}>📝<span>Tumblr</span></button>
                   <button className="invite-share-btn" onClick={()=>shareLink('line')}>💚<span>LINE</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('discord')}>🎮<span>Discord</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('email')}>✉️<span>Email</span></button>
+                  <button className="invite-share-btn" onClick={()=>shareLink('sms')}>💬<span>SMS</span></button>
                 </div>
               </>
             )}
