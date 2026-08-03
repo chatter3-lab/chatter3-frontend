@@ -1,0 +1,19 @@
+{
+  "name": "Chatter3 — English Conversation Practice",
+  "short_name": "Chatter3",
+  "description": "Free English conversation practice with real people worldwide. 1-on-1 video calls, earn reward points, and improve your speaking skills.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d1a",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "categories": ["education", "social"],
+  "icons": [
+    {
+      "src": "/c3.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
