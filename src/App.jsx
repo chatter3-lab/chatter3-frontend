@@ -1283,7 +1283,7 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
         <button className="header-btn btn-logout" onClick={onBack}>← Back</button>
       </div>
       <div className="admin-tabs">
-        {['analytics','users','reports','settings','health'].map(t=>(
+        {['analytics','users','referrals','reports','settings','health'].map(t=>(
           <button key={t} className={`admin-tab ${tab===t?'active':''}`} style={{textTransform:'capitalize'}} onClick={()=>setTab(t)}>{t.replace('-',' ')}</button>
         ))}
       </div>
@@ -1330,8 +1330,48 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
       {tab==='settings'&&(
         <AdminSettingsPanel user={user}/>
       )}
+      {tab==='referrals'&&(
+        <ReferralsTab post={post}/>
+      )}
       {tab==='health'&&(
         <HealthTab stats={stats} user={user} post={post}/>
+      )}
+    </div>
+  );
+}
+
+function ReferralsTab({post}){
+  const[data,setData]=useState(null);
+  const[loading,setLoading]=useState(true);
+  useEffect(()=>{
+    post('/api/admin/referrals',{}).then(d=>{if(d.success)setData(d);}).catch(()=>{}).finally(()=>setLoading(false));
+  },[]);
+  if(loading)return<p style={{color:'#9ca3af',padding:'1rem'}}>Loading…</p>;
+  if(!data)return<p style={{color:'#9ca3af',padding:'1rem'}}>Failed to load referral data.</p>;
+  return(
+    <div className="admin-section">
+      <h3>Referral Overview</h3>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.75rem',marginBottom:'1.5rem'}}>
+        <div className="kpi-card"><div className="kpi-val">{data.total_referrals}</div><div className="kpi-lbl">Total Referrals</div></div>
+        <div className="kpi-card"><div className="kpi-val" style={{color:'#4f46e5'}}>{data.total_rp_given} RP</div><div className="kpi-lbl">Total RP Awarded</div></div>
+      </div>
+      <h3>Recent Referral Rewards</h3>
+      {data.transactions.length===0?<p style={{color:'#9ca3af'}}>No referral rewards yet.</p>:(
+        <div style={{overflowX:'auto'}}>
+          <table className="admin-table">
+            <thead><tr><th>User</th><th>Email</th><th>RP</th><th>Date</th></tr></thead>
+            <tbody>
+              {data.transactions.map(t=>(
+                <tr key={t.id}>
+                  <td>{t.nickname||t.username}</td>
+                  <td>{t.email}</td>
+                  <td style={{fontWeight:700,color:'#4f46e5'}}>+{t.points}</td>
+                  <td>{new Date(t.created_at).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
