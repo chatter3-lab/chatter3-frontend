@@ -2407,7 +2407,7 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
             </span>
           </div>
         )}
-        {isFreePeriod&&(
+        {isFreePeriod&&user.founding_member&&(
           <div style={{background:'linear-gradient(135deg,#fef3c7,#fde68a)',border:'1px solid #fbbf24',borderRadius:10,padding:'10px 16px',marginBottom:'.75rem',fontSize:'.85rem',color:'#92400e',fontWeight:500}}>
             🎉 <strong>Founding Member</strong> — FP consumption is waived during your free period!
           </div>
