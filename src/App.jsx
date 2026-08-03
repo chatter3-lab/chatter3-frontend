@@ -1897,9 +1897,159 @@ function HealthTab({user,post}){
 }
 
 // ─────────────────────────────────────────────────────────────────
+// LANDING PAGES
+// ─────────────────────────────────────────────────────────────────
+const LP_STYLES=`
+.lp{font-family:'DM Sans',-apple-system,sans-serif;color:#1a1a2e;background:#f5f5f5;min-height:100vh;}
+.lp-nav{background:white;padding:1rem 0;box-shadow:0 2px 10px rgba(0,0,0,.08);position:sticky;top:0;z-index:100;}
+.lp-nav-inner{max-width:900px;margin:0 auto;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+.lp-nav a{color:#4f46e5;text-decoration:none;font-weight:700;font-size:1.1rem;}
+.lp-nav .lp-cta{background:linear-gradient(135deg,#4f8ef7,#7c3aed);color:white;padding:8px 20px;border-radius:8px;font-size:.88rem;}
+.lp-hero{max-width:900px;margin:0 auto;padding:4rem 1.5rem 3rem;text-align:center;}
+.lp-hero h1{font-family:'Sora',sans-serif;font-size:2.5rem;font-weight:800;line-height:1.2;margin:0 0 1rem;letter-spacing:-.02em;}
+.lp-hero p{font-size:1.15rem;color:#6b7280;line-height:1.6;max-width:600px;margin:0 auto 2rem;}
+.lp-hero .lp-cta{display:inline-block;background:linear-gradient(135deg,#4f8ef7,#7c3aed);color:white;padding:14px 32px;border-radius:10px;font-size:1.05rem;font-weight:700;text-decoration:none;transition:all .2s;}
+.lp-hero .lp-cta:hover{opacity:.9;transform:translateY(-2px);}
+.lp-section{max-width:900px;margin:0 auto;padding:3rem 1.5rem;}
+.lp-section h2{font-family:'Sora',sans-serif;font-size:1.6rem;font-weight:800;margin:0 0 1.5rem;text-align:center;}
+.lp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;}
+.lp-card{background:white;padding:1.5rem;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.lp-card .lp-icon{font-size:2rem;margin-bottom:.75rem;}
+.lp-card h3{font-family:'Sora',sans-serif;font-size:1.05rem;font-weight:700;margin:0 0 .5rem;}
+.lp-card p{color:#6b7280;font-size:.92rem;line-height:1.6;margin:0;}
+.lp-steps{counter-reset:step;}
+.lp-step{display:flex;gap:1.25rem;margin-bottom:2rem;align-items:flex-start;}
+.lp-step-num{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#4f8ef7,#7c3aed);color:white;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:1.1rem;flex-shrink:0;}
+.lp-step h3{font-family:'Sora',sans-serif;font-size:1.05rem;font-weight:700;margin:0 0 .4rem;}
+.lp-step p{color:#6b7280;font-size:.92rem;line-height:1.6;margin:0;}
+.lp-faq{max-width:700px;margin:0 auto;}
+.lp-faq-item{border-bottom:1px solid #e5e7eb;padding:1.25rem 0;}
+.lp-faq-item h3{font-size:1rem;font-weight:600;margin:0 0 .4rem;cursor:pointer;}
+.lp-faq-item p{color:#6b7280;font-size:.9rem;line-height:1.6;margin:0;}
+.lp-cta-bottom{text-align:center;padding:4rem 1.5rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;margin-top:3rem;}
+.lp-cta-bottom h2{color:white;margin:0 0 1rem;}
+.lp-cta-bottom .lp-cta{background:white;color:#4f46e5;}
+@media(prefers-color-scheme:dark){
+  .lp{background:#0f1117;color:#e2e8f0;}
+  .lp-nav{background:#1a1d2e;}
+  .lp-hero h1,.lp-section h2,.lp-step h3,.lp-card h3{color:#e2e8f0;}
+  .lp-hero p,.lp-card p,.lp-step p,.lp-faq-item p{color:#94a3b8;}
+  .lp-card{background:#1a1d2e;}
+  .lp-faq-item{border-color:#2d3a5c;}
+  .lp-cta-bottom{background:#1a1d2e;}
+}
+@media(max-width:640px){
+  .lp-hero h1{font-size:1.8rem;}
+  .lp-hero p{font-size:1rem;}
+}
+`;
+function HowItWorksPage(){
+  return(
+    <div className="lp">
+      <style>{LP_STYLES}</style>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/">Chatter3</a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
+      <div className="lp-hero">
+        <h1>How Chatter3 Works</h1>
+        <p>Practice English conversation with real people in minutes. Here's how it works — it's free, fun, and effective.</p>
+        <a href="/" className="lp-cta">Start Practicing Now</a>
+      </div>
+      <div className="lp-section">
+        <h2>Three Simple Steps</h2>
+        <div className="lp-steps">
+          <div className="lp-step"><div className="lp-step-num">1</div><div><h3>Create Your Free Account</h3><p>Sign up with your email or Google account. Choose your English level — beginner, intermediate, or advanced — and tell us your native language so we can match you better.</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">2</div><div><h3>Find a Conversation Partner</h3><p>Click "Find Partner" and we'll match you with someone online who wants to practice too. Matches are based on your level, availability, and preferences.</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">3</div><div><h3>Start Talking</h3><p>Jump into a 1-on-1 video call and practice real English conversation. You'll earn Reward Points (RP) for every session — use them to extend your practice time or exchange for Free Points (FP).</p></div></div>
+        </div>
+      </div>
+      <div className="lp-section">
+        <h2>Why Chatter3?</h2>
+        <div className="lp-grid">
+          <div className="lp-card"><div className="lp-icon">🎯</div><h3>Real Conversations</h3><p>No textbooks or scripts. Practice with real people about topics that matter to you.</p></div>
+          <div className="lp-card"><div className="lp-icon">🌍</div><h3>Global Community</h3><p>Meet English learners from around the world. Every conversation is a cultural exchange.</p></div>
+          <div className="lp-card"><div className="lp-icon">⚡</div><h3>Instant Matching</h3><p>No waiting. Find a partner in seconds and start your practice session immediately.</p></div>
+          <div className="lp-card"><div className="lp-icon">🏆</div><h3>Earn Rewards</h3><p>Get Reward Points for every call. The more you practice, the more you earn.</p></div>
+          <div className="lp-card"><div className="lp-icon">🔒</div><h3>Safe & Private</h3><p>Built-in reporting and moderation. Your safety is our priority.</p></div>
+          <div className="lp-card"><div className="lp-icon">💰</div><h3>100% Free</h3><p>Daily Free Points for video calls. No credit card required. No hidden fees.</p></div>
+        </div>
+      </div>
+      <div className="lp-section">
+        <h2>Frequently Asked Questions</h2>
+        <div className="lp-faq">
+          <div className="lp-faq-item"><h3>Is Chatter3 really free?</h3><p>Yes! You get Free Points (FP) every day for video calls. You can also earn Reward Points (RP) by completing sessions and referring friends.</p></div>
+          <div className="lp-faq-item"><h3>How long are the video calls?</h3><p>Beginners get 5-minute sessions. Intermediate and advanced learners get 10-minute sessions. You can earn more time with RP.</p></div>
+          <div className="lp-faq-item"><h3>What if I get a bad partner?</h3><p>You can report inappropriate behavior and we take action quickly. You can also end any call at any time.</p></div>
+          <div className="lp-faq-item"><h3>Do I need a camera?</h3><p>Yes, Chatter3 is a video conversation platform. You need a webcam or phone camera to participate.</p></div>
+        </div>
+      </div>
+      <div className="lp-cta-bottom">
+        <h2>Ready to Improve Your English?</h2>
+        <p style={{color:'rgba(255,255,255,.8)',marginBottom:'1.5rem',fontSize:'1.05rem'}}>Join thousands of learners practicing English conversation every day.</p>
+        <a href="/" className="lp-cta">Create Free Account</a>
+      </div>
+    </div>
+  );
+}
+
+function ForBeginnersPage(){
+  return(
+    <div className="lp">
+      <style>{LP_STYLES}</style>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/">Chatter3</a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
+      <div className="lp-hero">
+        <h1>English Conversation for Beginners</h1>
+        <p>Just starting your English journey? Chatter3 is the perfect place to practice speaking with real people — no pressure, no judgment.</p>
+        <a href="/" className="lp-cta">Start as a Beginner</a>
+      </div>
+      <div className="lp-section">
+        <h2>Why Beginners Love Chatter3</h2>
+        <div className="lp-grid">
+          <div className="lp-card"><div className="lp-icon">🌱</div><h3>Beginner-Friendly Matching</h3><p>We match you with other beginners who are at the same level. No awkward conversations with advanced speakers.</p></div>
+          <div className="lp-card"><div className="lp-icon">⏰</div><h3>5-Minute Sessions</h3><p>Short, focused sessions are perfect for beginners. Practice a little every day and build your confidence.</p></div>
+          <div className="lp-card"><div className="lp-icon">🎯</div><h3>Real Topics</h3><p>Talk about everyday things — your hobbies, your day, your favorite food. No textbooks, just real conversation.</p></div>
+          <div className="lp-card"><div className="lp-icon">💪</div><h3>Build Confidence</h3><p>Every conversation makes you better. The more you practice, the more natural English feels.</p></div>
+        </div>
+      </div>
+      <div className="lp-section">
+        <h2>How to Get Started as a Beginner</h2>
+        <div className="lp-steps">
+          <div className="lp-step"><div className="lp-step-num">1</div><div><h3>Sign Up for Free</h3><p>Create your account in 30 seconds. Select "Beginner" as your English level. That's it — no test, no pressure.</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">2</div><div><h3>Complete Your Profile</h3><p>Tell us your native language and country. This helps us find you the best conversation partners.</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">3</div><div><h3>Find Your First Partner</h3><p>Click "Find Partner" and we'll match you with another beginner. You'll both be learning together — it's comfortable and fun.</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">4</div><div><h3>Start Talking</h3><p>Your 5-minute session begins. Don't worry about making mistakes — that's how you learn! Just try your best and have fun.</p></div></div>
+        </div>
+      </div>
+      <div className="lp-section">
+        <h2>Tips for Beginner English Conversations</h2>
+        <div className="lp-grid">
+          <div className="lp-card"><h3>Don't Be Afraid of Mistakes</h3><p>Mistakes are part of learning. Every fluent speaker started exactly where you are now.</p></div>
+          <div className="lp-card"><h3>Start with Simple Topics</h3><p>Talk about your name, your country, your hobbies, the weather. Simple topics are the best way to start.</p></div>
+          <div className="lp-card"><h3>Practice Every Day</h3><p>Even 5 minutes a day makes a huge difference. Consistency is more important than perfection.</p></div>
+          <div className="lp-card"><h3>Listen and Repeat</h3><p>Pay attention to how your partner speaks. Try new words and phrases. That's how you improve fast.</p></div>
+        </div>
+      </div>
+      <div className="lp-section lp-faq">
+        <h2>Common Questions from Beginners</h2>
+        <div className="lp-faq-item"><h3>What if I don't understand my partner?</h3><p>That's okay! Just say "Sorry, can you repeat that?" or "What does that mean?" Most people are happy to help.</p></div>
+        <div className="lp-faq-item"><h3>Is it okay to use my native language sometimes?</h3><p>A little is fine, but try to speak English as much as possible. Even simple English is better than perfect native language.</p></div>
+        <div className="lp-faq-item"><h3>How many sessions should I do per week?</h3><p>Try to do at least 3-5 sessions per week. The more you practice, the faster you'll improve.</p></div>
+      </div>
+      <div className="lp-cta-bottom">
+        <h2>Your English Journey Starts Here</h2>
+        <p style={{color:'rgba(255,255,255,.8)',marginBottom:'1.5rem',fontSize:'1.05rem'}}>Join Chatter3 today and start speaking English with confidence.</p>
+        <a href="/" className="lp-cta">Join Chatter3 Free</a>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
 // MAIN APP
 // ─────────────────────────────────────────────────────────────────
 export default function App(){
+  const path=window.location.pathname;
+  if(path==='/how-it-works')return<HowItWorksPage/>;
+  if(path==='/for-beginners')return<ForBeginnersPage/>;
+
   const[view,setView]=useState('auth');
   const[user,setUser]=useState(null);
   const[session,setSession]=useState(null);
