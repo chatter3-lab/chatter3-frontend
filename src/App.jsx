@@ -1900,7 +1900,10 @@ function HealthTab({user,post}){
 // LANDING PAGES
 // ─────────────────────────────────────────────────────────────────
 const LP_STYLES=`
-.lp{font-family:'DM Sans',-apple-system,sans-serif;color:#1a1a2e;background:#f5f5f5;min-height:100vh;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{display:block!important;place-items:unset!important;background:#f5f5f5!important;color:#1a1a2e!important;}
+a{color:inherit;text-decoration:none;}
+.lp{font-family:'DM Sans',-apple-system,sans-serif;color:#1a1a2e;background:#f5f5f5;min-height:100vh;width:100%;}
 .lp-nav{background:white;padding:1rem 0;box-shadow:0 2px 10px rgba(0,0,0,.08);position:sticky;top:0;z-index:100;}
 .lp-nav-inner{max-width:900px;margin:0 auto;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
 .lp-nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:#1a1a2e;}
@@ -1950,7 +1953,7 @@ function HowItWorksPage(){
   return(
     <div className="lp">
       <style>{LP_STYLES}</style>
-      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/" className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/><span>Chatter3</span></a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/" className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
       <div className="lp-hero">
         <h1>How Chatter3 Works</h1>
         <p>Practice English conversation with real people in minutes. Here's how it works — it's free, fun, and effective.</p>
@@ -1997,7 +2000,7 @@ function ForBeginnersPage(){
   return(
     <div className="lp">
       <style>{LP_STYLES}</style>
-      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/" className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/><span>Chatter3</span></a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/" className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
       <div className="lp-hero">
         <h1>English Conversation for Beginners</h1>
         <p>Just starting your English journey? Chatter3 is the perfect place to practice speaking with real people — no pressure, no judgment.</p>
