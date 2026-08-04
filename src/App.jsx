@@ -1382,13 +1382,12 @@ function ReferralsTab({post}){
       {data.transactions.length===0?<p style={{color:'#9ca3af'}}>No referral rewards yet.</p>:(
         <div style={{overflowX:'auto'}}>
           <table className="admin-table">
-            <thead><tr><th>User</th><th>Email</th><th>RP</th><th>Date</th></tr></thead>
+            <thead><tr><th>Referred By</th><th>New User</th><th>Date</th></tr></thead>
             <tbody>
               {data.transactions.map(t=>(
                 <tr key={t.id}>
-                  <td>{t.nickname||t.username}</td>
-                  <td>{t.email}</td>
-                  <td style={{fontWeight:700,color:'#4f46e5'}}>+{t.points}</td>
+                  <td>{t.referrer_nickname||t.referrer_name||t.referrer_email}</td>
+                  <td>{t.invitee_nickname||t.invitee_name||t.invitee_email}</td>
                   <td>{new Date(t.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}
