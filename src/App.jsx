@@ -2384,7 +2384,7 @@ export default function App(){
                       <a href="/blog" target="_blank">📝 Blog</a>
                     </div>
                   </div>
-                  <LanguageSwitcher currentLang={getLangFromPath(window.location.pathname)}/>
+                  <LanguageSwitcher currentLang={getLangFromPath(window.location.pathname)||localStorage.getItem('chatter3_lang')||'en'}/>
                   {user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ Admin</button>:null}
                   <button className="header-btn btn-logout" onClick={handleLogout}>Logout</button>
                 </div>
