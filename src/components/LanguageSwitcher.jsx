@@ -29,17 +29,19 @@ export default function LanguageSwitcher({ currentLang }) {
   return (
     <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
       <button onClick={() => setIsOpen(!isOpen)} className="lang-btn">
-        {current.code.toUpperCase()}
+        <span>{current.flag}</span>
+        <span>{current.code.toUpperCase()}</span>
       </button>
       {isOpen && (
         <div className="lang-dropdown">
-          {languages.map(({ code }) => (
+          {languages.map(({ code, flag }) => (
             <button
               key={code}
               onClick={() => handleLanguageChange(code)}
               className={`lang-option${code === currentLang ? ' active' : ''}`}
             >
-              {code.toUpperCase()}
+              <span>{flag}</span>
+              <span>{code.toUpperCase()}</span>
             </button>
           ))}
         </div>
