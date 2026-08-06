@@ -1,0 +1,137 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "howItWorks": "Cómo Funciona",
+    "forBeginners": "Para Principiantes",
+    "blog": "Blog",
+    "getStarted": "Comenzar Gratis"
+  },
+  "footer": {
+    "copyright": "© 2026 Chatter3. Practica inglés con personas reales."
+  },
+  "howItWorks": {
+    "title": "Cómo Funciona Chatter3",
+    "subtitle": "Practica conversación en inglés con personas reales en minutos. Así es como funciona — es gratis, divertido y efectivo.",
+    "cta": "Comenzar a Practicar Ahora",
+    "stepsTitle": "Tres Pasos Simples",
+    "step1Title": "Crea Tu Cuenta Gratis",
+    "step1Desc": "Regístrate con tu email o cuenta de Google. Elige tu nivel de inglés — principiante, intermedio o avanzado — y dinos tu idioma nativo para emparejarte mejor.",
+    "step2Title": "Encuentra un Compañero de Conversación",
+    "step2Desc": "Haz clic en \"Encontrar Compañero\" y te emparejaremos con alguien en línea que también quiera practicar. Los emparejamientos se basan en tu nivel, disponibilidad y preferencias.",
+    "step3Title": "Comienza a Hablar",
+    "step3Desc": "Entra en una videollamada 1 a 1 y practica conversación real en inglés. Ganarás Puntos de Recompensa (RP) en cada sesión — úsalos para extender tu tiempo de práctica o canjéalos por Puntos Gratis (FP).",
+    "whyTitle": "¿Por Qué Chatter3?",
+    "feature1Title": "Conversaciones Reales",
+    "feature1Desc": "Sin libros de texto ni guiones. Practica con personas reales sobre temas que te importan.",
+    "feature2Title": "Comunidad Global",
+    "feature2Desc": "Conoce aprendices de inglés de todo el mundo. Cada conversación es un intercambio cultural.",
+    "feature3Title": "Emparejamiento Instantáneo",
+    "feature3Desc": "Sin esperas. Encuentra un compañero en segundos y comienza tu sesión de práctica inmediatamente.",
+    "feature4Title": "Gana Recompensas",
+    "feature4Desc": "Obtén Puntos de Recompensa en cada llamada. Cuanto más practiques, más ganas.",
+    "feature5Title": "Seguro y Privado",
+    "feature5Desc": "Sistema integrado de reportes y moderación. Tu seguridad es nuestra prioridad.",
+    "feature6Title": "100% Gratis",
+    "feature6Desc": "Puntos Gratis diarios para videollamadas. No se requiere tarjeta de crédito. Sin costos ocultos.",
+    "faqTitle": "Preguntas Frecuentes",
+    "faq1Question": "¿Chatter3 es realmente gratis?",
+    "faq1Answer": "¡Sí! Obtienes Puntos Gratis (FP) cada día para videollamadas. También puedes ganar Puntos de Recompensa (RP) completando sesiones y refiriendo amigos.",
+    "faq2Question": "¿Cuánto duran las videollamadas?",
+    "faq2Answer": "Los principiantes tienen sesiones de 5 minutos. Los estudiantes intermedios y avanzados tienen sesiones de 10 minutos. Puedes ganar más tiempo con RP.",
+    "faq3Question": "¿Qué pasa si me toca un mal compañero?",
+    "faq3Answer": "Puedes reportar comportamiento inapropiado y tomamos acción rápidamente. También puedes terminar cualquier llamada en cualquier momento.",
+    "faq4Question": "¿Necesito una cámara?",
+    "faq4Answer": "Sí, Chatter3 es una plataforma de videoconversación. Necesitas una cámara web o de teléfono para participar.",
+    "bottomTitle": "¿Listo para Mejorar Tu Inglés?",
+    "bottomSubtitle": "Únete a miles de aprendices practicando conversación en inglés todos los días.",
+    "bottomCta": "Crear Cuenta Gratis"
+  },
+  "forBeginners": {
+    "title": "Conversación en Inglés para Principiantes",
+    "subtitle": "¿Recién comenzando tu viaje en inglés? Chatter3 es el lugar perfecto para practicar hablando con personas reales — sin presión, sin juicios.",
+    "cta": "Comenzar como Principiante",
+    "whyTitle": "Por Qué a los Principiantes les Encanta Chatter3",
+    "feature1Title": "Emparejamiento para Principiantes",
+    "feature1Desc": "Te emparejamos con otros principiantes que están en tu mismo nivel. Sin conversaciones incómodas con hablantes avanzados.",
+    "feature2Title": "Sesiones de 5 Minutos",
+    "feature2Desc": "Sesiones cortas y enfocadas son perfectas para principiantes. Practica un poco cada día y construye tu confianza.",
+    "feature3Title": "Temas Reales",
+    "feature3Desc": "Habla de cosas cotidianas — tus pasatiempos, tu día, tu comida favorita. Sin libros de texto, solo conversación real.",
+    "feature4Title": "Construye Confianza",
+    "feature4Desc": "Cada conversación te hace mejor. Cuanto más practiques, más natural se siente el inglés.",
+    "stepsTitle": "Cómo Comenzar como Principiante",
+    "step1Title": "Regístrate Gratis",
+    "step1Desc": "Crea tu cuenta en 30 segundos. Selecciona \"Principiante\" como tu nivel de inglés. Eso es todo — sin exámenes, sin presión.",
+    "step2Title": "Completa Tu Perfil",
+    "step2Desc": "Dinos tu idioma nativo y país. Esto nos ayuda a encontrar los mejores compañeros de conversación para ti.",
+    "step3Title": "Encuentra Tu Primer Compañero",
+    "step3Desc": "Haz clic en \"Encontrar Compañero\" y te emparejaremos con otro principiante. Ambos aprenderán juntos — es cómodo y divertido.",
+    "step4Title": "Comienza a Hablar",
+    "step4Desc": "Tu sesión de 5 minutos comienza. No te preocupes por cometer errores — ¡así es como aprendes! Solo haz tu mejor esfuerzo y diviértete.",
+    "tipsTitle": "Consejos para Conversaciones en Inglés para Principiantes",
+    "tip1Title": "No Tengas Miedo de los Errores",
+    "tip1Desc": "Los errores son parte del aprendizaje. Todo hablante fluido comenzó exactamente donde estás ahora.",
+    "tip2Title": "Comienza con Temas Simples",
+    "tip2Desc": "Habla de tu nombre, tu país, tus pasatiempos, el clima. Los temas simples son la mejor manera de comenzar.",
+    "tip3Title": "Practica Todos los Días",
+    "tip3Desc": "Incluso 5 minutos al día hacen una gran diferencia. La constancia es más importante que la perfección.",
+    "tip4Title": "Escucha y Repite",
+    "tip4Desc": "Presta atención a cómo habla tu compañero. Prueba nuevas palabras y frases. Así es como mejoras rápido.",
+    "faqTitle": "Preguntas Comunes de Principiantes",
+    "faq1Question": "¿Qué pasa si no entiendo a mi compañero?",
+    "faq1Answer": "¡No pasa nada! Solo di \"Disculpa, ¿puedes repetir eso?\" o \"¿Qué significa eso?\" La mayoría de la gente está feliz de ayudar.",
+    "faq2Question": "¿Está bien usar mi idioma nativo a veces?",
+    "faq2Answer": "Un poco está bien, pero intenta hablar inglés tanto como sea posible. Incluso inglés simple es mejor que idioma nativo perfecto.",
+    "faq3Question": "¿Cuántas sesiones debería hacer por semana?",
+    "faq3Answer": "Intenta hacer al menos 3-5 sesiones por semana. Cuanto más practiques, más rápido mejorarás.",
+    "bottomTitle": "Tu Viaje en Inglés Comienza Aquí",
+    "bottomSubtitle": "Únete a Chatter3 hoy y comienza a hablar inglés con confianza.",
+    "bottomCta": "Unirse a Chatter3 Gratis"
+  },
+  "blog": {
+    "title": "Blog de Chatter3",
+    "subtitle": "Consejos, guías y perspectivas para ayudarte a mejorar tus habilidades de conversación en inglés más rápido.",
+    "latestArticles": "Últimos Artículos",
+    "backToArticles": "← Volver a todos los artículos",
+    "readMore": "Leer más →",
+    "minRead": "min de lectura",
+    "readyToPractice": "¿Listo para Practicar?",
+    "applyLearning": "Aplica lo que aprendiste — encuentra un compañero de conversación en Chatter3.",
+    "startFree": "Comenzar Gratis",
+    "bottomTitle": "Comienza a Hablar Inglés Hoy",
+    "bottomSubtitle": "Únete a miles de aprendices practicando con compañeros de conversación reales.",
+    "bottomCta": "Unirse a Chatter3 Gratis",
+    "articles": {
+      "howToImprove": {
+        "title": "Cómo Mejorar el Habla en Inglés: 7 Métodos Probados",
+        "excerpt": "Descubre las formas más efectivas de mejorar tus habilidades de conversación en inglés a través de la práctica diaria, compañeros de conversación y técnicas de inmersión."
+      },
+      "conversationTopics": {
+        "title": "50 Temas de Conversación en Inglés para Practicar",
+        "excerpt": "¿Te cuesta encontrar de qué hablar durante la práctica de inglés? Aquí tienes 50 temas de conversación organizados por nivel de dificultad."
+      },
+      "videoCallsBenefits": {
+        "title": "Por Qué las Videollamadas Son Mejores que el Chat de Texto para Aprender Idiomas",
+        "excerpt": "La investigación muestra que las conversaciones por video mejoran las habilidades lingüísticas más rápido que el chat basado en texto."
+      }
+    }
+  },
+  "meta": {
+    "home": {
+      "title": "Chatter3 — Práctica Gratuita de Conversación en Inglés con Personas Reales",
+      "description": "Practica conversación en inglés con personas reales a través de videollamadas gratis. Únete a Chatter3 y mejora tus habilidades de habla con emparejamiento instantáneo."
+    },
+    "howItWorks": {
+      "title": "Cómo Funciona Chatter3 — Práctica de Conversación en Inglés",
+      "description": "Aprende cómo Chatter3 te conecta con personas reales para práctica gratuita de conversación en inglés. Tres simples pasos para comenzar a hablar."
+    },
+    "forBeginners": {
+      "title": "Conversación en Inglés para Principiantes — Chatter3",
+      "description": "Comienza tu viaje en inglés con Chatter3. Practica hablando con personas reales en sesiones amigables para principiantes de 5 minutos."
+    },
+    "blog": {
+      "title": "Blog de Chatter3 — Consejos y Guías para Hablar Inglés",
+      "description": "Consejos, guías y perspectivas para ayudarte a mejorar tus habilidades de conversación en inglés más rápido."
+    }
+  }
+}

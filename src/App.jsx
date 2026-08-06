@@ -1,5 +1,8 @@
 ﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import SEOHead from './components/SEOHead';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import { getTranslations, getLangFromPath, detectLanguage, getLocalizedPath, languages } from './i18n/detect';
 
 const API_URL = 'https://api.chatter3.com';
 const WS_URL = 'wss://api.chatter3.com';
@@ -112,6 +115,12 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .btn-logout{background:#fee2e2;color:#b91c1c;}
 .btn-admin{background:linear-gradient(135deg,#1e293b,#334155);color:white;}
 .btn-friends{background:#f0f4ff;color:#4f46e5;border:1px solid #c7d7fc;}
+.btn-help{background:#f0f4ff;color:#4f46e5;border:1px solid #c7d7fc;}
+.help-menu-wrapper{position:relative;}
+.help-dropdown{display:none;position:absolute;right:0;top:100%;background:white;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);min-width:160px;z-index:1000;margin-top:4px;}
+.help-menu-wrapper:hover .help-dropdown{display:block;}
+.help-dropdown a{display:block;padding:8px 14px;font-size:.85rem;color:#374151;text-decoration:none;transition:background .15s;}
+.help-dropdown a:hover{background:#f3f4f6;}
 .friend-item{display:flex;align-items:center;gap:9px;padding:10px;background:#f8fafc;border-radius:8px;margin-bottom:7px;border:1px solid #f1f5f9;}
 .friend-avatar{width:38px;height:38px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#4f46e5;overflow:hidden;flex-shrink:0;}
 .friend-info{flex:1;}.friend-name{font-weight:600;font-size:.88rem;color:#1a1a2e;}.friend-sub{font-size:.75rem;color:#94a3b8;margin-top:1px;}
@@ -132,7 +141,11 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .save-settings-btn{margin-top:1rem;padding:9px 20px;background:linear-gradient(135deg,#4f8ef7,#7c3aed);color:white;border:none;border-radius:7px;font-family:'Sora',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
 
 /* Auth */
-.auth-container{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:1rem;}
+.auth-container{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:1rem;}
+.auth-footer{margin-top:1.5rem;text-align:center;color:rgba(255,255,255,.7);font-size:.82rem;}
+.auth-footer-links{display:flex;gap:1rem;justify-content:center;margin-bottom:.5rem;flex-wrap:wrap;}
+.auth-footer-links a{color:rgba(255,255,255,.85);text-decoration:none;font-weight:500;}
+.auth-footer-links a:hover{text-decoration:underline;color:white;}
 .auth-box{background:white;padding:2rem;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.2);text-align:center;width:100%;max-width:500px;}
 .auth-header{display:flex;flex-direction:column;align-items:center;margin-bottom:1.5rem;}
 .auth-logo{width:100%;max-width:320px;height:auto;object-fit:contain;margin-bottom:.75rem;}
@@ -170,6 +183,27 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .stat-row:last-child{border-bottom:none;}
 .stat-label{color:#6b7280;font-size:.9rem;}
 .stat-value{font-weight:700;font-size:.9rem;}
+
+/* Leaderboard card */
+.leaderboard-card{background:white;padding:1.25rem 1.5rem;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin:1.5rem auto;max-width:580px;text-align:left;}
+.leaderboard-card h3{margin:0 0 .75rem;color:#1a1a2e;font-family:'Sora',sans-serif;font-size:1rem;}
+.lb-tabs{display:flex;gap:4px;}
+.lb-tab{padding:4px 10px;border-radius:8px;border:none;cursor:pointer;font-size:.75rem;font-weight:600;}
+.lb-tab.active{background:#4f46e5;color:white;}
+.lb-tab:not(.active){background:#f3f4f6;color:#6b7280;}
+.lb-row{display:flex;align-items:center;padding:8px 10px;border-radius:8px;margin-bottom:2px;}
+.lb-row.me{background:#eef2ff;font-weight:700;}
+.lb-rank{width:28px;font-size:.9rem;color:#6b7280;}
+.lb-name{flex:1;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lb-sessions{font-size:.78rem;color:#6b7280;margin-right:8px;}
+.lb-score{font-size:.78rem;font-weight:600;color:#4f46e5;}
+.lb-streak{margin-left:6px;font-size:.75rem;}
+
+/* Language switcher */
+.lang-btn{background:none;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.78rem;font-weight:600;letter-spacing:.04em;color:#374151;}
+.lang-dropdown{position:absolute;right:0;top:100%;margin-top:4px;background:white;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:1000;}
+.lang-option{display:block;width:100%;padding:8px 14px;border:none;background:white;cursor:pointer;font-size:.82rem;font-weight:600;letter-spacing:.04em;color:#374151;text-align:center;}
+.lang-option.active{color:#4f46e5;background:#f3f4f6;}
 
 /* FP/RP balance display */
 .balance-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin:.75rem 0 1rem;}
@@ -467,6 +501,19 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
   .welcome-message>p{color:#94a3b8;}
   .start-matching-btn{box-shadow:0 4px 18px rgba(79,142,247,.3);}
   .dashboard-online-pill{background:#0f2918;border-color:#166534;color:#4ade80;}
+  .leaderboard-card{background:#1a1d2e;box-shadow:0 2px 10px rgba(0,0,0,.3);}
+  .leaderboard-card h3{color:#e2e8f0;}
+  .lb-tab.active{background:#4f46e5;color:white;}
+  .lb-tab:not(.active){background:#1e293b;color:#94a3b8;}
+  .lb-row.me{background:#1e2740;}
+  .lb-rank{color:#94a3b8;}
+  .lb-name{color:#e2e8f0;}
+  .lb-sessions{color:#94a3b8;}
+  .lb-score{color:#93c5fd;}
+  .lang-btn{border-color:rgba(255,255,255,.2);color:#e2e8f0;}
+  .lang-dropdown{background:#1a1d2e;border-color:#2d3a5c;}
+  .lang-option{background:#1a1d2e;color:#e2e8f0;}
+  .lang-option.active{color:#93c5fd;background:#1e2740;}
   .friend-item{background:#1e293b;border-color:#2d3a5c;}
   .friend-name{color:#e2e8f0;}
   .friend-sub{color:#94a3b8;}
@@ -1900,7 +1947,9 @@ function HealthTab({user,post}){
 // ─────────────────────────────────────────────────────────────────
 const LP_STYLES=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{display:block!important;place-items:unset!important;background:#f5f5f5!important;color:#1a1a2e!important;}
+html,body{display:block!important;place-items:unset!important;background:#f5f5f5!important;color:#1a1a2e!important;min-height:100vh!important;width:100%!important;margin:0!important;padding:0!important;}
+body{display:block!important;place-items:unset!important;}
+#root{display:block!important;width:100%!important;max-width:100%!important;margin:0!important;padding:0!important;}
 a{color:inherit;text-decoration:none;}
 .lp{font-family:'DM Sans',-apple-system,sans-serif;color:#1a1a2e;background:#f5f5f5;min-height:100vh;width:100%;}
 .lp-nav{background:white;padding:1rem 0;box-shadow:0 2px 10px rgba(0,0,0,.08);position:sticky;top:0;z-index:100;}
@@ -1909,6 +1958,15 @@ a{color:inherit;text-decoration:none;}
 .lp-nav-logo img{height:36px;width:auto;}
 .lp-nav-logo span{font-family:'Sora',sans-serif;font-weight:800;font-size:1.1rem;}
 .lp-nav .lp-cta{background:linear-gradient(135deg,#4f8ef7,#7c3aed);color:white;padding:8px 20px;border-radius:8px;font-size:.88rem;text-decoration:none;}
+.lp-nav-links{display:flex;gap:1.25rem;align-items:center;}
+.lp-nav-links a{color:#4f46e5;font-weight:500;font-size:.9rem;text-decoration:none;transition:opacity .15s;}
+.lp-nav-links a:hover,.lp-nav-links a.active{opacity:.7;}
+.lp-footer{background:#1e293b;padding:2rem 1.5rem;text-align:center;}
+.lp-footer-inner{max-width:900px;margin:0 auto;}
+.lp-footer-links{display:flex;justify-content:center;gap:1.5rem;margin-bottom:.75rem;}
+.lp-footer-links a{color:#94a3b8;text-decoration:none;font-size:.88rem;transition:color .15s;}
+.lp-footer-links a:hover{color:white;}
+.lp-footer p{color:#64748b;font-size:.8rem;margin:0;}
 .lp-hero{max-width:900px;margin:0 auto;padding:4rem 1.5rem 3rem;text-align:center;}
 .lp-hero h1{font-family:'Sora',sans-serif;font-size:2.5rem;font-weight:800;line-height:1.2;margin:0 0 1rem;letter-spacing:-.02em;}
 .lp-hero p{font-size:1.15rem;color:#6b7280;line-height:1.6;max-width:600px;margin:0 auto 2rem;}
@@ -1937,113 +1995,235 @@ a{color:inherit;text-decoration:none;}
 @media(prefers-color-scheme:dark){
   .lp{background:#0f1117;color:#e2e8f0;}
   .lp-nav{background:#1a1d2e;}
-  .lp-nav-logo span{color:#e2e8f0;}
+  .lp-nav-logo{color:#e2e8f0!important;}
+  .lp-nav-links a{color:#818cf8;}
+  .lp-nav .lp-cta{color:white;}
   .lp-hero h1,.lp-section h2,.lp-step h3,.lp-card h3{color:#e2e8f0;}
   .lp-hero p,.lp-card p,.lp-step p,.lp-faq-item p{color:#94a3b8;}
   .lp-card{background:#1a1d2e;}
   .lp-faq-item{border-color:#2d3a5c;}
   .lp-cta-bottom{background:#1a1d2e;}
+  .lp-footer{background:#0f1117;}
 }
 @media(max-width:640px){
   .lp-hero h1{font-size:1.8rem;}
   .lp-hero p{font-size:1rem;}
 }
 `;
-function HowItWorksPage(){
+function HowItWorksPage({lang='en'}){
+  const t=getTranslations(lang);
+  const prefix=lang==='en'?'':`/${lang}`;
+  const canonical=`https://app.chatter3.com${prefix}/how-it-works`;
   return(
     <div className="lp">
       <style>{LP_STYLES}</style>
-      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/" className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
+      <SEOHead title={t.meta.howItWorks.title} description={t.meta.howItWorks.description} canonical={canonical} lang={lang}/>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`} className="active">{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a><a href={`${prefix}/blog`}>{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
       <div className="lp-hero">
-        <h1>How Chatter3 Works</h1>
-        <p>Practice English conversation with real people in minutes. Here's how it works — it's free, fun, and effective.</p>
-        <a href="/" className="lp-cta">Start Practicing Now</a>
+        <h1>{t.howItWorks.title}</h1>
+        <p>{t.howItWorks.subtitle}</p>
+        <a href="/" className="lp-cta">{t.howItWorks.cta}</a>
       </div>
       <div className="lp-section">
-        <h2>Three Simple Steps</h2>
+        <h2>{t.howItWorks.stepsTitle}</h2>
         <div className="lp-steps">
-          <div className="lp-step"><div className="lp-step-num">1</div><div><h3>Create Your Free Account</h3><p>Sign up with your email or Google account. Choose your English level — beginner, intermediate, or advanced — and tell us your native language so we can match you better.</p></div></div>
-          <div className="lp-step"><div className="lp-step-num">2</div><div><h3>Find a Conversation Partner</h3><p>Click "Find Partner" and we'll match you with someone online who wants to practice too. Matches are based on your level, availability, and preferences.</p></div></div>
-          <div className="lp-step"><div className="lp-step-num">3</div><div><h3>Start Talking</h3><p>Jump into a 1-on-1 video call and practice real English conversation. You'll earn Reward Points (RP) for every session — use them to extend your practice time or exchange for Free Points (FP).</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">1</div><div><h3>{t.howItWorks.step1Title}</h3><p>{t.howItWorks.step1Desc}</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">2</div><div><h3>{t.howItWorks.step2Title}</h3><p>{t.howItWorks.step2Desc}</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">3</div><div><h3>{t.howItWorks.step3Title}</h3><p>{t.howItWorks.step3Desc}</p></div></div>
         </div>
       </div>
       <div className="lp-section">
-        <h2>Why Chatter3?</h2>
+        <h2>{t.howItWorks.whyTitle}</h2>
         <div className="lp-grid">
-          <div className="lp-card"><div className="lp-icon">🎯</div><h3>Real Conversations</h3><p>No textbooks or scripts. Practice with real people about topics that matter to you.</p></div>
-          <div className="lp-card"><div className="lp-icon">🌍</div><h3>Global Community</h3><p>Meet English learners from around the world. Every conversation is a cultural exchange.</p></div>
-          <div className="lp-card"><div className="lp-icon">⚡</div><h3>Instant Matching</h3><p>No waiting. Find a partner in seconds and start your practice session immediately.</p></div>
-          <div className="lp-card"><div className="lp-icon">🏆</div><h3>Earn Rewards</h3><p>Get Reward Points for every call. The more you practice, the more you earn.</p></div>
-          <div className="lp-card"><div className="lp-icon">🔒</div><h3>Safe & Private</h3><p>Built-in reporting and moderation. Your safety is our priority.</p></div>
-          <div className="lp-card"><div className="lp-icon">💰</div><h3>100% Free</h3><p>Daily Free Points for video calls. No credit card required. No hidden fees.</p></div>
+          <div className="lp-card"><div className="lp-icon">🎯</div><h3>{t.howItWorks.feature1Title}</h3><p>{t.howItWorks.feature1Desc}</p></div>
+          <div className="lp-card"><div className="lp-icon">🌍</div><h3>{t.howItWorks.feature2Title}</h3><p>{t.howItWorks.feature2Desc}</p></div>
+          <div className="lp-card"><div className="lp-icon">⚡</div><h3>{t.howItWorks.feature3Title}</h3><p>{t.howItWorks.feature3Desc}</p></div>
+          <div className="lp-card"><div className="lp-icon">🏆</div><h3>{t.howItWorks.feature4Title}</h3><p>{t.howItWorks.feature4Desc}</p></div>
+          <div className="lp-card"><div className="lp-icon">🔒</div><h3>{t.howItWorks.feature5Title}</h3><p>{t.howItWorks.feature5Desc}</p></div>
+          <div className="lp-card"><div className="lp-icon">💰</div><h3>{t.howItWorks.feature6Title}</h3><p>{t.howItWorks.feature6Desc}</p></div>
         </div>
       </div>
       <div className="lp-section">
-        <h2>Frequently Asked Questions</h2>
+        <h2>{t.howItWorks.faqTitle}</h2>
         <div className="lp-faq">
-          <div className="lp-faq-item"><h3>Is Chatter3 really free?</h3><p>Yes! You get Free Points (FP) every day for video calls. You can also earn Reward Points (RP) by completing sessions and referring friends.</p></div>
-          <div className="lp-faq-item"><h3>How long are the video calls?</h3><p>Beginners get 5-minute sessions. Intermediate and advanced learners get 10-minute sessions. You can earn more time with RP.</p></div>
-          <div className="lp-faq-item"><h3>What if I get a bad partner?</h3><p>You can report inappropriate behavior and we take action quickly. You can also end any call at any time.</p></div>
-          <div className="lp-faq-item"><h3>Do I need a camera?</h3><p>Yes, Chatter3 is a video conversation platform. You need a webcam or phone camera to participate.</p></div>
+          <div className="lp-faq-item"><h3>{t.howItWorks.faq1Question}</h3><p>{t.howItWorks.faq1Answer}</p></div>
+          <div className="lp-faq-item"><h3>{t.howItWorks.faq2Question}</h3><p>{t.howItWorks.faq2Answer}</p></div>
+          <div className="lp-faq-item"><h3>{t.howItWorks.faq3Question}</h3><p>{t.howItWorks.faq3Answer}</p></div>
+          <div className="lp-faq-item"><h3>{t.howItWorks.faq4Question}</h3><p>{t.howItWorks.faq4Answer}</p></div>
         </div>
       </div>
       <div className="lp-cta-bottom">
-        <h2>Ready to Improve Your English?</h2>
-        <p style={{color:'rgba(255,255,255,.8)',marginBottom:'1.5rem',fontSize:'1.05rem'}}>Join thousands of learners practicing English conversation every day.</p>
-        <a href="/" className="lp-cta">Create Free Account</a>
+        <h2>{t.howItWorks.bottomTitle}</h2>
+        <p style={{color:'rgba(255,255,255,.8)',marginBottom:'1.5rem',fontSize:'1.05rem'}}>{t.howItWorks.bottomSubtitle}</p>
+        <a href="/" className="lp-cta">{t.howItWorks.bottomCta}</a>
       </div>
+      <footer className="lp-footer">
+        <div className="lp-footer-inner">
+          <div className="lp-footer-links">
+            <a href={`${prefix}/`}>{t.nav.home}</a>
+            <a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a>
+            <a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a>
+            <a href={`${prefix}/blog`}>{t.nav.blog}</a>
+            <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
+          </div>
+          <p>{t.footer.copyright}</p>
+        </div>
+      </footer>
     </div>
   );
 }
 
-function ForBeginnersPage(){
+function ForBeginnersPage({lang='en'}){
+  const t=getTranslations(lang);
+  const prefix=lang==='en'?'':`/${lang}`;
+  const canonical=`https://app.chatter3.com${prefix}/for-beginners`;
   return(
     <div className="lp">
       <style>{LP_STYLES}</style>
-      <nav className="lp-nav"><div className="lp-nav-inner"><a href="/" className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></a><a href="/" className="lp-cta">Get Started Free</a></div></nav>
+      <SEOHead title={t.meta.forBeginners.title} description={t.meta.forBeginners.description} canonical={canonical} lang={lang}/>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`} className="active">{t.nav.forBeginners}</a><a href={`${prefix}/blog`}>{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
       <div className="lp-hero">
-        <h1>English Conversation for Beginners</h1>
-        <p>Just starting your English journey? Chatter3 is the perfect place to practice speaking with real people — no pressure, no judgment.</p>
-        <a href="/" className="lp-cta">Start as a Beginner</a>
+        <h1>{t.forBeginners.title}</h1>
+        <p>{t.forBeginners.subtitle}</p>
+        <a href="/" className="lp-cta">{t.forBeginners.cta}</a>
       </div>
       <div className="lp-section">
-        <h2>Why Beginners Love Chatter3</h2>
+        <h2>{t.forBeginners.whyTitle}</h2>
         <div className="lp-grid">
-          <div className="lp-card"><div className="lp-icon">🌱</div><h3>Beginner-Friendly Matching</h3><p>We match you with other beginners who are at the same level. No awkward conversations with advanced speakers.</p></div>
-          <div className="lp-card"><div className="lp-icon">⏰</div><h3>5-Minute Sessions</h3><p>Short, focused sessions are perfect for beginners. Practice a little every day and build your confidence.</p></div>
-          <div className="lp-card"><div className="lp-icon">🎯</div><h3>Real Topics</h3><p>Talk about everyday things — your hobbies, your day, your favorite food. No textbooks, just real conversation.</p></div>
-          <div className="lp-card"><div className="lp-icon">💪</div><h3>Build Confidence</h3><p>Every conversation makes you better. The more you practice, the more natural English feels.</p></div>
+          <div className="lp-card"><div className="lp-icon">🌱</div><h3>{t.forBeginners.feature1Title}</h3><p>{t.forBeginners.feature1Desc}</p></div>
+          <div className="lp-card"><div className="lp-icon">⏰</div><h3>{t.forBeginners.feature2Title}</h3><p>{t.forBeginners.feature2Desc}</p></div>
+          <div className="lp-card"><div className="lp-icon">🎯</div><h3>{t.forBeginners.feature3Title}</h3><p>{t.forBeginners.feature3Desc}</p></div>
+          <div className="lp-card"><div className="lp-icon">💪</div><h3>{t.forBeginners.feature4Title}</h3><p>{t.forBeginners.feature4Desc}</p></div>
         </div>
       </div>
       <div className="lp-section">
-        <h2>How to Get Started as a Beginner</h2>
+        <h2>{t.forBeginners.stepsTitle}</h2>
         <div className="lp-steps">
-          <div className="lp-step"><div className="lp-step-num">1</div><div><h3>Sign Up for Free</h3><p>Create your account in 30 seconds. Select "Beginner" as your English level. That's it — no test, no pressure.</p></div></div>
-          <div className="lp-step"><div className="lp-step-num">2</div><div><h3>Complete Your Profile</h3><p>Tell us your native language and country. This helps us find you the best conversation partners.</p></div></div>
-          <div className="lp-step"><div className="lp-step-num">3</div><div><h3>Find Your First Partner</h3><p>Click "Find Partner" and we'll match you with another beginner. You'll both be learning together — it's comfortable and fun.</p></div></div>
-          <div className="lp-step"><div className="lp-step-num">4</div><div><h3>Start Talking</h3><p>Your 5-minute session begins. Don't worry about making mistakes — that's how you learn! Just try your best and have fun.</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">1</div><div><h3>{t.forBeginners.step1Title}</h3><p>{t.forBeginners.step1Desc}</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">2</div><div><h3>{t.forBeginners.step2Title}</h3><p>{t.forBeginners.step2Desc}</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">3</div><div><h3>{t.forBeginners.step3Title}</h3><p>{t.forBeginners.step3Desc}</p></div></div>
+          <div className="lp-step"><div className="lp-step-num">4</div><div><h3>{t.forBeginners.step4Title}</h3><p>{t.forBeginners.step4Desc}</p></div></div>
         </div>
       </div>
       <div className="lp-section">
-        <h2>Tips for Beginner English Conversations</h2>
+        <h2>{t.forBeginners.tipsTitle}</h2>
         <div className="lp-grid">
-          <div className="lp-card"><h3>Don't Be Afraid of Mistakes</h3><p>Mistakes are part of learning. Every fluent speaker started exactly where you are now.</p></div>
-          <div className="lp-card"><h3>Start with Simple Topics</h3><p>Talk about your name, your country, your hobbies, the weather. Simple topics are the best way to start.</p></div>
-          <div className="lp-card"><h3>Practice Every Day</h3><p>Even 5 minutes a day makes a huge difference. Consistency is more important than perfection.</p></div>
-          <div className="lp-card"><h3>Listen and Repeat</h3><p>Pay attention to how your partner speaks. Try new words and phrases. That's how you improve fast.</p></div>
+          <div className="lp-card"><h3>{t.forBeginners.tip1Title}</h3><p>{t.forBeginners.tip1Desc}</p></div>
+          <div className="lp-card"><h3>{t.forBeginners.tip2Title}</h3><p>{t.forBeginners.tip2Desc}</p></div>
+          <div className="lp-card"><h3>{t.forBeginners.tip3Title}</h3><p>{t.forBeginners.tip3Desc}</p></div>
+          <div className="lp-card"><h3>{t.forBeginners.tip4Title}</h3><p>{t.forBeginners.tip4Desc}</p></div>
         </div>
       </div>
       <div className="lp-section lp-faq">
-        <h2>Common Questions from Beginners</h2>
-        <div className="lp-faq-item"><h3>What if I don't understand my partner?</h3><p>That's okay! Just say "Sorry, can you repeat that?" or "What does that mean?" Most people are happy to help.</p></div>
-        <div className="lp-faq-item"><h3>Is it okay to use my native language sometimes?</h3><p>A little is fine, but try to speak English as much as possible. Even simple English is better than perfect native language.</p></div>
-        <div className="lp-faq-item"><h3>How many sessions should I do per week?</h3><p>Try to do at least 3-5 sessions per week. The more you practice, the faster you'll improve.</p></div>
+        <h2>{t.forBeginners.faqTitle}</h2>
+        <div className="lp-faq-item"><h3>{t.forBeginners.faq1Question}</h3><p>{t.forBeginners.faq1Answer}</p></div>
+        <div className="lp-faq-item"><h3>{t.forBeginners.faq2Question}</h3><p>{t.forBeginners.faq2Answer}</p></div>
+        <div className="lp-faq-item"><h3>{t.forBeginners.faq3Question}</h3><p>{t.forBeginners.faq3Answer}</p></div>
       </div>
       <div className="lp-cta-bottom">
-        <h2>Your English Journey Starts Here</h2>
-        <p style={{color:'rgba(255,255,255,.8)',marginBottom:'1.5rem',fontSize:'1.05rem'}}>Join Chatter3 today and start speaking English with confidence.</p>
-        <a href="/" className="lp-cta">Join Chatter3 Free</a>
+        <h2>{t.forBeginners.bottomTitle}</h2>
+        <p style={{color:'rgba(255,255,255,.8)',marginBottom:'1.5rem',fontSize:'1.05rem'}}>{t.forBeginners.bottomSubtitle}</p>
+        <a href="/" className="lp-cta">{t.forBeginners.bottomCta}</a>
       </div>
+      <footer className="lp-footer">
+        <div className="lp-footer-inner">
+          <div className="lp-footer-links">
+            <a href={`${prefix}/`}>{t.nav.home}</a>
+            <a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a>
+            <a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a>
+            <a href={`${prefix}/blog`}>{t.nav.blog}</a>
+            <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
+          </div>
+          <p>{t.footer.copyright}</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function BlogPage({lang='en'}){
+  const t=getTranslations(lang);
+  const prefix=lang==='en'?'':`/${lang}`;
+  const canonical=`https://app.chatter3.com${prefix}/blog`;
+  const articles=[
+    {slug:'how-to-improve-english-speaking',title:t.blog.articles.howToImprove.title,excerpt:t.blog.articles.howToImprove.excerpt,date:'2026-01-15',readTime:'5 min',
+     content:`<p>Speaking English fluently is a goal for millions of people worldwide. Whether you're preparing for a job interview, traveling abroad, or simply want to connect with more people, improving your English speaking skills is essential. Here are seven proven methods that actually work.</p>
+<h2>1. Practice with Real People</h2><p>The most effective way to improve is through real conversation. Apps like Chatter3 connect you with real English learners for 1-on-1 video calls. No scripts, no textbooks — just genuine conversation.</p>
+<h2>2. Speak Every Day</h2><p>Consistency beats intensity. Speaking English for 5 minutes every day is better than one hour once a week. Build a daily habit and watch your confidence grow.</p>
+<h2>3. Don't Fear Mistakes</h2><p>Every mistake is a learning opportunity. Native speakers make mistakes too! The key is to keep talking and learn from each error.</p>
+<h2>4. Shadow Native Speakers</h2><p>Listen to podcasts, watch videos, and repeat what you hear. This technique, called "shadowing," helps you develop natural pronunciation and rhythm.</p>
+<h2>5. Learn Phrases, Not Just Words</h2><p>Instead of memorizing individual words, learn common phrases and expressions. "How's it going?" is more useful than knowing the dictionary definition of each word.</p>
+<h2>6. Record Yourself</h2><p>Record your voice and listen back. You'll notice pronunciation issues you never heard before. It's uncomfortable but incredibly effective.</p>
+<h2>7. Use Technology Wisely</h2><p>Apps like Chatter3 make it easy to find conversation partners anytime, anywhere. Use technology to practice, not just study.</p>
+<h2>Start Today</h2><p>The best time to start improving your English speaking is today. Join Chatter3 and have your first conversation in minutes.</p>`},
+    {slug:'english-conversation-topics',title:t.blog.articles.conversationTopics.title,excerpt:t.blog.articles.conversationTopics.excerpt,date:'2026-01-10',readTime:'4 min',
+     content:`<p>One of the biggest challenges in English practice is knowing what to talk about. Here are 50 conversation topics organized by difficulty level.</p>
+<h2>Beginner Topics</h2><ul><li>Tell me about yourself</li><li>What are your hobbies?</li><li>What's the weather like today?</li><li>Describe your family</li><li>What do you do for work?</li><li>What's your favorite food?</li><li>Do you have any pets?</li><li>What time do you usually wake up?</li><li>What did you do yesterday?</li><li>Do you like sports?</li></ul>
+<h2>Intermediate Topics</h2><ul><li>What are your goals for this year?</li><li>Describe your dream vacation</li><li>What's the best advice you've ever received?</li><li>How has technology changed your life?</li><li>What would you do with a million dollars?</li><li>Describe your hometown</li><li>What's your favorite movie and why?</li><li>How do you handle stress?</li><li>What are the pros and cons of social media?</li><li>What's the most interesting thing you've learned recently?</li></ul>
+<h2>Advanced Topics</h2><ul><li>What impact will AI have on education?</li><li>Should governments regulate social media?</li><li>What are the ethics of genetic engineering?</li><li>How can we solve the climate crisis?</li><li>What does success mean to you?</li></ul>
+<h2>Practice Now</h2><p>Pick any topic and find a conversation partner on Chatter3. Real conversation is the fastest way to improve.</p>`},
+    {slug:'benefits-of-video-calls-for-language-learning',title:t.blog.articles.videoCallsBenefits.title,excerpt:t.blog.articles.videoCallsBenefits.excerpt,date:'2026-01-05',readTime:'3 min',
+     content:`<p>When it comes to language learning, not all practice methods are equal. Video calls offer unique advantages that text chat simply cannot match.</p>
+<h2>1. Non-Verbal Communication</h2><p>55% of communication is body language, 38% is tone of voice, and only 7% is words. Video calls let you see and hear your conversation partner, making the interaction more natural and meaningful.</p>
+<h2>2. Real-Time Feedback</h2><p>When you make a mistake, your partner can correct you immediately. This instant feedback loop accelerates learning in ways that delayed text corrections can't.</p>
+<h2>3. Pronunciation Practice</h2><p>You can hear how words are actually pronounced by real people. Text chat doesn't help you learn the rhythm, stress, and intonation of natural English.</p>
+<h2>4. Building Confidence</h2><p>Talking to a real person on video builds confidence faster than typing. It simulates real-world situations like job interviews, meetings, and social events.</p>
+<h2>5. Emotional Connection</h2><p>Video calls create genuine human connections. When you care about your conversation partner, you're more motivated to learn and practice.</p>
+<h2>Try Video Practice Today</h2><p>Chatter3 makes video practice easy and free. Sign up and start your first conversation in minutes.</p>`}
+  ];
+  const[expandedArticle,setExpandedArticle]=useState(null);
+  return(
+    <div className="lp">
+      <style>{LP_STYLES}</style>
+      <SEOHead title={t.meta.blog.title} description={t.meta.blog.description} canonical={canonical} lang={lang}/>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a><a href={`${prefix}/blog`} className="active">{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
+      <div className="lp-hero">
+        <h1>{t.blog.title}</h1>
+        <p>{t.blog.subtitle}</p>
+      </div>
+      <div className="lp-section">
+        {expandedArticle!==null?(
+          <div>
+            <button onClick={()=>setExpandedArticle(null)} style={{background:'none',border:'none',color:'#6366f1',cursor:'pointer',fontSize:'.9rem',marginBottom:'1rem',padding:0}}>{t.blog.backToArticles}</button>
+            <h2 style={{fontSize:'1.8rem',fontWeight:800,marginBottom:'.5rem'}}>{articles[expandedArticle].title}</h2>
+            <p style={{color:'#6b7280',fontSize:'.85rem',marginBottom:'1.5rem'}}>{articles[expandedArticle].date} · {articles[expandedArticle].readTime} {t.blog.minRead}</p>
+            <div dangerouslySetInnerHTML={{__html:articles[expandedArticle].content}} style={{lineHeight:1.8,fontSize:'1.05rem'}}/>
+            <div style={{marginTop:'2rem',padding:'1.5rem',background:'#f0fdf4',borderRadius:12,textAlign:'center'}}>
+              <h3 style={{margin:'0 0 .5rem'}}>{t.blog.readyToPractice}</h3>
+              <p style={{margin:'0 0 1rem',color:'#6b7280'}}>{t.blog.applyLearning}</p>
+              <a href="/" style={{display:'inline-block',background:'#6366f1',color:'white',padding:'12px 24px',borderRadius:8,textDecoration:'none',fontWeight:700}}>{t.blog.startFree}</a>
+            </div>
+          </div>
+        ):(
+          <div>
+            <h2 style={{fontSize:'1.5rem',fontWeight:800,marginBottom:'1.5rem'}}>{t.blog.latestArticles}</h2>
+            {articles.map((a,i)=>(
+              <div key={i} onClick={()=>setExpandedArticle(i)} style={{background:'white',borderRadius:12,padding:'1.5rem',marginBottom:'1rem',cursor:'pointer',border:'1px solid #e5e7eb',transition:'box-shadow .2s'}} onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 12px rgba(0,0,0,.08)'} onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
+                <h3 style={{margin:'0 0 .5rem',fontSize:'1.2rem',fontWeight:700,color:'#1a1a2e'}}>{a.title}</h3>
+                <p style={{margin:'0 0 .5rem',color:'#6b7280',fontSize:'.9rem'}}>{a.excerpt}</p>
+                <span style={{color:'#6366f1',fontSize:'.85rem',fontWeight:600}}>{t.blog.readMore}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="lp-cta-bottom">
+        <h2>{t.blog.bottomTitle}</h2>
+        <p style={{color:'rgba(255,255,255,.8)',marginBottom:'1.5rem',fontSize:'1.05rem'}}>{t.blog.bottomSubtitle}</p>
+        <a href="/" className="lp-cta">{t.blog.bottomCta}</a>
+      </div>
+      <footer className="lp-footer">
+        <div className="lp-footer-inner">
+          <div className="lp-footer-links">
+            <a href={`${prefix}/`}>{t.nav.home}</a>
+            <a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a>
+            <a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a>
+            <a href={`${prefix}/blog`}>{t.nav.blog}</a>
+            <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
+          </div>
+          <p>{t.footer.copyright}</p>
+        </div>
+      </footer>
     </div>
   );
 }
@@ -2053,8 +2233,31 @@ function ForBeginnersPage(){
 // ─────────────────────────────────────────────────────────────────
 export default function App(){
   const path=window.location.pathname;
-  if(path==='/how-it-works')return<HowItWorksPage/>;
-  if(path==='/for-beginners')return<ForBeginnersPage/>;
+  
+  // Language-prefixed landing pages
+  const langMatch=path.match(/^\/(es|ja|ar|zh|fr|ru)\/(how-it-works|for-beginners|blog)/);
+  if(langMatch){
+    const lang=langMatch[1];
+    const page=langMatch[2];
+    if(page==='how-it-works')return<HowItWorksPage lang={lang}/>;
+    if(page==='for-beginners')return<ForBeginnersPage lang={lang}/>;
+    if(page==='blog')return<BlogPage lang={lang}/>;
+  }
+  
+  // English landing pages — detect browser language and redirect if needed
+  if(path==='/how-it-works'||path==='/for-beginners'||path==='/blog'||path.startsWith('/blog/')){
+    const saved=localStorage.getItem('chatter3_lang');
+    const lang=saved||detectLanguage();
+    if(lang&&lang!=='en'){
+      const cleanPath=path.replace(/^\/blog\/.*/, '/blog');
+      window.location.href=getLocalizedPath(cleanPath,lang);
+      return null;
+    }
+    if(path==='/how-it-works')return<HowItWorksPage lang="en"/>;
+    if(path==='/for-beginners')return<ForBeginnersPage lang="en"/>;
+    if(path==='/blog')return<BlogPage lang="en"/>;
+    if(path.startsWith('/blog/'))return<BlogPage lang="en"/>;
+  }
 
   const[view,setView]=useState('auth');
   const[user,setUser]=useState(null);
@@ -2173,6 +2376,15 @@ export default function App(){
                    <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🏆 Founding Member</span>:null}{user.is_new_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🆕 New Member</span>:null}</span>
                   <div className="header-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 Friends</button>
+                  <div className="help-menu-wrapper">
+                    <button className="header-btn btn-help" style={{position:'relative'}}>❓ Help</button>
+                    <div className="help-dropdown">
+                      <a href="/how-it-works" target="_blank">📖 How It Works</a>
+                      <a href="/for-beginners" target="_blank">🌱 For Beginners</a>
+                      <a href="/blog" target="_blank">📝 Blog</a>
+                    </div>
+                  </div>
+                  <LanguageSwitcher currentLang={getLangFromPath(window.location.pathname)}/>
                   {user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ Admin</button>:null}
                   <button className="header-btn btn-logout" onClick={handleLogout}>Logout</button>
                 </div>
@@ -2189,6 +2401,16 @@ export default function App(){
           {view==='profile'&&user&&<ProfileView user={user} onBack={()=>setView('dashboard')} onUpdate={setAndSaveUser} onShowOnboarding={()=>setShowOnboarding(true)}/>}
           {view==='admin'&&user&&user.is_admin?<AdminDashboard user={user} onBack={()=>setView('dashboard')}/>:null}
         </main>
+        {user&&view!=='video'&&view!=='precall'&&(
+          <footer style={{background:'#f8fafc',borderTop:'1px solid #e5e7eb',padding:'1.5rem',textAlign:'center',fontSize:'.8rem',color:'#6b7280'}}>
+            <div style={{maxWidth:600,margin:'0 auto',display:'flex',justifyContent:'center',gap:'1.5rem',flexWrap:'wrap',marginBottom:'.75rem'}}>
+              <a href="/how-it-works" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>How It Works</a>
+              <a href="/for-beginners" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>For Beginners</a>
+              <a href="/blog" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>Blog</a>
+            </div>
+            <p style={{margin:0}}>© 2026 Chatter3. Practice English with real people.</p>
+          </footer>
+        )}
         </>
         )}
       </div>
@@ -2369,6 +2591,66 @@ function AuthView({onLogin,setView}){
           {reg?'Already have an account? Sign In':'New to Chatter3? Create Account'}
         </button>
       </div>
+      <div className="auth-footer">
+        <div className="auth-footer-links">
+          <a href="/how-it-works">How It Works</a>
+          <a href="/for-beginners">For Beginners</a>
+          <a href="/blog">Blog</a>
+          <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
+        </div>
+        <p>© 2026 Chatter3. Practice English with real people.</p>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// LEADERBOARD CARD
+// ─────────────────────────────────────────────────────────────────
+function LeaderboardCard({userId}){
+  const[leaderboard,setLeaderboard]=useState([]);
+  const[mode,setMode]=useState('all-time');
+  const[loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    setLoading(true);
+    fetch(`${API_URL}/api/leaderboard?mode=${mode}`).then(r=>r.json()).then(d=>{
+      setLeaderboard(d.leaderboard||[]);
+      setLoading(false);
+    }).catch(()=>setLoading(false));
+  },[mode]);
+
+  const medals=['🥇','🥈','🥉'];
+
+  return(
+    <div className="leaderboard-card">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'.75rem'}}>
+        <h3 style={{margin:0}}>🏆 Leaderboard</h3>
+        <div className="lb-tabs">
+          <button onClick={()=>setMode('all-time')} className={`lb-tab${mode==='all-time'?' active':''}`}>All-Time</button>
+          <button onClick={()=>setMode('weekly')} className={`lb-tab${mode==='weekly'?' active':''}`}>Weekly</button>
+        </div>
+      </div>
+      {loading?(
+        <div style={{textAlign:'center',padding:'1rem',color:'#6b7280',fontSize:'.85rem'}}>Loading...</div>
+      ):leaderboard.length===0?(
+        <div style={{textAlign:'center',padding:'1rem',color:'#6b7280',fontSize:'.85rem'}}>No data yet. Complete calls to climb the leaderboard!</div>
+      ):(
+        <div>
+          {leaderboard.map((entry,i)=>{
+            const isMe=entry.username===userId;
+            return(
+              <div key={i} className={`lb-row${isMe?' me':''}`}>
+                <span className="lb-rank">{i<3?medals[i]:entry.rank}</span>
+                <span className="lb-name">{entry.nickname}</span>
+                <span className="lb-sessions">{entry.totalSessions} calls</span>
+                <span className="lb-score">{entry.score} pts</span>
+                {entry.streak>0&&<span className="lb-streak" title={`${entry.streak} day streak`}>🔥{entry.streak}</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -2411,6 +2693,11 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
             🎉 <strong>Founding Member</strong> — FP consumption is waived during your free period!
           </div>
         )}
+        {user.streak_count>0&&(
+          <div style={{background:user.streak_count>=7?'linear-gradient(135deg,#fbbf24,#f59e0b)':user.streak_count>=3?'linear-gradient(135deg,#34d399,#10b981)':'linear-gradient(135deg,#e0e7ff,#c7d2fe)',border:`1px solid ${user.streak_count>=7?'#f59e0b':user.streak_count>=3?'#10b981':'#818cf8'}`,borderRadius:10,padding:'10px 16px',marginBottom:'.75rem',fontSize:'.85rem',color:user.streak_count>=7?'#92400e':user.streak_count>=3?'#065f46':'#3730a3',fontWeight:500}}>
+            🔥 <strong>{user.streak_count} day streak!</strong>{user.streak_count>=7?' Keep it going!':user.streak_count>=3?' Nice progress!':' Great start!'}
+          </div>
+        )}
         <button onClick={onFindPartner} className="start-matching-btn" disabled={!canCall}>
           {!canCall?'No FP Available — Exchange RP First':'Find a Conversation Partner'}
         </button>
@@ -2440,6 +2727,7 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
         <h3 style={{marginTop:'1.25rem'}}>Your Stats</h3>
         <div className="stat-row"><span className="stat-label">Level</span><span className="stat-value" style={{textTransform:'capitalize'}}>{user.english_level}</span></div>
         <div className="stat-row"><span className="stat-label">Call Duration</span><span className="stat-value">{user.english_level==='beginner'?'5 mins':'10 mins'}</span></div>
+        <div className="stat-row"><span className="stat-label">🔥 Streak</span><span className="stat-value">{user.streak_count||0} days</span></div>
         {settings.matching_by_level==='true'&&totalOnline>0&&sameLevel<=1&&(
           <div className="stat-row"><span className="stat-label" style={{color:'#f59e0b',fontSize:'.8rem'}}>⚠️ No {user.english_level}-level users online right now</span></div>
         )}
@@ -2449,6 +2737,9 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
           </button>
         </div>
       </div>
+
+      {/* Leaderboard */}
+      <LeaderboardCard userId={user.id}/>
     </div>
   );
 }
@@ -2806,13 +3097,18 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
     playSound('end');cleanup();setShowRating(true);
   };
 
+  const[showShareCard,setShowShareCard]=useState(false);
+  const[shareData,setShareData]=useState({});
+
   const rate=async(rating)=>{
+    let rpResult={};
     try{
       const r=await authFetch(`${API_URL}/api/matching/rate`,{method:'POST',body:JSON.stringify({session_id:session.id,rating,used_relay:usedRelay.current})});
       const d=await r.json();
-      if(d.rp_awarded)playSound('points');
+      if(d.rp_awarded){playSound('points');rpResult={rp:d.rp_awarded,streak:d.streak};}
     }catch{}
-    onEnd();
+    setShareData({partner:session.partner?.username,duration:Math.floor((Date.now()-callStartedAt)/1000),rp:rpResult.rp||0,streak:rpResult.streak||user.streak_count||0,rating});
+    setShowShareCard(true);
   };
 
   const fmt=s=>`${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
@@ -2877,6 +3173,35 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
               {endReason==='network'&&(
                 <button className="rating-btn warn" onClick={()=>rate('connection_issue')}>📡 Connection Issue</button>
               )}
+            </div>
+          </div>
+        )}
+        {showShareCard&&(
+          <div className="rating-overlay" style={{background:'rgba(0,0,0,.85)'}}>
+            <div style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)',borderRadius:16,padding:'1.5rem',maxWidth:320,width:'100%',textAlign:'center',boxShadow:'0 20px 40px rgba(0,0,0,.3)'}}>
+              <div style={{fontSize:'2rem',marginBottom:'.5rem'}}>🎉</div>
+              <h3 style={{color:'white',margin:'0 0 .25rem',fontFamily:'Sora,sans-serif',fontSize:'1.1rem'}}>Call Complete!</h3>
+              <p style={{color:'rgba(255,255,255,.7)',margin:'0 0 1rem',fontSize:'.85rem'}}>with {shareData.partner}</p>
+              <div style={{display:'flex',justifyContent:'center',gap:'1.5rem',marginBottom:'1rem'}}>
+                <div style={{textAlign:'center'}}>
+                  <div style={{color:'white',fontSize:'1.5rem',fontWeight:800}}>{Math.floor(shareData.duration/60)}:{(shareData.duration%60).toString().padStart(2,'0')}</div>
+                  <div style={{color:'rgba(255,255,255,.6)',fontSize:'.7rem'}}>MINUTES</div>
+                </div>
+                {shareData.rp>0&&<div style={{textAlign:'center'}}>
+                  <div style={{color:'#fbbf24',fontSize:'1.5rem',fontWeight:800}}>+{shareData.rp}</div>
+                  <div style={{color:'rgba(255,255,255,.6)',fontSize:'.7rem'}}>RP EARNED</div>
+                </div>}
+                {shareData.streak>1&&<div style={{textAlign:'center'}}>
+                  <div style={{color:'#f97316',fontSize:'1.5rem',fontWeight:800}}>🔥{shareData.streak}</div>
+                  <div style={{color:'rgba(255,255,255,.6)',fontSize:'.7rem'}}>STREAK</div>
+                </div>}
+              </div>
+              <p style={{color:'rgba(255,255,255,.5)',fontSize:'.75rem',margin:'0 0 .75rem'}}>I just practiced English on Chatter3!</p>
+              <div style={{display:'flex',gap:'.5rem',justifyContent:'center',flexWrap:'wrap'}}>
+                <button onClick={()=>{const t=`🎉 I just practiced English for ${Math.floor(shareData.duration/60)} min on Chatter3!${shareData.streak>1?` 🔥${shareData.streak} day streak!`:''} Join me: https://app.chatter3.com`;navigator.share?navigator.share({title:'Chatter3',text:t,url:'https://app.chatter3.com'}):navigator.clipboard.writeText(t).then(()=>alert('Copied!'));}} style={{background:'white',color:'#6366f1',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:700,fontSize:'.8rem',cursor:'pointer'}}>Share</button>
+                <button onClick={()=>{const t=`🎉 I just practiced English for ${Math.floor(shareData.duration/60)} min on Chatter3!${shareData.streak>1?` 🔥${shareData.streak} day streak!`:''} Join me: https://app.chatter3.com`;navigator.clipboard.writeText(t).then(()=>alert('Copied!'));}} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',borderRadius:8,padding:'8px 16px',fontWeight:600,fontSize:'.8rem',cursor:'pointer'}}>Copy</button>
+              </div>
+              <button onClick={()=>{setShowShareCard(false);onEnd();}} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',marginTop:'.75rem',cursor:'pointer',fontSize:'.8rem'}}>Skip →</button>
             </div>
           </div>
         )}
@@ -2964,6 +3289,20 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
         <button onClick={()=>setShowFeedback(true)} className="btn-accent-outline">💬 Send Feedback</button>
         <button onClick={onShowOnboarding} className="btn-accent-outline">👋 View Introduction Again</button>
         <button onClick={onBack} className="btn-subtle">Back</button>
+      </div>
+      <div style={{background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:12,padding:'1.25rem',marginBottom:'1.25rem'}}>
+        <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',margin:'0 0 .75rem',color:'#1e293b'}}>📚 Learn More</h3>
+        <div style={{display:'flex',flexDirection:'column',gap:'.5rem'}}>
+          <a href="/how-it-works" target="_blank" style={{display:'flex',alignItems:'center',gap:'.5rem',padding:'.6rem .75rem',background:'white',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:'.88rem',border:'1px solid #e5e7eb',transition:'border-color .15s'}} onMouseEnter={e=>e.currentTarget.style.borderColor='#4f46e5'} onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
+            <span>📖</span><span>How Chatter3 Works</span><span style={{marginLeft:'auto',color:'#9ca3af',fontSize:'.8rem'}}>→</span>
+          </a>
+          <a href="/for-beginners" target="_blank" style={{display:'flex',alignItems:'center',gap:'.5rem',padding:'.6rem .75rem',background:'white',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:'.88rem',border:'1px solid #e5e7eb',transition:'border-color .15s'}} onMouseEnter={e=>e.currentTarget.style.borderColor='#4f46e5'} onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
+            <span>🌱</span><span>English for Beginners</span><span style={{marginLeft:'auto',color:'#9ca3af',fontSize:'.8rem'}}>→</span>
+          </a>
+          <a href="/blog" target="_blank" style={{display:'flex',alignItems:'center',gap:'.5rem',padding:'.6rem .75rem',background:'white',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:'.88rem',border:'1px solid #e5e7eb',transition:'border-color .15s'}} onMouseEnter={e=>e.currentTarget.style.borderColor='#4f46e5'} onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
+            <span>📝</span><span>Blog & Tips</span><span style={{marginLeft:'auto',color:'#9ca3af',fontSize:'.8rem'}}>→</span>
+          </a>
+        </div>
       </div>
       {showFeedback&&<FeedbackModal userId={user.id} onClose={()=>setShowFeedback(false)}/>}
       <div className="history-list">

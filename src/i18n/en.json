@@ -1,0 +1,137 @@
+{
+  "nav": {
+    "home": "Home",
+    "howItWorks": "How It Works",
+    "forBeginners": "For Beginners",
+    "blog": "Blog",
+    "getStarted": "Get Started Free"
+  },
+  "footer": {
+    "copyright": "© 2026 Chatter3. Practice English with real people."
+  },
+  "howItWorks": {
+    "title": "How Chatter3 Works",
+    "subtitle": "Practice English conversation with real people in minutes. Here's how it works — it's free, fun, and effective.",
+    "cta": "Start Practicing Now",
+    "stepsTitle": "Three Simple Steps",
+    "step1Title": "Create Your Free Account",
+    "step1Desc": "Sign up with your email or Google account. Choose your English level — beginner, intermediate, or advanced — and tell us your native language so we can match you better.",
+    "step2Title": "Find a Conversation Partner",
+    "step2Desc": "Click \"Find Partner\" and we'll match you with someone online who wants to practice too. Matches are based on your level, availability, and preferences.",
+    "step3Title": "Start Talking",
+    "step3Desc": "Jump into a 1-on-1 video call and practice real English conversation. You'll earn Reward Points (RP) for every session — use them to extend your practice time or exchange for Free Points (FP).",
+    "whyTitle": "Why Chatter3?",
+    "feature1Title": "Real Conversations",
+    "feature1Desc": "No textbooks or scripts. Practice with real people about topics that matter to you.",
+    "feature2Title": "Global Community",
+    "feature2Desc": "Meet English learners from around the world. Every conversation is a cultural exchange.",
+    "feature3Title": "Instant Matching",
+    "feature3Desc": "No waiting. Find a partner in seconds and start your practice session immediately.",
+    "feature4Title": "Earn Rewards",
+    "feature4Desc": "Get Reward Points for every call. The more you practice, the more you earn.",
+    "feature5Title": "Safe & Private",
+    "feature5Desc": "Built-in reporting and moderation. Your safety is our priority.",
+    "feature6Title": "100% Free",
+    "feature6Desc": "Daily Free Points for video calls. No credit card required. No hidden fees.",
+    "faqTitle": "Frequently Asked Questions",
+    "faq1Question": "Is Chatter3 really free?",
+    "faq1Answer": "Yes! You get Free Points (FP) every day for video calls. You can also earn Reward Points (RP) by completing sessions and referring friends.",
+    "faq2Question": "How long are the video calls?",
+    "faq2Answer": "Beginners get 5-minute sessions. Intermediate and advanced learners get 10-minute sessions. You can earn more time with RP.",
+    "faq3Question": "What if I get a bad partner?",
+    "faq3Answer": "You can report inappropriate behavior and we take action quickly. You can also end any call at any time.",
+    "faq4Question": "Do I need a camera?",
+    "faq4Answer": "Yes, Chatter3 is a video conversation platform. You need a webcam or phone camera to participate.",
+    "bottomTitle": "Ready to Improve Your English?",
+    "bottomSubtitle": "Join thousands of learners practicing English conversation every day.",
+    "bottomCta": "Create Free Account"
+  },
+  "forBeginners": {
+    "title": "English Conversation for Beginners",
+    "subtitle": "Just starting your English journey? Chatter3 is the perfect place to practice speaking with real people — no pressure, no judgment.",
+    "cta": "Start as a Beginner",
+    "whyTitle": "Why Beginners Love Chatter3",
+    "feature1Title": "Beginner-Friendly Matching",
+    "feature1Desc": "We match you with other beginners who are at the same level. No awkward conversations with advanced speakers.",
+    "feature2Title": "5-Minute Sessions",
+    "feature2Desc": "Short, focused sessions are perfect for beginners. Practice a little every day and build your confidence.",
+    "feature3Title": "Real Topics",
+    "feature3Desc": "Talk about everyday things — your hobbies, your day, your favorite food. No textbooks, just real conversation.",
+    "feature4Title": "Build Confidence",
+    "feature4Desc": "Every conversation makes you better. The more you practice, the more natural English feels.",
+    "stepsTitle": "How to Get Started as a Beginner",
+    "step1Title": "Sign Up for Free",
+    "step1Desc": "Create your account in 30 seconds. Select \"Beginner\" as your English level. That's it — no test, no pressure.",
+    "step2Title": "Complete Your Profile",
+    "step2Desc": "Tell us your native language and country. This helps us find you the best conversation partners.",
+    "step3Title": "Find Your First Partner",
+    "step3Desc": "Click \"Find Partner\" and we'll match you with another beginner. You'll both be learning together — it's comfortable and fun.",
+    "step4Title": "Start Talking",
+    "step4Desc": "Your 5-minute session begins. Don't worry about making mistakes — that's how you learn! Just try your best and have fun.",
+    "tipsTitle": "Tips for Beginner English Conversations",
+    "tip1Title": "Don't Be Afraid of Mistakes",
+    "tip1Desc": "Mistakes are part of learning. Every fluent speaker started exactly where you are now.",
+    "tip2Title": "Start with Simple Topics",
+    "tip2Desc": "Talk about your name, your country, your hobbies, the weather. Simple topics are the best way to start.",
+    "tip3Title": "Practice Every Day",
+    "tip3Desc": "Even 5 minutes a day makes a huge difference. Consistency is more important than perfection.",
+    "tip4Title": "Listen and Repeat",
+    "tip4Desc": "Pay attention to how your partner speaks. Try new words and phrases. That's how you improve fast.",
+    "faqTitle": "Common Questions from Beginners",
+    "faq1Question": "What if I don't understand my partner?",
+    "faq1Answer": "That's okay! Just say \"Sorry, can you repeat that?\" or \"What does that mean?\" Most people are happy to help.",
+    "faq2Question": "Is it okay to use my native language sometimes?",
+    "faq2Answer": "A little is fine, but try to speak English as much as possible. Even simple English is better than perfect native language.",
+    "faq3Question": "How many sessions should I do per week?",
+    "faq3Answer": "Try to do at least 3-5 sessions per week. The more you practice, the faster you'll improve.",
+    "bottomTitle": "Your English Journey Starts Here",
+    "bottomSubtitle": "Join Chatter3 today and start speaking English with confidence.",
+    "bottomCta": "Join Chatter3 Free"
+  },
+  "blog": {
+    "title": "Chatter3 Blog",
+    "subtitle": "Tips, guides, and insights to help you improve your English speaking skills faster.",
+    "latestArticles": "Latest Articles",
+    "backToArticles": "← Back to all articles",
+    "readMore": "Read more →",
+    "minRead": "min read",
+    "readyToPractice": "Ready to Practice?",
+    "applyLearning": "Apply what you learned — find a conversation partner on Chatter3.",
+    "startFree": "Start Free",
+    "bottomTitle": "Start Speaking English Today",
+    "bottomSubtitle": "Join thousands of learners practicing with real conversation partners.",
+    "bottomCta": "Join Chatter3 Free",
+    "articles": {
+      "howToImprove": {
+        "title": "How to Improve English Speaking: 7 Proven Methods",
+        "excerpt": "Discover the most effective ways to improve your English speaking skills through daily practice, conversation partners, and immersive techniques."
+      },
+      "conversationTopics": {
+        "title": "50 English Conversation Topics for Practice",
+        "excerpt": "Struggling to find things to talk about during English practice? Here are 50 conversation topics organized by difficulty level."
+      },
+      "videoCallsBenefits": {
+        "title": "Why Video Calls Are Better Than Text Chat for Language Learning",
+        "excerpt": "Research shows that video conversations improve language skills faster than text-based chat."
+      }
+    }
+  },
+  "meta": {
+    "home": {
+      "title": "Chatter3 — Free English Conversation Practice with Real People",
+      "description": "Practice English conversation with real people through free video calls. Join Chatter3 and improve your speaking skills with instant matching."
+    },
+    "howItWorks": {
+      "title": "How Chatter3 Works — English Conversation Practice",
+      "description": "Learn how Chatter3 connects you with real people for free English conversation practice. Three simple steps to start speaking."
+    },
+    "forBeginners": {
+      "title": "English Conversation for Beginners — Chatter3",
+      "description": "Start your English journey with Chatter3. Practice speaking with real people in beginner-friendly 5-minute sessions."
+    },
+    "blog": {
+      "title": "Chatter3 Blog — English Speaking Tips & Guides",
+      "description": "Tips, guides, and insights to help you improve your English speaking skills faster."
+    }
+  }
+}
