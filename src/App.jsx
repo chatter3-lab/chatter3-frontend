@@ -2235,7 +2235,7 @@ export default function App(){
   const path=window.location.pathname;
   
   // Language-prefixed landing pages
-  const langMatch=path.match(/^\/(es|ja|ar|zh|fr|ru)\/(how-it-works|for-beginners|blog)/);
+  const langMatch=path.match(/^\/(es|ja|ar|zh|fr|ru|hi|bn|pt|ur|id|de|mr|te|tr|ta|vi|pcm|yue)\/(how-it-works|for-beginners|blog)/);
   if(langMatch){
     const lang=langMatch[1];
     const page=langMatch[2];

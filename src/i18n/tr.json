@@ -1,0 +1,137 @@
+{
+  "nav": {
+    "home": "Ana Sayfa",
+    "howItWorks": "Nasıl Çalışır",
+    "forBeginners": "Başlangıç İçin",
+    "blog": "Blog",
+    "getStarted": "Ücretsiz Başla"
+  },
+  "footer": {
+    "copyright": "© 2026 Chatter3. Gerçek insanlarla İngilizce pratiği yapın."
+  },
+  "howItWorks": {
+    "title": "Chatter3 Nasıl Çalışır",
+    "subtitle": "Dakikalar içinde gerçek insanlarla İngilizce konuşma pratiği yapın. Nasıl çalıştığını öğrenin — ücretsiz, eğlenceli ve etkili.",
+    "cta": "Şimdi Pratik Yapmaya Başla",
+    "stepsTitle": "Üç Basit Adım",
+    "step1Title": "Ücretsiz Hesabınızı Oluşturun",
+    "step1Desc": "E-posta adresinizle veya Google hesabınızla kaydolun. İngilizce seviyenizi seçin — başlangıç, orta veya ileri — ve sizi daha iyi eşleştirebilmemiz için ana dilinizi bize söyleyin.",
+    "step2Title": "Bir Konuşma Ortak Bulun",
+    "step2Desc": "\"Ortak Bul\"a tıklayın ve siz de pratik yapmak isteyen biriyle çevrimiçi olarak eşleştirelim. Eşleştirmeler seviyenize, müsaitliğinize ve tercihlerinize göre yapılır.",
+    "step3Title": "Konuşmaya Başlayın",
+    "step3Desc": "1'e 1 görüntülü aramaya dalın ve gerçek İngilizce konuşma pratiği yapın. Her oturum için Ödül Puanı (RP) kazanacaksınız — bunları pratik sürenizi uzatmak veya Ücretsiz Puanlarla (FP) takas etmek için kullanın.",
+    "whyTitle": "Neden Chatter3?",
+    "feature1Title": "Gerçek Konuşmalar",
+    "feature1Desc": "Ders kitapları veya senaryolar yok. Sizin için önemli olan konularda gerçek insanlarla pratik yapın.",
+    "feature2Title": "Küresel Topluluk",
+    "feature2Desc": "Dünyanın dört bir yanından İngilizce öğrenenlerle tanışın. Her konuşma bir kültürel alışveriş.",
+    "feature3Title": "Anında Eşleştirme",
+    "feature3Desc": "Bekleme yok. Saniyeler içinde bir ortak bulun ve pratik oturumunuzu hemen başlatın.",
+    "feature4Title": "Ödül Kazanın",
+    "feature4Desc": "Her arama için Ödül Puanı kazanın. Ne kadar çok pratik yaparsanız, o kadar çok kazanırsınız.",
+    "feature5Title": "Güvenli ve Gizli",
+    "feature5Desc": "Yerleşik raporlama ve moderasyon. Güvenliğiniz bizim önceliğimiz.",
+    "feature6Title": "%100 Ücretsiz",
+    "feature6Desc": "Görüntülü aramalar için günlük Ücretsiz Puanlar. Kredi kartı gerekmez. Gizli ücret yok.",
+    "faqTitle": "Sıkça Sorulan Sorular",
+    "faq1Question": "Chatter3 gerçekten ücretsiz mi?",
+    "faq1Answer": "Evet! Görüntülü aramalar için her gün Ücretsiz Puanlar (FP) alırsınız. Ayrıca oturumları tamamlayarak ve arkadaşlarınızı tavsiye ederek Ödül Puanları (RP) da kazanabilirsiniz.",
+    "faq2Question": "Görüntülü aramalar ne kadar sürüyor?",
+    "faq2Answer": "Başlangıç seviyesindekiler 5 dakikalık oturumlar alır. Orta ve ileri seviye öğrenenler 10 dakikalık oturumlar alır. RP ile daha fazla süre kazanabilirsiniz.",
+    "faq3Question": "Kötü bir ortak gelirse ne olur?",
+    "faq3Answer": "Uygunsuz davranışı raporlayabilirsiniz ve biz hızla harekete geçeriz. Ayrıca istediğiniz zaman herhangi bir aramayı sonlandırabilirsiniz.",
+    "faq4Question": "Kameraya ihtiyacım var mı?",
+    "faq4Answer": "Evet, Chatter3 bir görüntülü konuşma platformu. Katılmak için bir web kamerası veya telefon kamerasına ihtiyacınız var.",
+    "bottomTitle": "İngilizcenizi İyileştirmeye Hazır mısınız?",
+    "bottomSubtitle": "Her gün İngilizce konuşma pratiği yapan binlerce öğrenene katılın.",
+    "bottomCta": "Ücretsiz Hesap Oluştur"
+  },
+  "forBeginners": {
+    "title": "Başlangıç İçin İngilizce Konuşma",
+    "subtitle": "İngilizce yolculuğunuza yeni mi başlıyorsunuz? Chatter3, gerçek insanlarla konuşmak için mükemmel bir yer — baskı yok, yargılama yok.",
+    "cta": "Başlangıç Olarak Başla",
+    "whyTitle": "Neden Başlangıç Seviyesindekiler Chatter3'ü Seviyor",
+    "feature1Title": "Başlangıç Dostu Eşleştirme",
+    "feature1Desc": "Sizi aynı seviyedeki diğer başlangıç seviyesindekilerle eşleştiriyoruz. İleri seviye konuşmacılarla garip konuşmalar yok.",
+    "feature2Title": "5 Dakikalık Oturumlar",
+    "feature2Desc": "Kısa, odaklı oturumlar başlangıç seviyesindekiler için mükemmeldir. Her gün biraz pratik yapın ve güveninizi inşa edin.",
+    "feature3Title": "Gerçek Konular",
+    "feature3Desc": "Günlük şeyler hakkında konuşun — hobileriniz, gününüz, en sevdiğiniz yemek. Ders kitapları yok, sadece gerçek konuşma.",
+    "feature4Title": "Güven İnşa Edin",
+    "feature4Desc": "Her konuşma sizi daha iyi yapar. Ne kadar çok pratik yaparsanız, İngilizce o kadar doğal hisseder.",
+    "stepsTitle": "Başlangıç Seviyesinde Nasıl Başlanır",
+    "step1Title": "Ücretsiz Kayıt Olun",
+    "step1Desc": "Hesabınızı 30 saniyede oluşturun. İngilizce seviyeniz olarak \"Başlangıç\"ı seçin. Hepsi bu kadar — test yok, baskı yok.",
+    "step2Title": "Profilinizi Tamamlayın",
+    "step2Desc": "Ana dilinizi ve ülkenizi bize söyleyin. Bu, size en iyi konuşma ortaklarını bulmamıza yardımcı olur.",
+    "step3Title": "İlk Ortağınızı Bulun",
+    "step3Desc": "\"Ortak Bul\"a tıklayın ve sizi başka bir başlangıç seviyesindekiyle eşleştirelim. İkiniz de birlikte öğreniyor olacaksınız — rahat ve eğlenceli.",
+    "step4Title": "Konuşmaya Başlayın",
+    "step4Desc": "5 dakikalık oturumunuz başlıyor. Hata yapmaktan korkmayın — böyle öğrenirsiniz! Sadece elinizden geleni yapın ve eğlenin.",
+    "tipsTitle": "Başlangıç Seviyesi İngilizce Konuşma İpuçları",
+    "tip1Title": "Hatalardan Korkmayın",
+    "tip1Desc": "Hatalar öğrenmenin bir parçası. Her akıcı konuşmacı tam olarak şu an bulunduğunuz noktadan başladı.",
+    "tip2Title": "Basit Konularla Başlayın",
+    "tip2Desc": "Adınız, ülkeniz, hobileriniz, hava durumu hakkında konuşun. Basit konular başlamak için en iyi yoldur.",
+    "tip3Title": "Her Gün Pratik Yapın",
+    "tip3Desc": "Günde sadece 5 dakika bile büyük bir fark yaratır. Tutarlılık mükemmellikten daha önemlidir.",
+    "tip4Title": "Dinleyin ve Tekrar Edin",
+    "tip4Desc": "Ortakınızın nasıl konuştuğuna dikkat edin. Yeni kelimeler ve ifadeler deneyin. Hızla böyle gelişiirsiniz.",
+    "faqTitle": "Başlangıç Seviyesindeki Yaygın Sorular",
+    "faq1Question": "Ortakımı anlamazsam ne olur?",
+    "faq1Answer": "Sorun değil! Sadece \"Üzgünüm, tekrar eder misiniz?\" veya \"Bu ne anlama geliyor?\" deyin. Çoğu insan yardım etmekten mutluluk duyar.",
+    "faq2Question": "Bazen ana dilimi kullanabilir miyim?",
+    "faq2Answer": "Biraz sorun değil, ama mümkün olduğunca çok İngilizce konuşmaya çalışın. Mükemmel ana dilinden bile basit İngilizce daha iyidir.",
+    "faq3Question": "Haftada kaç oturum yapmalıyım?",
+    "faq3Answer": "Haftada en az 3-5 oturum yapmaya çalışın. Ne kadar çok pratik yaparsanız, o kadar hızlı ilerlersiniz.",
+    "bottomTitle": "İngilizce Yolculuğunuz Burada Başlıyor",
+    "bottomSubtitle": "Chatter3'e katılın ve İngilizceyi güvenle konuşmaya başlayın.",
+    "bottomCta": "Chatter3'e Ücretsiz Katılın"
+  },
+  "blog": {
+    "title": "Chatter3 Blog",
+    "subtitle": "İngilizce konuşma becerilerinizi daha hızlı geliştirmenize yardımcı olacak ipuçları, rehberler ve öneriler.",
+    "latestArticles": "En Son Yazılar",
+    "backToArticles": "← Tüm yazılara dön",
+    "readMore": "Devamını oku →",
+    "minRead": "dakika okuma",
+    "readyToPractice": "Pratik Yapmaya Hazır mısınız?",
+    "applyLearning": "Öğrendiğinizi uygulayın — Chatter3'te bir konuşma ortak bulun.",
+    "startFree": "Ücretsiz Başla",
+    "bottomTitle": "İngilizce Konuşmaya Bugün Başlayın",
+    "bottomSubtitle": "Gerçek konuşma ortaklarıyla pratik yapan binlerce öğrenene katılın.",
+    "bottomCta": "Chatter3'e Ücretsiz Katılın",
+    "articles": {
+      "howToImprove": {
+        "title": "İngilizce Konuşma Nasıl İyileştirilir: 7 Kanıtlanmış Yöntem",
+        "excerpt": "Günlük pratik, konuşma ortakları ve dalgalanma teknikleriyle İngilizce konuşma becerilerinizi geliştirmenin en etkili yollarını keşfedin."
+      },
+      "conversationTopics": {
+        "title": "Pratik İçin 50 İngilizce Konuşma Konusu",
+        "excerpt": "İngilizce pratiği sırasında konuşacak bir şey bulmakta zorlanıyor musunuz? Zorluk seviyesine göre düzenlenmiş 50 konuşma konusu burada."
+      },
+      "videoCallsBenefits": {
+        "title": "Neden Görüntülü Aramalar Dil Öğrenmede Metin Sohbetinden Daha İyi",
+        "excerpt": "Araştırmalar, görüntülü konuşmaların dil becerilerini metin tabanlı sohbetten daha hızlı geliştirdiğini gösteriyor."
+      }
+    }
+  },
+  "meta": {
+    "home": {
+      "title": "Chatter3 — Gerçek İnsanlarla Ücretsiz İngilizce Konuşma Pratiği",
+      "description": "Ücretsiz görüntülü aramalarla gerçek insanlarla İngilizce konuşma pratiği yapın. Chatter3'e katılın ve anında eşleştirmeyle konuşma becerilerinizi geliştirin."
+    },
+    "howItWorks": {
+      "title": "Chatter3 Nasıl Çalışır — İngilizce Konuşma Pratiği",
+      "description": "Chatter3'ün ücretsiz İngilizce konuşma pratiği için sizi nasıl gerçek insanlarla eşleştirdiğini öğrenin. Konuşmaya başlamak için üç basit adım."
+    },
+    "forBeginners": {
+      "title": "Başlangıç İçin İngilizce Konuşma — Chatter3",
+      "description": "İngilizce yolculuğunuza Chatter3 ile başlayın. Başlangıç dostu 5 dakikalık oturumlarda gerçek insanlarla konuşma pratiği yapın."
+    },
+    "blog": {
+      "title": "Chatter3 Blog — İngilizce Konuşma İpuçları ve Rehberler",
+      "description": "İngilizce konuşma becerilerinizi daha hızlı geliştirmenize yardımcı olacak ipuçları, rehberler ve öneriler."
+    }
+  }
+}

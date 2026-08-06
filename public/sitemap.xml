@@ -5,55 +5,107 @@
     <lastmod>2026-08-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://app.chatter3.com/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://app.chatter3.com/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://app.chatter3.com/es/"/>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://app.chatter3.com/ja/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://app.chatter3.com/ar/"/>
     <xhtml:link rel="alternate" hreflang="zh" href="https://app.chatter3.com/zh/"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://app.chatter3.com/hi/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://app.chatter3.com/ar/"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://app.chatter3.com/bn/"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://app.chatter3.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://app.chatter3.com/pt/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://app.chatter3.com/ru/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://app.chatter3.com/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://app.chatter3.com/ja/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://app.chatter3.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="mr" href="https://app.chatter3.com/mr/"/>
+    <xhtml:link rel="alternate" hreflang="te" href="https://app.chatter3.com/te/"/>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://app.chatter3.com/tr/"/>
+    <xhtml:link rel="alternate" hreflang="ta" href="https://app.chatter3.com/ta/"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://app.chatter3.com/vi/"/>
+    <xhtml:link rel="alternate" hreflang="id" href="https://app.chatter3.com/id/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://app.chatter3.com/ur/"/>
+    <xhtml:link rel="alternate" hreflang="pcm" href="https://app.chatter3.com/pcm/"/>
+    <xhtml:link rel="alternate" hreflang="yue" href="https://app.chatter3.com/yue/"/>
   </url>
   <url>
     <loc>https://app.chatter3.com/how-it-works</loc>
     <lastmod>2026-08-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://app.chatter3.com/how-it-works"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://app.chatter3.com/how-it-works"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://app.chatter3.com/es/how-it-works"/>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://app.chatter3.com/ja/how-it-works"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://app.chatter3.com/ar/how-it-works"/>
     <xhtml:link rel="alternate" hreflang="zh" href="https://app.chatter3.com/zh/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://app.chatter3.com/hi/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://app.chatter3.com/ar/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://app.chatter3.com/bn/how-it-works"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://app.chatter3.com/fr/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://app.chatter3.com/pt/how-it-works"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://app.chatter3.com/ru/how-it-works"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://app.chatter3.com/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://app.chatter3.com/ja/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://app.chatter3.com/de/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="mr" href="https://app.chatter3.com/mr/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="te" href="https://app.chatter3.com/te/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://app.chatter3.com/tr/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="ta" href="https://app.chatter3.com/ta/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://app.chatter3.com/vi/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="id" href="https://app.chatter3.com/id/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://app.chatter3.com/ur/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="pcm" href="https://app.chatter3.com/pcm/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="yue" href="https://app.chatter3.com/yue/how-it-works"/>
   </url>
   <url>
     <loc>https://app.chatter3.com/for-beginners</loc>
     <lastmod>2026-08-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://app.chatter3.com/for-beginners"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://app.chatter3.com/for-beginners"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://app.chatter3.com/es/for-beginners"/>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://app.chatter3.com/ja/for-beginners"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://app.chatter3.com/ar/for-beginners"/>
     <xhtml:link rel="alternate" hreflang="zh" href="https://app.chatter3.com/zh/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://app.chatter3.com/hi/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://app.chatter3.com/ar/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://app.chatter3.com/bn/for-beginners"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://app.chatter3.com/fr/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://app.chatter3.com/pt/for-beginners"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://app.chatter3.com/ru/for-beginners"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://app.chatter3.com/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://app.chatter3.com/ja/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://app.chatter3.com/de/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="mr" href="https://app.chatter3.com/mr/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="te" href="https://app.chatter3.com/te/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://app.chatter3.com/tr/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="ta" href="https://app.chatter3.com/ta/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://app.chatter3.com/vi/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="id" href="https://app.chatter3.com/id/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://app.chatter3.com/ur/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="pcm" href="https://app.chatter3.com/pcm/for-beginners"/>
+    <xhtml:link rel="alternate" hreflang="yue" href="https://app.chatter3.com/yue/for-beginners"/>
   </url>
   <url>
     <loc>https://app.chatter3.com/blog</loc>
     <lastmod>2026-08-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://app.chatter3.com/blog"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://app.chatter3.com/blog"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://app.chatter3.com/es/blog"/>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://app.chatter3.com/ja/blog"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://app.chatter3.com/ar/blog"/>
     <xhtml:link rel="alternate" hreflang="zh" href="https://app.chatter3.com/zh/blog"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://app.chatter3.com/hi/blog"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://app.chatter3.com/ar/blog"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://app.chatter3.com/bn/blog"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://app.chatter3.com/fr/blog"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://app.chatter3.com/pt/blog"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://app.chatter3.com/ru/blog"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://app.chatter3.com/blog"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://app.chatter3.com/ja/blog"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://app.chatter3.com/de/blog"/>
+    <xhtml:link rel="alternate" hreflang="mr" href="https://app.chatter3.com/mr/blog"/>
+    <xhtml:link rel="alternate" hreflang="te" href="https://app.chatter3.com/te/blog"/>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://app.chatter3.com/tr/blog"/>
+    <xhtml:link rel="alternate" hreflang="ta" href="https://app.chatter3.com/ta/blog"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://app.chatter3.com/vi/blog"/>
+    <xhtml:link rel="alternate" hreflang="id" href="https://app.chatter3.com/id/blog"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://app.chatter3.com/ur/blog"/>
+    <xhtml:link rel="alternate" hreflang="pcm" href="https://app.chatter3.com/pcm/blog"/>
+    <xhtml:link rel="alternate" hreflang="yue" href="https://app.chatter3.com/yue/blog"/>
   </url>
 </urlset>

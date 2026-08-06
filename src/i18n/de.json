@@ -1,0 +1,137 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "howItWorks": "So funktioniert es",
+    "forBeginners": "Für Anfänger",
+    "blog": "Blog",
+    "getStarted": "Kostenlos starten"
+  },
+  "footer": {
+    "copyright": "© 2026 Chatter3. Englisch üben mit echten Menschen."
+  },
+  "howItWorks": {
+    "title": "So funktioniert Chatter3",
+    "subtitle": "Englische Konversation mit echten Menschen in Minuten üben. So funktioniert es — es ist kostenlos, lustig und effektiv.",
+    "cta": "Jetzt üben",
+    "stepsTitle": "Drei einfache Schritte",
+    "step1Title": "Erstelle dein kostenloses Konto",
+    "step1Desc": "Melde dich mit deiner E-Mail oder deinem Google-Konto an. Wähle dein Englischniveau — Anfänger, Mittelstufe oder Fortgeschritten — und teile uns deine Muttersprache mit, damit wir dich besser passen können.",
+    "step2Title": "Finde einen Gesprächspartner",
+    "step2Desc": "Klicke auf «Partner finden» und wir passen dich mit jemandem online zusammen, der auch üben möchte. Die Zuordnung basiert auf deinem Niveau, deiner Verfügbarkeit und deinen Vorlieben.",
+    "step3Title": "Fang an zu sprechen",
+    "step3Desc": "Spring in einen 1-zu-1-Videoanruf und übe echtes Englisch. Du verdienst Belohnungspunkte (RP) für jede Sitzung — nutze sie, um deine Übungszeit zu verlängern oder gegen Freipunkte (FP) zu tauschen.",
+    "whyTitle": "Warum Chatter3?",
+    "feature1Title": "Echte Gespräche",
+    "feature1Desc": "Keine Lehrbücher oder Skripte. Übe mit echten Menschen über Themen, die dir wichtig sind.",
+    "feature2Title": "Globale Gemeinschaft",
+    "feature2Desc": "Triff Englischlerner aus der ganzen Welt. Jedes Gespräch ist ein Kulturaustausch.",
+    "feature3Title": "Sofortige Zuordnung",
+    "feature3Desc": "Kein Warten. Finde einen Partner in Sekunden und starte sofort deine Übungssitzung.",
+    "feature4Title": "Belohnungen verdienen",
+    "feature4Desc": "Verdiene Belohnungspunkte für jeden Anruf. Je mehr du übst, desto mehr verdienst du.",
+    "feature5Title": "Sicher & Privat",
+    "feature5Desc": "Integrierte Meldung und Moderation. Deine Sicherheit hat für uns oberste Priorität.",
+    "feature6Title": "100% kostenlos",
+    "feature6Desc": "Tägliche Freipunkte für Videoanrufe. Keine Kreditkarte erforderlich. Keine versteckten Kosten.",
+    "faqTitle": "Häufig gestellte Fragen",
+    "faq1Question": "Ist Chatter3 wirklich kostenlos?",
+    "faq1Answer": "Ja! Du bekommst jeden Tag Freipunkte (FP) für Videoanrufe. Du kannst auch Belohnungspunkte (RP) verdienen, indem du Sitzungen abschließst und Freunde einlädst.",
+    "faq2Question": "Wie lange sind die Videoanrufe?",
+    "faq2Answer": "Anfänger bekommen 5-minütige Sitzungen. Mittelstufe- und Fortgeschrittene erhalten 10-minütige Sitzungen. Du kannst dir mit RP mehr Zeit verdienen.",
+    "faq3Question": "Was ist, wenn ich einen schlechten Partner bekomme?",
+    "faq3Answer": "Du kannst unangemessenes Verhalten melden und wir ergreifen schnell Maßnahmen. Du kannst auch jederzeit jeden Anruf beenden.",
+    "faq4Question": "Brauche ich eine Kamera?",
+    "faq4Answer": "Ja, Chatter3 ist eine Video-Konversationsplattform. Du brauchst eine Webcam oder Handykamera, um teilzunehmen.",
+    "bottomTitle": "Bereit, dein Englisch zu verbessern?",
+    "bottomSubtitle": "Schließe dich Tausenden von Lernern an, die jeden Tag Englischkonversation üben.",
+    "bottomCta": "Kostenloses Konto erstellen"
+  },
+  "forBeginners": {
+    "title": "Englische Konversation für Anfänger",
+    "subtitle": "Beginnst du gerade deine Englisch-Reise? Chatter3 ist der perfekte Ort, um mit echten Menschen Sprechen zu üben — kein Druck, kein Urteil.",
+    "cta": "Als Anfänger starten",
+    "whyTitle": "Warum Anfänger Chatter3 lieben",
+    "feature1Title": "Anfängerfreundliche Zuordnung",
+    "feature1Desc": "Wir passen dich mit anderen Anfängern zusammen, die auf dem gleichen Niveau sind. Keine unangenehmen Gespräche mit Fortgeschrittenen.",
+    "feature2Title": "5-Minuten-Sitzungen",
+    "feature2Desc": "Kurze, fokussierte Sitzungen sind perfekt für Anfänger. Übe jeden Tag ein bisschen und stärke dein Selbstvertrauen.",
+    "feature3Title": "Echte Themen",
+    "feature3Desc": "Sprich über alltägliche Dinge — deine Hobbys, deinen Tag, dein Lieblingsessen. Keine Lehrbücher, nur echte Gespräche.",
+    "feature4Title": "Selbstvertrauen aufbauen",
+    "feature4Desc": "Jedes Gespräch macht dich besser. Je mehr du übst, desto natürlicher fühlt sich Englisch an.",
+    "stepsTitle": "So startest du als Anfänger",
+    "step1Title": "Kostenlos anmelden",
+    "step1Desc": "Erstelle dein Konto in 30 Sekunden. Wähle «Anfänger» als dein Englischniveau. Das war's — kein Test, kein Druck.",
+    "step2Title": "Vervollständige dein Profil",
+    "step2Desc": "Teile uns deine Muttersprache und dein Land mit. Das hilft uns, dir die besten Gesprächspartner zu finden.",
+    "step3Title": "Finde deinen ersten Partner",
+    "step3Desc": "Klicke auf «Partner finden» und wir passen dich mit einem anderen Anfänger zusammen. Ihr lernt beide zusammen — es ist angenehm und macht Spaß.",
+    "step4Title": "Fang an zu sprechen",
+    "step4Desc": "Deine 5-minütige Sitzung beginnt. Mach dir keine Sorgen über Fehler — so lernt man! Versuch einfach dein Bestes und hab Spaß.",
+    "tipsTitle": "Tipps für Englisch-Gespräche für Anfänger",
+    "tip1Title": "Hab keine Angst vor Fehlern",
+    "tip1Desc": "Fehler sind Teil des Lernens. Jeder fließende Sprecher hat genau dort angefangen, wo du jetzt bist.",
+    "tip2Title": "Starte mit einfachen Themen",
+    "tip2Desc": "Sprich über deinen Namen, dein Land, deine Hobbys, das Wetter. Einfache Themen sind der beste Weg, um anzufangen.",
+    "tip3Title": "Übe jeden Tag",
+    "tip3Desc": "Selbst 5 Minuten am Tag machen einen riesigen Unterschied. Konstanz ist wichtiger als Perfektion.",
+    "tip4Title": "Höre zu und wiederhole",
+    "tip4Desc": "Achte darauf, wie dein Partner spricht. Probiere neue Wörter und Ausdrücke. So verbessert man sich schnell.",
+    "faqTitle": "Häufige Fragen von Anfängern",
+    "faq1Question": "Was ist, wenn ich meinen Partner nicht verstehe?",
+    "faq1Answer": "Das ist okay! Sag einfach «Entschuldigung, kannst du das wiederholen?» oder «Was bedeutet das?» Die meisten Leute helfen gerne.",
+    "faq2Question": "Ist es okay, manchmal meine Muttersprache zu verwenden?",
+    "faq2Answer": "Ein wenig ist in Ordnung, aber versuche so viel wie möglich Englisch zu sprechen. Selbst einfaches Englisch ist besser als perfekte Muttersprache.",
+    "faq3Question": "Wie viele Sitzungen sollte ich pro Woche machen?",
+    "faq3Answer": "Versuche mindestens 3-5 Sitzungen pro Woche zu machen. Je mehr du übst, desto schneller wirst du dich verbessern.",
+    "bottomTitle": "Deine Englisch-Reise beginnt hier",
+    "bottomSubtitle": "Schließe dich noch heute Chatter3 an und fang an, selbstbewusst Englisch zu sprechen.",
+    "bottomCta": "Kostenlos Chatter3 beitreten"
+  },
+  "blog": {
+    "title": "Chatter3 Blog",
+    "subtitle": "Tipps, Anleitungen und Einblicke, die dir helfen, deine Englisch-Sprechfähigkeiten schneller zu verbessern.",
+    "latestArticles": "Neueste Artikel",
+    "backToArticles": "← Zurück zu allen Artikeln",
+    "readMore": "Weiterlesen →",
+    "minRead": "Min. Lesezeit",
+    "readyToPractice": "Bereit zu üben?",
+    "applyLearning": "Wende das Gelernte an — finde einen Gesprächspartner bei Chatter3.",
+    "startFree": "Kostenlos starten",
+    "bottomTitle": "Fang an, heute Englisch zu sprechen",
+    "bottomSubtitle": "Schließe dich Tausenden von Lernern an, die mit echten Gesprächspartnern üben.",
+    "bottomCta": "Kostenlos Chatter3 beitreten",
+    "articles": {
+      "howToImprove": {
+        "title": "So verbesserst du dein Englisch-Sprechen: 7 bewährte Methoden",
+        "excerpt": "Entdecke die effektivsten Wege, um deine Englisch-Sprechfähigkeiten durch tägliche Übung, Gesprächspartner und immersive Techniken zu verbessern."
+      },
+      "conversationTopics": {
+        "title": "50 englische Gesprächsthemen zum Üben",
+        "excerpt": "Schwierigkeiten, Gesprächsstoff während des Englisch-Übens zu finden? Hier sind 50 Gesprächsthemen, geordnet nach Schwierigkeitsgrad."
+      },
+      "videoCallsBenefits": {
+        "title": "Warum Videoanrufe besser als Text-Chat für das Sprachenlernen sind",
+        "excerpt": "Studien zeigen, dass Videogespräche die Sprachfähigkeiten schneller verbessern als textbasierter Chat."
+      }
+    }
+  },
+  "meta": {
+    "home": {
+      "title": "Chatter3 — Kostenlose Englisch-Konversationspraxis mit echten Menschen",
+      "description": "Übe Englischkonversation mit echten Menschen durch kostenlose Videoanrufe. Schließe dich Chatter3 an und verbessere deine Sprechfähigkeiten mit sofortiger Zuordnung."
+    },
+    "howItWorks": {
+      "title": "So funktioniert Chatter3 — Englisch-Konversationspraxis",
+      "description": "Erfahre, wie Chatter3 dich mit echten Menschen für kostenlose Englisch-Konversationspraxis verbindet. Drei einfache Schritte, um anzufangen zu sprechen."
+    },
+    "forBeginners": {
+      "title": "Englische Konversation für Anfänger — Chatter3",
+      "description": "Beginne deine Englisch-Reise mit Chatter3. Übe das Sprechen mit echten Menschen in anfängerfreundlichen 5-Minuten-Sitzungen."
+    },
+    "blog": {
+      "title": "Chatter3 Blog — Englisch-Sprechen Tipps & Anleitungen",
+      "description": "Tipps, Anleitungen und Einblicke, die dir helfen, deine Englisch-Sprechfähigkeiten schneller zu verbessern."
+    }
+  }
+}

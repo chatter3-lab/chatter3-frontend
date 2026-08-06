@@ -5,17 +5,43 @@ import ar from './ar.json';
 import zh from './zh.json';
 import fr from './fr.json';
 import ru from './ru.json';
+import hi from './hi.json';
+import bn from './bn.json';
+import pt from './pt.json';
+import ur from './ur.json';
+import id from './id.json';
+import de from './de.json';
+import mr from './mr.json';
+import te from './te.json';
+import tr from './tr.json';
+import ta from './ta.json';
+import vi from './vi.json';
+import pcm from './pcm.json';
+import yue from './yue.json';
 
-export const translations = { en, es, ja, ar, zh, fr, ru };
+export const translations = { en, es, ja, ar, zh, fr, ru, hi, bn, pt, ur, id, de, mr, te, tr, ta, vi, pcm, yue };
 
 export const languages = [
   { code: 'en' },
   { code: 'es' },
-  { code: 'ja' },
-  { code: 'ar' },
   { code: 'zh' },
+  { code: 'hi' },
+  { code: 'ar' },
+  { code: 'bn' },
   { code: 'fr' },
+  { code: 'pt' },
   { code: 'ru' },
+  { code: 'ja' },
+  { code: 'de' },
+  { code: 'mr' },
+  { code: 'te' },
+  { code: 'tr' },
+  { code: 'ta' },
+  { code: 'vi' },
+  { code: 'id' },
+  { code: 'ur' },
+  { code: 'pcm' },
+  { code: 'yue' },
 ];
 
 export function detectLanguage() {
@@ -32,17 +58,15 @@ export function detectLanguage() {
 }
 
 export function getLangFromPath(path) {
-  if (path.startsWith('/es/')) return 'es';
-  if (path.startsWith('/ja/')) return 'ja';
-  if (path.startsWith('/ar/')) return 'ar';
-  if (path.startsWith('/zh/')) return 'zh';
-  if (path.startsWith('/fr/')) return 'fr';
-  if (path.startsWith('/ru/')) return 'ru';
+  for (const { code } of languages) {
+    if (code === 'en') continue;
+    if (path.startsWith(`/${code}/`)) return code;
+  }
   return 'en';
 }
 
 export function getPathWithoutLang(path) {
-  return path.replace(/^\/(es|ja|ar|zh|fr|ru)/, '') || '/';
+  return path.replace(/^\/(es|ja|ar|zh|fr|ru|hi|bn|pt|ur|id|de|mr|te|tr|ta|vi|pcm|yue)/, '') || '/';
 }
 
 export function getLocalizedPath(path, lang) {
