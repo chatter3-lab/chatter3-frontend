@@ -774,5 +774,41 @@
       "title": "Blog Chatter3 — Conseils et guides pour parler anglais",
       "description": "Conseils, guides et astuces pour vous aider à améliorer vos compétences en anglais plus rapidement."
     }
+  },
+  "faq": {
+    "title": "Questions Fréquentes",
+    "subtitle": "Tout ce que vous devez savoir sur Chatter3. Vous ne trouvez pas votre réponse ?",
+    "tryFree": "Essayer gratuitement",
+    "ctaTitle": "Prêt à Commencer à Pratiquer ?",
+    "ctaSubtitle": "Rejoignez des milliers d'apprenants qui améliorent leur anglais chaque jour.",
+    "ctaButton": "Rejoindre Chatter3 Gratuitement",
+    "categories": {
+      "general": "Général",
+      "practice": "Pratique",
+      "account": "Compte",
+      "safety": "Sécurité",
+      "technical": "Technique"
+    },
+    "items": {
+      "whatIs": { "q": "Qu'est-ce que Chatter3 ?", "a": "Chatter3 est une plateforme gratuite pour pratiquer la conversation en anglais via des appels vidéo 1 à 1 avec de vraies personnes du monde entier. Aucun abonnement requis." },
+      "isFree": { "q": "Chatter3 est-il vraiment gratuit ?", "a": "Oui ! Chatter3 est entièrement gratuit. Vous gagnez des points de récompense en pratiquant et pouvez les utiliser pour des fonctionnalités premium, mais les appels vidéo principaux sont toujours gratuits." },
+      "howWork": { "q": "Comment fonctionne Chatter3 ?", "a": "Inscrivez-vous, complétez votre profil et cliquez sur « Trouver un partenaire » pour être apparié avec un autre apprenant d'anglais pour un appel vidéo 1 à 1. Les sessions durent 5 minutes par défaut." },
+      "whoCan": { "q": "Qui peut utiliser Chatter3 ?", "a": "Toute personne qui veut pratiquer la conversation en anglais ! Nous accueillons tous les niveaux — débutant, intermédiaire et avancé. Vous devez avoir 13 ans ou plus." },
+      "beginner": { "q": "Et si je suis débutant complet ?", "a": "Pas de problème ! Beaucoup de nos utilisateurs sont débutants. Le système de correspondance vous associe à des partenaires compatibles, et les sujets de conversation vous aident à commencer." },
+      "sessionLength": { "q": "Combien de temps durent les sessions de pratique ?", "a": "Les sessions par défaut durent 5 minutes, mais vous pouvez ajuster la durée dans les paramètres (1-30 minutes). Les sessions plus longues donnent plus de temps de pratique." },
+      "languageDiff": { "q": "Et si mon partenaire ne parle pas ma langue ?", "a": "Chatter3 est pour la pratique de l'anglais ! Les deux partenaires sont là pour parler anglais. Ils peuvent avoir des langues maternelles différentes, ce qui le rend encore plus intéressant." },
+      "choosePartner": { "q": "Puis-je choisir avec qui je pratique ?", "a": "L'algorithme de correspondance considère votre niveau, langue maternelle et pays. Vous ne pouvez pas choisir une personne spécifique, mais vous pouvez passer au suivant si nécessaire." },
+      "createAccount": { "q": "Comment créer un compte ?", "a": "Cliquez sur « Commencer gratuitement » sur la page d'accueil. Vous pouvez vous inscrire avec email/mot de passe ou utiliser Google Sign-In pour un accès rapide." },
+      "rewardPoints": { "q": "Comment fonctionnent les points de récompense ?", "a": "Vous gagnez 5 points ami (FP) par session terminée et 5 points de récompense (RP) pour chaque session. Les RP peuvent être échangés contre FP à un ratio de 3:1. Plus vous pratiquez, plus vous gagnez de points — qui peuvent être convertis en jetons pour des fonctionnalités premium." },
+      "friendPoints": { "q": "Que sont les points ami (FP) ?", "a": "Les points ami sont utilisés pour démarrer les sessions de pratique. Chaque session coûte 1 FP. Vous gagnez FP en pratiquant ou en échangeant des RP." },
+      "foundingMember": { "q": "Comment devenir membre fondateur ?", "a": "Les membres fondateurs obtiennent des sessions gratuites illimitées. C'est une offre à durée limitée pour les utilisateurs précoces. Vérifiez votre tableau de bord pour voir si vous êtes éligible." },
+      "isSafe": { "q": "Chatter3 est-il sûr ?", "a": "Oui. Nous utilisons des appels vidéo chiffrés WebRTC, avons un système de signalement et les modérateurs examinent tous les signalements. Ne partagez jamais d'informations personnelles pendant les appels." },
+      "inappropriate": { "q": "Et si quelqu'un se comporte de manière inappropriée ?", "a": "Utilisez le bouton de signalement pendant ou après l'appel. Notre équipe examine tous les signalements dans les 24 heures. Les contrevenants récidivistes sont bannis de la plateforme." },
+      "dataPrivate": { "q": "Mes données sont-elles privées ?", "a": "Nous ne vendons jamais vos données. Les appels vidéo sont chiffrés de bout en bout et non enregistrés. Lisez notre politique de confidentialité pour plus de détails." },
+      "devices": { "q": "Quels appareils puis-je utiliser ?", "a": "Chatter3 fonctionne sur tout appareil avec un navigateur web moderne — ordinateur, ordinateur portable, tablette ou smartphone. Aucun téléchargement d'application requis." },
+      "internet": { "q": "Ai-je besoin d'une bonne connexion Internet ?", "a": "Une connexion stable avec au moins 1 Mbps de téléchargement/téléchargement est recommandée pour une bonne qualité vidéo. Le WiFi est préféré aux données mobiles." },
+      "browsers": { "q": "Quels navigateurs sont supportés ?", "a": "Chatter3 fonctionne mieux sur Chrome, Firefox, Safari et Edge. Nous recommandons d'utiliser la dernière version de votre navigateur." },
+      "noAudio": { "q": "Pourquoi je n'entends pas mon partenaire ?", "a": "Vérifiez que les autorisations de microphone et caméra sont activées dans votre navigateur. Essayez de rafraîchir la page ou d'utiliser un autre navigateur." }
+    }
   }
 }

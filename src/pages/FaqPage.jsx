@@ -63,42 +63,20 @@ a{color:inherit;text-decoration:none;}
 }
 `;
 
-const faqData = {
-  general: [
-    { q: "What is Chatter3?", a: "Chatter3 is a free platform for practicing English conversation through 1-on-1 video calls with real people worldwide. No subscription required." },
-    { q: "Is Chatter3 really free?", a: "Yes! Chatter3 is completely free. You earn reward points by practicing and can use them for premium features, but the core video calling is always free." },
-    { q: "How does Chatter3 work?", a: "Sign up, complete your profile, and click 'Find Partner' to be matched with another English learner for a 1-on-1 video call. Sessions last 5 minutes by default." },
-    { q: "Who can use Chatter3?", a: "Anyone who wants to practice English conversation! We welcome all levels — beginner, intermediate, and advanced. You must be 13+ years old." },
-  ],
-  practice: [
-    { q: "What if I'm a complete beginner?", a: "No problem! Many of our users are beginners. The matching system pairs you with compatible partners, and conversation starters help you get going." },
-    { q: "How long are practice sessions?", a: "Default sessions are 5 minutes, but you can adjust the duration in settings (1-30 minutes). Longer sessions give more practice time." },
-    { q: "What if my partner doesn't speak my language?", a: "Chatter3 is for English practice! Both partners are there to speak English. You might have different native languages, which makes it even more interesting." },
-    { q: "Can I choose who I practice with?", a: "The matching algorithm considers your level, native language, and country. You can't pick a specific person, but you can skip to the next match if needed." },
-  ],
-  account: [
-    { q: "How do I create an account?", a: "Click 'Get Started' on the homepage. You can sign up with email/password or use Google Sign-In for quick access." },
-    { q: "How do reward points work?", a: "You earn 5 friend points (FP) per completed session and 5 reward points (RP) for each session. RP can be exchanged for FP at a 3:1 ratio. The more you practice, the more points you earn — which can be converted into tokens for premium features." },
-    { q: "What are friend points (FP)?", a: "Friend Points are used to start practice sessions. Each session costs 1 FP. You earn FP by practicing or by exchanging RP." },
-    { q: "How do I become a founding member?", a: "Founding members get unlimited free sessions. This is a limited-time offer for early users. Check your dashboard to see if you qualify." },
-  ],
-  safety: [
-    { q: "Is Chatter3 safe?", a: "Yes. We use WebRTC encrypted video calls, have a reporting system, and moderators review all reports. Never share personal information during calls." },
-    { q: "What if someone behaves inappropriately?", a: "Use the report button during or after the call. Our team reviews all reports within 24 hours. Repeat offenders are banned from the platform." },
-    { q: "Is my data private?", a: "We never sell your data. Video calls are peer-to-peer encrypted and not recorded. Read our Privacy Policy for full details." },
-  ],
-  technical: [
-    { q: "What devices can I use?", a: "Chatter3 works on any device with a modern web browser — desktop, laptop, tablet, or smartphone. No app download required." },
-    { q: "Do I need a good internet connection?", a: "A stable connection with at least 1 Mbps upload/download is recommended for good video quality. WiFi is preferred over mobile data." },
-    { q: "Which browsers are supported?", a: "Chatter3 works best on Chrome, Firefox, Safari, and Edge. We recommend using the latest version of your browser." },
-    { q: "Why can't I hear my partner?", a: "Check that your microphone and camera permissions are enabled in your browser. Try refreshing the page or using a different browser." },
-  ]
-};
+const faqOrder = ['general','practice','account','safety','technical'];
+const faqKeys = [
+  ['whatIs','isFree','howWork','whoCan'],
+  ['beginner','sessionLength','languageDiff','choosePartner'],
+  ['createAccount','rewardPoints','friendPoints','foundingMember'],
+  ['isSafe','inappropriate','dataPrivate'],
+  ['devices','internet','browsers','noAudio']
+];
 
 export default function FaqPage({lang='en'}){
   const t=getTranslations(lang);
   const prefix=lang==='en'?'':`/${lang}`;
   const canonical=`https://app.chatter3.com${prefix}/faq`;
+  const faq=t.faq;
   
   const faqSchema={
     "@context":"https://schema.org",
@@ -106,9 +84,10 @@ export default function FaqPage({lang='en'}){
     "mainEntity":[]
   };
   
-  Object.values(faqData).forEach(category => {
-    category.forEach(item => {
-      faqSchema.mainEntity.push({
+  faqKeys.forEach((keys) => {
+    keys.forEach(key => {
+      const item = faq.items[key];
+      if(item) faqSchema.mainEntity.push({
         "@type":"Question",
         "name":item.q,
         "acceptedAnswer":{"@type":"Answer","text":item.a}
@@ -120,21 +99,21 @@ export default function FaqPage({lang='en'}){
     <div className="lp">
       <style>{LP_STYLES}</style>
       <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(faqSchema)}}/>
-      <SEOHead title="Frequently Asked Questions | Chatter3" description="Get answers to common questions about Chatter3 — the free English conversation practice platform with 1-on-1 video calls." canonical={canonical} lang={lang}/>
-      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>Home</a><a href={`${prefix}/how-it-works`}>How It Works</a><a href={`${prefix}/for-beginners`}>For Beginners</a><a href={`${prefix}/blog`}>Blog</a><a href={`${prefix}/faq`} className="active">FAQ</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">Get Started</a></div></nav>
+      <SEOHead title={`${faq.title} | Chatter3`} description="Get answers to common questions about Chatter3 — the free English conversation practice platform with 1-on-1 video calls." canonical={canonical} lang={lang}/>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>Home</a><a href={`${prefix}/how-it-works`}>How It Works</a><a href={`${prefix}/for-beginners`}>For Beginners</a><a href={`${prefix}/blog`}>Blog</a><a href={`${prefix}/faq`} className="active">FAQ</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{faq.ctaButton}</a></div></nav>
       <div className="lp-hero">
-        <h1>Frequently Asked Questions</h1>
-        <p>Everything you need to know about Chatter3. Can't find your answer? <a href="/" style={{color:'#4f46e5',fontWeight:600}}>Try it free</a>.</p>
+        <h1>{faq.title}</h1>
+        <p>{faq.subtitle} <a href="/" style={{color:'#4f46e5',fontWeight:600}}>{faq.tryFree}</a>.</p>
       </div>
       <div className="lp-section">
         <div className="lp-faq">
-          {Object.entries(faqData).map(([category, items]) => (
+          {faqOrder.map((category) => (
             <div key={category} className="lp-faq-category">
-              <h3>{category.charAt(0).toUpperCase() + category.slice(1)}</h3>
-              {items.map((item, i) => (
-                <div key={i} className="lp-faq-item">
-                  <h4>{item.q}</h4>
-                  <p>{item.a}</p>
+              <h3>{faq.categories[category]}</h3>
+              {faqKeys[faqOrder.indexOf(category)].map((key) => (
+                <div key={key} className="lp-faq-item">
+                  <h4>{faq.items[key].q}</h4>
+                  <p>{faq.items[key].a}</p>
                 </div>
               ))}
             </div>
@@ -142,9 +121,9 @@ export default function FaqPage({lang='en'}){
         </div>
       </div>
       <div className="lp-cta-bottom">
-        <h2>Ready to Start Practicing?</h2>
-        <p style={{color:'rgba(255,255,255,.8)',marginBottom:'1.5rem',fontSize:'1.05rem'}}>Join thousands of learners improving their English every day.</p>
-        <a href="/" className="lp-cta">Join Chatter3 Free</a>
+        <h2>{faq.ctaTitle}</h2>
+        <p style={{color:'rgba(255,255,255,.8)',marginBottom:'1.5rem',fontSize:'1.05rem'}}>{faq.ctaSubtitle}</p>
+        <a href="/" className="lp-cta">{faq.ctaButton}</a>
       </div>
       <footer className="lp-footer">
         <div className="lp-footer-inner">
