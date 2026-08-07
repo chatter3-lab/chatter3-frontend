@@ -32,6 +32,7 @@ export default function LanguageSwitcher({ currentLang }) {
       onChange={handleChange}
       defaultValue={currentLang || 'en'}
       className="lang-select"
+      aria-label="Select language"
       style={{
         appearance: 'none',
         WebkitAppearance: 'none',

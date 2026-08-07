@@ -699,7 +699,7 @@ function ForgotPasswordView({onBack,t,lang}){
         ):(
           <form onSubmit={submit} className="register-form">
             <p style={{fontSize:'.85rem',color:'#6b7280',margin:'0 0 1rem'}}>{t.forgotPassword.instruction}</p>
-            <div className="form-group"><label>{t.auth.email}</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></div>
+            <div className="form-group"><label htmlFor="forgot-email">{t.auth.email}</label><input id="forgot-email" type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></div>
             <button type="submit" disabled={loading}>{loading?t.forgotPassword.sending:t.forgotPassword.sendResetLink}</button>
             <button type="button" className="auth-link" onClick={onBack} style={{marginTop:'.75rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.85rem',cursor:'pointer',width:'100%'}}>{t.forgotPassword.backToSignIn}</button>
           </form>
@@ -751,8 +751,8 @@ function ResetPasswordView({token,onBack,t,lang}){
           </div>
         ):(
           <form onSubmit={submit} className="register-form">
-            <div className="form-group"><label>{t.resetPassword.newPassword}</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={6}/></div>
-            <div className="form-group"><label>{t.resetPassword.confirmPassword}</label><input type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} required minLength={6}/></div>
+            <div className="form-group"><label htmlFor="reset-password">{t.resetPassword.newPassword}</label><input id="reset-password" type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={6}/></div>
+            <div className="form-group"><label htmlFor="reset-confirm">{t.resetPassword.confirmPassword}</label><input id="reset-confirm" type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} required minLength={6}/></div>
             <button type="submit" disabled={loading}>{loading?t.resetPassword.updating:t.resetPassword.updatePassword}</button>
             <button type="button" className="auth-link" onClick={onBack} style={{marginTop:'.75rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.85rem',cursor:'pointer',width:'100%'}}>{t.resetPassword.backToSignIn}</button>
           </form>
@@ -810,17 +810,17 @@ function AuthView({onLogin,setView,t,lang}){
         {err&&<div className="error-message">{err}</div>}
         <form onSubmit={submit} className="register-form">
           {reg&&<>
-            <div className="form-group"><label>{t.auth.username}</label><input value={form.username} onChange={upd('username')} required/></div>
-            <div className="form-group"><label>{t.auth.country}</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))} required/></div>
-            <div className="form-group"><label>{t.auth.nativeLanguage}</label><input value={form.native_language} onChange={upd('native_language')} required placeholder={t.auth.nativeLanguagePlaceholder}/></div>
-            <div className="form-group"><label>{t.auth.level}</label>
-              <select value={form.english_level} onChange={upd('english_level')}>
+            <div className="form-group"><label htmlFor="reg-username">{t.auth.username}</label><input id="reg-username" value={form.username} onChange={upd('username')} required/></div>
+            <div className="form-group"><label htmlFor="reg-country">{t.auth.country}</label><CountrySelect id="reg-country" value={form.country} onChange={v=>setForm(f=>({...f,country:v}))} required/></div>
+            <div className="form-group"><label htmlFor="reg-native">{t.auth.nativeLanguage}</label><input id="reg-native" value={form.native_language} onChange={upd('native_language')} required placeholder={t.auth.nativeLanguagePlaceholder}/></div>
+            <div className="form-group"><label htmlFor="reg-level">{t.auth.level}</label>
+              <select id="reg-level" value={form.english_level} onChange={upd('english_level')}>
                 <option value="beginner">{t.auth.beginner}</option><option value="intermediate">{t.auth.intermediate}</option><option value="advanced">{t.auth.advanced}</option>
               </select>
             </div>
           </>}
-          <div className="form-group"><label>{t.auth.email}</label><input type="email" value={form.email} onChange={upd('email')} required/></div>
-          <div className="form-group"><label>{t.auth.password}</label><input type="password" value={form.password} onChange={upd('password')} required minLength={6}/></div>
+          <div className="form-group"><label htmlFor="auth-email">{t.auth.email}</label><input id="auth-email" type="email" value={form.email} onChange={upd('email')} required/></div>
+          <div className="form-group"><label htmlFor="auth-password">{t.auth.password}</label><input id="auth-password" type="password" value={form.password} onChange={upd('password')} required minLength={6}/></div>
           {!reg&&<div style={{textAlign:'right',marginTop:'-8px',marginBottom:'8px'}}><button type="button" className="auth-link" onClick={()=>setView('forgot')} style={{background:'none',border:'none',color:'#4f46e5',fontSize:'.82rem',cursor:'pointer',padding:0}}>{t.auth.forgotPassword}</button></div>}
           {reg&&(
             <div className="terms-row">
@@ -1530,9 +1530,9 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
             <div style={{fontWeight:600,fontSize:'.85rem',marginBottom:8}}>{user.has_password?t.profile.changePasswordTitle:t.profile.setPasswordTitle}</div>
             {pwErr&&<div style={{color:'#ef4444',fontSize:'.8rem',marginBottom:6}}>{pwErr}</div>}
             {pwMsg&&<div style={{color:'#22c55e',fontSize:'.8rem',marginBottom:6}}>{pwMsg}</div>}
-            {user.has_password&&<div className="form-group"><label>{t.profile.currentPassword}</label><input type="password" value={pwForm.current_password} onChange={e=>setPwForm(f=>({...f,current_password:e.target.value}))}/></div>}
-            <div className="form-group"><label>{t.profile.newPassword}</label><input type="password" value={pwForm.new_password} onChange={e=>setPwForm(f=>({...f,new_password:e.target.value}))} minLength={6}/></div>
-            <div className="form-group"><label>{t.profile.confirmPassword}</label><input type="password" value={pwForm.confirm_password} onChange={e=>setPwForm(f=>({...f,confirm_password:e.target.value}))} minLength={6}/></div>
+            {user.has_password&&<div className="form-group"><label htmlFor="pw-current">{t.profile.currentPassword}</label><input id="pw-current" type="password" value={pwForm.current_password} onChange={e=>setPwForm(f=>({...f,current_password:e.target.value}))}/></div>}
+            <div className="form-group"><label htmlFor="pw-new">{t.profile.newPassword}</label><input id="pw-new" type="password" value={pwForm.new_password} onChange={e=>setPwForm(f=>({...f,new_password:e.target.value}))} minLength={6}/></div>
+            <div className="form-group"><label htmlFor="pw-confirm">{t.profile.confirmPassword}</label><input id="pw-confirm" type="password" value={pwForm.confirm_password} onChange={e=>setPwForm(f=>({...f,confirm_password:e.target.value}))} minLength={6}/></div>
             <button className="save-btn" onClick={changePassword} style={{width:'100%'}}>{user.has_password?t.profile.updatePassword:t.profile.setPasswordBtn}</button>
           </div>
         )}
