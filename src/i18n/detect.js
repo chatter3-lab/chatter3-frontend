@@ -1,7 +1,8 @@
-const translationCache = {};
+import en from './en.json';
+
+const translationCache = { en };
 
 const translationModules = {
-  en: () => import('./en.json'),
   es: () => import('./es.json'),
   ja: () => import('./ja.json'),
   ar: () => import('./ar.json'),
@@ -22,9 +23,6 @@ const translationModules = {
   pcm: () => import('./pcm.json'),
   yue: () => import('./yue.json'),
 };
-
-// Eagerly load English as fallback
-import('./en.json').then(m => { translationCache.en = m.default || m; });
 
 export const languages = [
   { code: 'en', flag: '🇬🇧' },
@@ -51,7 +49,7 @@ export const languages = [
 
 export function detectLanguage() {
   const saved = localStorage.getItem('chatter3_lang');
-  if (saved && translationModules[saved]) return saved;
+  if (saved && (saved === 'en' || translationModules[saved])) return saved;
 
   const fullLang = navigator.language.toLowerCase();
   const shortLang = fullLang.slice(0, 2);
@@ -92,10 +90,9 @@ export function getLocalizedPath(path, lang) {
 }
 
 export function setLanguage(lang) {
-  if (translationModules[lang]) {
+  if (lang === 'en' || translationModules[lang]) {
     localStorage.setItem('chatter3_lang', lang);
-    // Preload the language
-    loadTranslation(lang);
+    if (lang !== 'en') loadTranslation(lang);
   }
 }
 
@@ -110,7 +107,7 @@ function loadTranslation(lang) {
 }
 
 export function getTranslations(lang) {
-  return translationCache[lang] || translationCache.en || {};
+  return translationCache[lang] || translationCache.en;
 }
 
 // Preload current language on module load
