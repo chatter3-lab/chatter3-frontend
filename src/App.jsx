@@ -617,11 +617,12 @@ export default function App(){
                    <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 {t.nav.friends||'Friends'}</button>
                    <div className="help-menu-wrapper">
                      <button className="header-btn btn-help" style={{position:'relative'}}>❓ {t.nav.help||'Help'}</button>
-                     <div className="help-dropdown">
-                       <a href="/how-it-works" target="_blank">📖 {t.nav.howItWorks}</a>
-                       <a href="/for-beginners" target="_blank">🌱 {t.nav.forBeginners}</a>
-                       <a href="/blog" target="_blank">📝 {t.nav.blog}</a>
-                     </div>
+                      <div className="help-dropdown">
+                        <a href="/how-it-works" target="_blank">📖 {t.nav.howItWorks}</a>
+                        <a href="/for-beginners" target="_blank">🌱 {t.nav.forBeginners}</a>
+                        <a href="/blog" target="_blank">📝 {t.nav.blog}</a>
+                        <a href="/faq" target="_blank">❓ {t.nav.faq||'FAQ'}</a>
+                      </div>
                    </div>
                   <LanguageSwitcher currentLang={localStorage.getItem('chatter3_lang')||'en'}/>
                   {user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ {t.admin.badge}</button>:null}
@@ -845,6 +846,7 @@ function AuthView({onLogin,setView,t,lang}){
           <a href="/how-it-works">{t.nav.howItWorks}</a>
           <a href="/for-beginners">{t.nav.forBeginners}</a>
           <a href="/blog">{t.nav.blog}</a>
+          <a href="/faq">{t.nav.faq||'FAQ'}</a>
           <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
         </div>
         <p>{t.footer.copyright}</p>
