@@ -3,8 +3,9 @@ import es from './es.json';
 import ja from './ja.json';
 import zh from './zh.json';
 import bn from './bn.json';
+import fr from './fr.json';
 
-const translations = { en, ja, bn, zh, es };
+const translations = { en, ja, bn, zh, es, fr };
 
 export const languages = [
   { code: 'en', flag: '🇬🇧' },
@@ -12,6 +13,7 @@ export const languages = [
   { code: 'bn', flag: '🇧🇩' },
   { code: 'zh', flag: '🇨🇳' },
   { code: 'es', flag: '🇪🇸' },
+  { code: 'fr', flag: '🇫🇷' },
 ];
 
 export function detectLanguage() {
@@ -23,6 +25,7 @@ export function detectLanguage() {
   if (fullLang.startsWith('ja')) return 'ja';
   if (fullLang.startsWith('zh')) return 'zh';
   if (fullLang.startsWith('bn')) return 'bn';
+  if (fullLang.startsWith('fr')) return 'fr';
 
   return 'en';
 }
