@@ -1,13 +1,15 @@
 import en from './en.json';
 import es from './es.json';
 import ja from './ja.json';
+import zh from './zh.json';
 
-const translations = { en, es, ja };
+const translations = { en, es, ja, zh };
 
 export const languages = [
   { code: 'en', flag: '🇬🇧' },
   { code: 'es', flag: '🇪🇸' },
   { code: 'ja', flag: '🇯🇵' },
+  { code: 'zh', flag: '🇨🇳' },
 ];
 
 export function detectLanguage() {
@@ -17,6 +19,7 @@ export function detectLanguage() {
   const fullLang = navigator.language.toLowerCase();
   if (fullLang.startsWith('es')) return 'es';
   if (fullLang.startsWith('ja')) return 'ja';
+  if (fullLang.startsWith('zh')) return 'zh';
 
   return 'en';
 }
