@@ -78,7 +78,7 @@ const faqData = {
   ],
   account: [
     { q: "How do I create an account?", a: "Click 'Get Started' on the homepage. You can sign up with email/password or use Google Sign-In for quick access." },
-    { q: "How do reward points work?", a: "You earn 5 friend points (FP) per completed session and 5 reward points (RP) for each session. RP can be exchanged for FP at a 3:1 ratio." },
+    { q: "How do reward points work?", a: "You earn 5 friend points (FP) per completed session and 5 reward points (RP) for each session. RP can be exchanged for FP at a 3:1 ratio. The more you practice, the more points you earn — which can be converted into tokens for premium features." },
     { q: "What are friend points (FP)?", a: "Friend Points are used to start practice sessions. Each session costs 1 FP. You earn FP by practicing or by exchanging RP." },
     { q: "How do I become a founding member?", a: "Founding members get unlimited free sessions. This is a limited-time offer for early users. Check your dashboard to see if you qualify." },
   ],

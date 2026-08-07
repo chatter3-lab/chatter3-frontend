@@ -57,7 +57,7 @@ export function getBlogArticles(t){
 <h2>Take the First Step</h2><p>Join Chatter3 today. Your first conversation partner is waiting, and they're just as nervous as you are.</p>`},
     {slug:'chatter3-vs-italki',title:t.blog.articles.chatter3VsItalki.title,excerpt:t.blog.articles.chatter3VsItalki.excerpt,date:'2026-02-15',readTime:'5 min',
      content:`<p>Choosing between Chatter3 and italki depends on your goals, budget, and learning style. Here's an honest comparison to help you decide.</p>
-<h2>Chatter3: Free Video Practice</h2><p>Chatter3 connects you with fellow English learners for free 1-on-1 video calls. There's no subscription fee — you earn reward points by practicing and can exchange them for extra features.</p>
+<h2>Chatter3: Free Video Practice</h2><p>Chatter3 connects you with fellow English learners for free 1-on-1 video calls. There's no subscription fee — the more you practice, the more Reward Points you earn, which can be converted into tokens for premium features.</p>
 <h3>Pros:</h3><ul><li>Completely free to use</li><li>Practice with real learners worldwide</li><li>Reward points keep you motivated</li><li>No scheduling required — instant matching</li></ul>
 <h3>Cons:</h3><ul><li>Partners are learners, not professional teachers</li><li>No structured curriculum</li><li>Limited advanced features</li></ul>
 <h2>italki: Professional Tutoring</h2><p>italki connects you with professional English tutors for paid lessons. Prices range from $8-25 per hour depending on the tutor.</p>
@@ -69,14 +69,14 @@ export function getBlogArticles(t){
     {slug:'chatter3-vs-cambly',title:t.blog.articles.chatter3VsCambly.title,excerpt:t.blog.articles.chatter3VsCambly.excerpt,date:'2026-02-20',readTime:'4 min',
      content:`<p>Cambly is a popular paid platform for English video practice. But is it worth the subscription when free alternatives like Chatter3 exist? Let's compare.</p>
 <h2>Chatter3 vs Cambly: Key Differences</h2>
-<h2>Price</h2><p><strong>Chatter3:</strong> Free. Optional premium features via reward points.</p><p><strong>Cambly:</strong> $12-30/month subscription required.</p>
+<h2>Price</h2><p><strong>Chatter3:</strong> Completely free. The more you practice, the more Reward Points you earn — which can be converted into tokens for premium features.</p><p><strong>Cambly:</strong> $12-30/month subscription required.</p>
 <h2>Practice Partners</h2><p><strong>Chatter3:</strong> Fellow English learners from around the world.</p><p><strong>Cambly:</strong> Native English speakers (tutors and conversation partners).</p>
 <h2>Scheduling</h2><p><strong>Chatter3:</strong> Instant matching — no scheduling needed.</p><p><strong>Cambly:</strong> Can schedule sessions or use on-demand (wait times vary).</p>
 <h2>Quality of Practice</h2><p><strong>Chatter3:</strong> Equal practice — both partners are learning, creating a supportive environment.</p><p><strong>Cambly:</strong> One-sided — you practice with a native speaker who corrects you.</p>
 <h2>Motivation System</h2><p><strong>Chatter3:</strong> Reward points, streaks, and leaderboards keep you engaged.</p><p><strong>Cambly:</strong> Progress tracking but no gamification.</p>
-<h2>Who Should Use Chatter3?</h2><p>Beginners who want free, low-pressure practice. Learners who enjoy helping others while practicing. Anyone on a budget.</p>
+<h2>Who Should Use Chatter3?</h2><p>Beginners who want free, low-pressure practice. Learners who enjoy helping others while practicing. Anyone who wants to earn Reward Points by practicing — the more you practice, the more you earn.</p>
 <h2>Who Should Use Cambly?</h2><p>Intermediate/advanced learners who need native speaker feedback. Professionals preparing for interviews. Learners who prefer structured sessions.</p>
-<h2>Our Verdict</h2><p>For most learners, Chatter3 offers the best value. It's free, fun, and effective. Use Cambly if you specifically need native speaker feedback and can afford the subscription.</p>`}
+<h2>Our Verdict</h2><p>Chatter3 is free and rewards you for practicing — the more you practice, the more Reward Points you earn. Use Cambly if you specifically need native speaker feedback and can afford the subscription.</p>`}
   ];
 }
 
