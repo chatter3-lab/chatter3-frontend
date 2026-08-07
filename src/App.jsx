@@ -2854,7 +2854,7 @@ function MatchingView({user,settings,onCancel,onMatch,t}){
       {user.mvp_mode
         ?<p className="match-sub">{t.matching.findingPartner}</p>
         :<p className="match-sub">{t.matching.findingLevel.replace('{level}',user.english_level)}</p>}
-      <div className="level-badge">📊 {user.mvp_mode?t.matching.allLevels:user.english_level} · {user.mvp_mode||user.english_level==='beginner'?'5':'10'} {t.matching.minSessions}</div>
+      <div className="level-badge">📊 {user.mvp_mode?t.matching.allLevels:user.english_level} {t.matching.minSessions.replace('{N}',user.mvp_mode||user.english_level==='beginner'?'5':'10')}</div>
       {total>0&&<div className="online-badge"><span className="online-dot"/>{total===1?t.matching.online1:t.matching.onlineMany.replace('{total}',total)}</div>}
       {elapsed>=15&&noLevel&&<p style={{fontSize:'.78rem',color:'#f59e0b',maxWidth:260,textAlign:'center',margin:'.4rem 0'}}>⚠️ {user.mvp_mode?t.matching.noUsers:t.matching.noLevelUsers.replace('{level}',user.english_level)}{t.matching.continuing}</p>}
       <div className="progress-bar"><div className="progress-fill" style={{width:`${Math.min(100,(elapsed/MATCH_TIMEOUT)*100)}%`,background:elapsed>60?'#f59e0b':'#4f8ef7'}}/></div>
