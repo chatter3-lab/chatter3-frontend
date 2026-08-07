@@ -46,6 +46,21 @@
     <xhtml:link rel="alternate" hreflang="ru" href="https://app.chatter3.com/ru/for-beginners"/>
   </url>
   <url>
+    <loc>https://app.chatter3.com/faq</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://app.chatter3.com/faq"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://app.chatter3.com/faq"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://app.chatter3.com/ja/faq"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://app.chatter3.com/bn/faq"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://app.chatter3.com/zh/faq"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://app.chatter3.com/es/faq"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://app.chatter3.com/fr/faq"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://app.chatter3.com/ar/faq"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://app.chatter3.com/ru/faq"/>
+  </url>
+  <url>
     <loc>https://app.chatter3.com/blog</loc>
     <lastmod>2026-08-07</lastmod>
     <changefreq>weekly</changefreq>
@@ -93,6 +108,18 @@
   <url>
     <loc>https://app.chatter3.com/blog/how-to-overcome-fear-of-speaking-english</loc>
     <lastmod>2026-02-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.chatter3.com/blog/chatter3-vs-italki</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.chatter3.com/blog/chatter3-vs-cambly</loc>
+    <lastmod>2026-02-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

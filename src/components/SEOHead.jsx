@@ -50,7 +50,7 @@ export default function SEOHead({ title, description, canonical, lang, pageKey, 
     updateProperty('og:description', description || '');
     updateProperty('og:url', canonical || '');
     updateProperty('og:locale', lang === 'en' ? 'en_US' : lang === 'es' ? 'es_ES' : lang === 'ja' ? 'ja_JP' : lang === 'zh' ? 'zh_CN' : lang === 'bn' ? 'bn_BD' : lang === 'fr' ? 'fr_FR' : lang === 'ar' ? 'ar_SA' : lang === 'ru' ? 'ru_RU' : 'en_US');
-    const imageUrl = ogImage || `${BASE_URL}/og-image.svg`;
+    const imageUrl = ogImage || `${BASE_URL}/og-image.png`;
     updateProperty('og:image', imageUrl);
     updateProperty('og:image:width', '1200');
     updateProperty('og:image:height', '630');
