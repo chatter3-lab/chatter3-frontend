@@ -2041,9 +2041,32 @@ function HowItWorksPage({lang='en'}){
   const t=getTranslations(lang);
   const prefix=lang==='en'?'':`/${lang}`;
   const canonical=`https://app.chatter3.com${prefix}/how-it-works`;
+  const howToSchema={
+    "@context":"https://schema.org",
+    "@type":"HowTo",
+    "name":t.howItWorks.title,
+    "description":t.howItWorks.subtitle,
+    "step":[
+      {"@type":"HowToStep","name":t.howItWorks.step1Title,"text":t.howItWorks.step1Desc},
+      {"@type":"HowToStep","name":t.howItWorks.step2Title,"text":t.howItWorks.step2Desc},
+      {"@type":"HowToStep","name":t.howItWorks.step3Title,"text":t.howItWorks.step3Desc}
+    ]
+  };
+  const faqSchema={
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {"@type":"Question","name":t.howItWorks.faq1Question,"acceptedAnswer":{"@type":"Answer","text":t.howItWorks.faq1Answer}},
+      {"@type":"Question","name":t.howItWorks.faq2Question,"acceptedAnswer":{"@type":"Answer","text":t.howItWorks.faq2Answer}},
+      {"@type":"Question","name":t.howItWorks.faq3Question,"acceptedAnswer":{"@type":"Answer","text":t.howItWorks.faq3Answer}},
+      {"@type":"Question","name":t.howItWorks.faq4Question,"acceptedAnswer":{"@type":"Answer","text":t.howItWorks.faq4Answer}}
+    ]
+  };
   return(
     <div className="lp">
       <style>{LP_STYLES}</style>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(howToSchema)}}/>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(faqSchema)}}/>
       <SEOHead title={t.meta.howItWorks.title} description={t.meta.howItWorks.description} canonical={canonical} lang={lang}/>
       <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`} className="active">{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a><a href={`${prefix}/blog`}>{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
       <div className="lp-hero">
@@ -2104,9 +2127,19 @@ function ForBeginnersPage({lang='en'}){
   const t=getTranslations(lang);
   const prefix=lang==='en'?'':`/${lang}`;
   const canonical=`https://app.chatter3.com${prefix}/for-beginners`;
+  const faqSchema={
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {"@type":"Question","name":t.forBeginners.faq1Question,"acceptedAnswer":{"@type":"Answer","text":t.forBeginners.faq1Answer}},
+      {"@type":"Question","name":t.forBeginners.faq2Question,"acceptedAnswer":{"@type":"Answer","text":t.forBeginners.faq2Answer}},
+      {"@type":"Question","name":t.forBeginners.faq3Question,"acceptedAnswer":{"@type":"Answer","text":t.forBeginners.faq3Answer}}
+    ]
+  };
   return(
     <div className="lp">
       <style>{LP_STYLES}</style>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(faqSchema)}}/>
       <SEOHead title={t.meta.forBeginners.title} description={t.meta.forBeginners.description} canonical={canonical} lang={lang}/>
       <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`} className="active">{t.nav.forBeginners}</a><a href={`${prefix}/blog`}>{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
       <div className="lp-hero">
@@ -2168,11 +2201,8 @@ function ForBeginnersPage({lang='en'}){
   );
 }
 
-function BlogPage({lang='en'}){
-  const t=getTranslations(lang);
-  const prefix=lang==='en'?'':`/${lang}`;
-  const canonical=`https://app.chatter3.com${prefix}/blog`;
-  const articles=[
+function getBlogArticles(t){
+  return[
     {slug:'how-to-improve-english-speaking',title:t.blog.articles.howToImprove.title,excerpt:t.blog.articles.howToImprove.excerpt,date:'2026-01-15',readTime:'5 min',
      content:`<p>Speaking English fluently is a goal for millions of people worldwide. Whether you're preparing for a job interview, traveling abroad, or simply want to connect with more people, improving your English speaking skills is essential. Here are seven proven methods that actually work.</p>
 <h2>1. Practice with Real People</h2><p>The most effective way to improve is through real conversation. Apps like Chatter3 connect you with real English learners for 1-on-1 video calls. No scripts, no textbooks — just genuine conversation.</p>
@@ -2198,7 +2228,67 @@ function BlogPage({lang='en'}){
 <h2>5. Emotional Connection</h2><p>Video calls create genuine human connections. When you care about your conversation partner, you're more motivated to learn and practice.</p>
 <h2>Try Video Practice Today</h2><p>Chatter3 makes video practice easy and free. Sign up and start your first conversation in minutes.</p>`}
   ];
-  const[expandedArticle,setExpandedArticle]=useState(null);
+}
+
+function BlogArticlePage({slug,lang='en'}){
+  const t=getTranslations(lang);
+  const prefix=lang==='en'?'':`/${lang}`;
+  const articles=getBlogArticles(t);
+  const article=articles.find(a=>a.slug===slug);
+  if(!article)return<BlogPage lang={lang}/>;
+  const canonical=`https://app.chatter3.com${prefix}/blog/${article.slug}`;
+  const articleSchema={
+    "@context":"https://schema.org",
+    "@type":"Article",
+    "headline":article.title,
+    "description":article.excerpt,
+    "datePublished":article.date,
+    "dateModified":article.date,
+    "author":{"@type":"Organization","name":"Chatter3","url":"https://app.chatter3.com"},
+    "publisher":{"@type":"Organization","name":"Chatter3","logo":{"@type":"ImageObject","url":"https://app.chatter3.com/chatter3_logo.png"}},
+    "mainEntityOfPage":{"@type":"WebPage","@id":canonical},
+    "image":"https://app.chatter3.com/og-image.svg"
+  };
+  return(
+    <div className="lp">
+      <style>{LP_STYLES}</style>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(articleSchema)}}/>
+      <SEOHead title={`${article.title} | Chatter3`} description={article.excerpt} canonical={canonical} lang={lang}/>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a><a href={`${prefix}/blog`} className="active">{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
+      <div className="lp-hero" style={{paddingBottom:'1rem'}}>
+        <a href={`${prefix}/blog`} style={{color:'#6366f1',fontSize:'.9rem',textDecoration:'none',marginBottom:'1rem',display:'inline-block'}}>&larr; {t.blog.backToArticles}</a>
+        <h1 style={{fontSize:'2rem'}}>{article.title}</h1>
+        <p style={{color:'#6b7280',fontSize:'.9rem',marginBottom:0}}>{article.date} · {article.readTime} {t.blog.minRead}</p>
+      </div>
+      <div className="lp-section" style={{maxWidth:720}}>
+        <div dangerouslySetInnerHTML={{__html:article.content}} style={{lineHeight:1.8,fontSize:'1.05rem'}}/>
+        <div style={{marginTop:'2rem',padding:'1.5rem',background:'#f0fdf4',borderRadius:12,textAlign:'center'}}>
+          <h3 style={{margin:'0 0 .5rem'}}>{t.blog.readyToPractice}</h3>
+          <p style={{margin:'0 0 1rem',color:'#6b7280'}}>{t.blog.applyLearning}</p>
+          <a href="/" style={{display:'inline-block',background:'#6366f1',color:'white',padding:'12px 24px',borderRadius:8,textDecoration:'none',fontWeight:700}}>{t.blog.startFree}</a>
+        </div>
+      </div>
+      <footer className="lp-footer">
+        <div className="lp-footer-inner">
+          <div className="lp-footer-links">
+            <a href={`${prefix}/`}>{t.nav.home}</a>
+            <a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a>
+            <a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a>
+            <a href={`${prefix}/blog`}>{t.nav.blog}</a>
+            <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
+          </div>
+          <p>{t.footer.copyright}</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function BlogPage({lang='en'}){
+  const t=getTranslations(lang);
+  const prefix=lang==='en'?'':`/${lang}`;
+  const canonical=`https://app.chatter3.com${prefix}/blog`;
+  const articles=getBlogArticles(t);
   return(
     <div className="lp">
       <style>{LP_STYLES}</style>
@@ -2209,30 +2299,14 @@ function BlogPage({lang='en'}){
         <p>{t.blog.subtitle}</p>
       </div>
       <div className="lp-section">
-        {expandedArticle!==null?(
-          <div>
-            <button onClick={()=>setExpandedArticle(null)} style={{background:'none',border:'none',color:'#6366f1',cursor:'pointer',fontSize:'.9rem',marginBottom:'1rem',padding:0}}>{t.blog.backToArticles}</button>
-            <h2 style={{fontSize:'1.8rem',fontWeight:800,marginBottom:'.5rem'}}>{articles[expandedArticle].title}</h2>
-            <p style={{color:'#6b7280',fontSize:'.85rem',marginBottom:'1.5rem'}}>{articles[expandedArticle].date} · {articles[expandedArticle].readTime} {t.blog.minRead}</p>
-            <div dangerouslySetInnerHTML={{__html:articles[expandedArticle].content}} style={{lineHeight:1.8,fontSize:'1.05rem'}}/>
-            <div style={{marginTop:'2rem',padding:'1.5rem',background:'#f0fdf4',borderRadius:12,textAlign:'center'}}>
-              <h3 style={{margin:'0 0 .5rem'}}>{t.blog.readyToPractice}</h3>
-              <p style={{margin:'0 0 1rem',color:'#6b7280'}}>{t.blog.applyLearning}</p>
-              <a href="/" style={{display:'inline-block',background:'#6366f1',color:'white',padding:'12px 24px',borderRadius:8,textDecoration:'none',fontWeight:700}}>{t.blog.startFree}</a>
-            </div>
-          </div>
-        ):(
-          <div>
-            <h2 style={{fontSize:'1.5rem',fontWeight:800,marginBottom:'1.5rem'}}>{t.blog.latestArticles}</h2>
-            {articles.map((a,i)=>(
-              <div key={i} onClick={()=>setExpandedArticle(i)} style={{background:'white',borderRadius:12,padding:'1.5rem',marginBottom:'1rem',cursor:'pointer',border:'1px solid #e5e7eb',transition:'box-shadow .2s'}} onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 12px rgba(0,0,0,.08)'} onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
-                <h3 style={{margin:'0 0 .5rem',fontSize:'1.2rem',fontWeight:700,color:'#1a1a2e'}}>{a.title}</h3>
-                <p style={{margin:'0 0 .5rem',color:'#6b7280',fontSize:'.9rem'}}>{a.excerpt}</p>
-                <span style={{color:'#6366f1',fontSize:'.85rem',fontWeight:600}}>{t.blog.readMore}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <h2 style={{fontSize:'1.5rem',fontWeight:800,marginBottom:'1.5rem'}}>{t.blog.latestArticles}</h2>
+        {articles.map((a,i)=>(
+          <a key={i} href={`${prefix}/blog/${a.slug}`} style={{display:'block',background:'white',borderRadius:12,padding:'1.5rem',marginBottom:'1rem',cursor:'pointer',border:'1px solid #e5e7eb',transition:'box-shadow .2s',textDecoration:'none',color:'inherit'}} onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 12px rgba(0,0,0,.08)'} onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
+            <h3 style={{margin:'0 0 .5rem',fontSize:'1.2rem',fontWeight:700,color:'#1a1a2e'}}>{a.title}</h3>
+            <p style={{margin:'0 0 .5rem',color:'#6b7280',fontSize:'.9rem'}}>{a.excerpt}</p>
+            <span style={{color:'#6366f1',fontSize:'.85rem',fontWeight:600}}>{t.blog.readMore}</span>
+          </a>
+        ))}
       </div>
       <div className="lp-cta-bottom">
         <h2>{t.blog.bottomTitle}</h2>
@@ -2265,28 +2339,30 @@ export default function App(){
   const path=window.location.pathname;
   
   // Language-prefixed landing pages
-  const langMatch=path.match(/^\/(es|ja|zh|bn|fr|ar|ru)\/(how-it-works|for-beginners|blog)/);
+  const langMatch=path.match(/^\/(es|ja|zh|bn|fr|ar|ru)\/(how-it-works|for-beginners|blog(?:\/[a-z0-9-]+)?)$/);
   if(langMatch){
     const lang=langMatch[1];
     const page=langMatch[2];
     if(page==='how-it-works')return<HowItWorksPage lang={lang}/>;
     if(page==='for-beginners')return<ForBeginnersPage lang={lang}/>;
     if(page==='blog')return<BlogPage lang={lang}/>;
+    if(page.startsWith('blog/')){const slug=page.replace('blog/','');return<BlogArticlePage slug={slug} lang={lang}/>;}
   }
   
   // English landing pages — detect browser language and redirect if needed
-  if(path==='/how-it-works'||path==='/for-beginners'||path==='/blog'||path.startsWith('/blog/')){
+  const blogArticleMatch=path.match(/^\/blog\/([a-z0-9-]+)$/);
+  if(path==='/how-it-works'||path==='/for-beginners'||path==='/blog'||blogArticleMatch){
     const saved=localStorage.getItem('chatter3_lang');
     const lang=saved||detectLanguage();
     if(lang&&lang!=='en'){
-      const cleanPath=path.replace(/^\/blog\/.*/, '/blog');
+      const cleanPath=blogArticleMatch?'/blog':path;
       window.location.href=getLocalizedPath(cleanPath,lang);
       return null;
     }
     if(path==='/how-it-works')return<HowItWorksPage lang="en"/>;
     if(path==='/for-beginners')return<ForBeginnersPage lang="en"/>;
     if(path==='/blog')return<BlogPage lang="en"/>;
-    if(path.startsWith('/blog/'))return<BlogPage lang="en"/>;
+    if(blogArticleMatch)return<BlogArticlePage slug={blogArticleMatch[1]} lang="en"/>;
   }
 
   const[view,setView]=useState('auth');

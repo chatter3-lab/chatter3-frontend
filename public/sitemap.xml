@@ -60,4 +60,22 @@
     <xhtml:link rel="alternate" hreflang="ar" href="https://app.chatter3.com/ar/blog"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://app.chatter3.com/ru/blog"/>
   </url>
+  <url>
+    <loc>https://app.chatter3.com/blog/how-to-improve-english-speaking</loc>
+    <lastmod>2026-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.chatter3.com/blog/english-conversation-topics</loc>
+    <lastmod>2026-01-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.chatter3.com/blog/benefits-of-video-calls-for-language-learning</loc>
+    <lastmod>2026-01-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
