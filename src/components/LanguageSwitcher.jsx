@@ -2,11 +2,7 @@ import { useRef, useEffect } from 'react';
 import { languages, setLanguage, getLocalizedPath } from '../i18n/detect';
 
 const LANG_COLORS = {
-  en: '#1e40af', es: '#dc2626', zh: '#b91c1c', hi: '#f59e0b',
-  ar: '#16a34a', bn: '#059669', fr: '#2563eb', pt: '#15803d',
-  ru: '#1d4ed8', ja: '#be123c', de: '#ca8a04', mr: '#f97316',
-  te: '#7c3aed', tr: '#dc2626', ta: '#7c3aed', vi: '#dc2626',
-  id: '#dc2626', ur: '#16a34a', pcm: '#16a34a', yue: '#dc2626'
+  en: '#1e40af', es: '#dc2626'
 };
 
 export default function LanguageSwitcher({ currentLang }) {
