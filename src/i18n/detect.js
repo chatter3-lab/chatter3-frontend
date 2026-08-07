@@ -1,4 +1,4 @@
-import en from './en.json';
+import en from './en.js';
 
 const translationCache = { en };
 

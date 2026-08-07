@@ -1,9 +1,27 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback, Component } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import SEOHead from './components/SEOHead';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { getTranslations, getLangFromPath, detectLanguage, getLocalizedPath, languages } from './i18n/detect';
 import { useTranslation } from './i18n/useTranslation';
+
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: '2rem', color: 'red', background: '#1a1a2e', minHeight: '100vh', fontFamily: 'monospace' }}>
+          <h2 style={{ color: 'red' }}>App Error</h2>
+          <pre style={{ color: '#ff6b6b', whiteSpace: 'pre-wrap', fontSize: '14px' }}>{this.state.error.message}</pre>
+          <pre style={{ color: '#aaa', fontSize: '12px', whiteSpace: 'pre-wrap' }}>{this.state.error.stack}</pre>
+          <button onClick={() => { localStorage.clear(); location.reload(); }} style={{ marginTop: '1rem', padding: '8px 16px', background: '#4f8ef7', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Clear Storage & Reload</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const API_URL = 'https://api.chatter3.com';
 const WS_URL = 'wss://api.chatter3.com';
@@ -2355,6 +2373,7 @@ export default function App(){
   };
 
   return(
+    <ErrorBoundary>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="app-container">
         <style>{STYLES}</style>
@@ -2428,6 +2447,7 @@ export default function App(){
         )}
       </div>
     </GoogleOAuthProvider>
+    </ErrorBoundary>
   );
 }
 
