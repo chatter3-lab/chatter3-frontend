@@ -7,8 +7,8 @@ const translations = { en, es, ja, zh };
 
 export const languages = [
   { code: 'en', flag: '🇬🇧' },
-  { code: 'es', flag: '🇪🇸' },
   { code: 'ja', flag: '🇯🇵' },
+  { code: 'es', flag: '🇪🇸' },
   { code: 'zh', flag: '🇨🇳' },
 ];
 
