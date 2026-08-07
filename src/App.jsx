@@ -54,7 +54,7 @@ function TurnstileWidget({onVerify,onExpire}){
     });
     return()=>{if(widgetId.current&&window.turnstile)window.turnstile.remove(widgetId.current);};
   },[]);
-  return <div ref={ref} style={{margin:'12px 0'}}/>;
+  return <div ref={ref} style={{margin:'12px 0',textAlign:'center'}}/>;
 }
 
 // ── ISO 3166-1 Countries ─────────────────────────────────────
