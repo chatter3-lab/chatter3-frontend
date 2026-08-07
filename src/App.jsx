@@ -3,6 +3,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import SEOHead from './components/SEOHead';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { getTranslations, getLangFromPath, detectLanguage, getLocalizedPath, languages } from './i18n/detect';
+import { useTranslation } from './i18n/useTranslation';
 
 const API_URL = 'https://api.chatter3.com';
 const WS_URL = 'wss://api.chatter3.com';
@@ -84,13 +85,12 @@ const startRinging = () => {
 // ── Country helpers ────────────────────────────────────────── 
 
 // ── Conversation starters ────────────────────────────────────
-const STARTERS=[(p)=>`Ask ${p} what the most popular food is in their country!`,(p)=>`Ask ${p} what music or shows are trending where they live!`,(p)=>`Ask ${p} what they enjoy doing on weekends!`,(p)=>`Ask ${p} what made them want to practice English conversation!`,(p)=>`Ask ${p} to describe something unique about their hometown!`];
-
-// ── Onboarding slides ────────────────────────────────────────
-const SLIDES=[
-  {id:1,emoji:'🌐',color:'#4f8ef7',tag:'CONNECT',headline:'Connect with real people, instantly.',body:'Get matched 1-on-1 with learners around the world. No scheduling. No profiles to browse.'},
-  {id:2,emoji:'🗣️',color:'#7c3aed',tag:'SPEAK',headline:"Just speak. That is how you learn.",body:'Short, real conversations build real confidence. No lessons. No teachers. Just practice.'},
-  {id:3,emoji:'⭐',color:'#059669',tag:'EARN',headline:'Your conversations earn value.',body:'Complete conversations to earn Reward Points. Exchange them for more call time.',note:'RP may transition to C3T (Chatter3 Token) in the future.'},
+const getStarters=(t)=>[
+  (p)=>(t?.matching?.starter1||'Ask {partner} what the most popular food is in their country!').replace('{partner}',p),
+  (p)=>(t?.matching?.starter2||'Ask {partner} what music or shows are trending where they live!').replace('{partner}',p),
+  (p)=>(t?.matching?.starter3||'Ask {partner} what they enjoy doing on weekends!').replace('{partner}',p),
+  (p)=>(t?.matching?.starter4||'Ask {partner} what made them want to practice English conversation!').replace('{partner}',p),
+  (p)=>(t?.matching?.starter5||'Ask {partner} to describe something unique about their hometown!').replace('{partner}',p),
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -590,23 +590,28 @@ const PhoneOff=({style})=><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2
 const UploadIcon=({style})=><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{display:'inline',...style}}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
 
 // ── Onboarding ──────────────────────────────────────────────────
-function OnboardingSlider({onComplete}){
+function OnboardingSlider({onComplete,t}){
   const[cur,setCur]=useState(0);
   const stars=useRef(Array.from({length:36},(_,i)=>({id:i,top:`${Math.random()*100}%`,left:`${Math.random()*100}%`,delay:`${Math.random()*3}s`,sz:Math.random()>.7?3:2}))).current;
-  const s=SLIDES[cur];
-  const isLast=cur===SLIDES.length-1;
+  const slides=[
+    {id:0,tag:t?.onboarding?.connectTag||'CONNECT',emoji:'🌐',color:'#00b4d8',headline:t?.onboarding?.connectHeadline||'Connect with real people, instantly.',body:t?.onboarding?.connectBody||'Get matched 1-on-1 with another English learner for a live video conversation.'},
+    {id:1,tag:t?.onboarding?.speakTag||'SPEAK',emoji:'🗣️',color:'#7b2ff7',headline:t?.onboarding?.speakHeadline||'Just speak. That is how you learn.',body:t?.onboarding?.speakBody||'Short, real conversations — no scripts, no pressure. Just two people practicing together.'},
+    {id:2,tag:t?.onboarding?.earnTag||'EARN',emoji:'💰',color:'#f72585',headline:t?.onboarding?.earnHeadline||'Your conversations earn value.',body:t?.onboarding?.earnBody||'Complete conversations to earn Focus Points and Reward Points.',note:t?.onboarding?.earnNote||'RP may transition to future premium features. Early members benefit most.'}
+  ];
+  const s=slides[cur];
+  const isLast=cur===slides.length-1;
   return(
     <div className="onboarding-overlay">
       <div className="ob-bg"/>
       <div style={{position:'absolute',inset:0,overflow:'hidden',pointerEvents:'none'}}>
         {stars.map(st=><div key={st.id} className="ob-star" style={{top:st.top,left:st.left,animationDelay:st.delay,width:st.sz,height:st.sz}}/>)}
       </div>
-      <button className="ob-skip" onClick={onComplete}>Skip</button>
+      <button className="ob-skip" onClick={onComplete}>{t?.onboarding?.skip||'Skip'}</button>
       <div className="ob-card">
         <div className="ob-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></div>
         <div className="slides-wrapper">
           <div className="slides-track" style={{transform:`translateX(-${cur*100}%)`}}>
-            {SLIDES.map(sl=>(
+            {slides.map(sl=>(
               <div key={sl.id} className="slide">
                 <span className="slide-tag" style={{background:`${sl.color}22`,color:sl.color,border:`1px solid ${sl.color}44`}}>{sl.tag}</span>
                 <div className="slide-icon" style={{background:`linear-gradient(135deg,${sl.color}33,${sl.color}11)`,boxShadow:`0 0 36px ${sl.color}33`}}><span>{sl.emoji}</span></div>
@@ -618,10 +623,10 @@ function OnboardingSlider({onComplete}){
           </div>
         </div>
         <div className="ob-dots">
-          {SLIDES.map((sl,i)=><button key={sl.id} className={`ob-dot ${i===cur?'active':''}`} style={{width:i===cur?22:5}} onClick={()=>setCur(i)}/>)}
+          {slides.map((sl,i)=><button key={sl.id} className={`ob-dot ${i===cur?'active':''}`} style={{width:i===cur?22:5}} onClick={()=>setCur(i)}/>)}
         </div>
-        <button className="ob-cta" onClick={()=>cur<SLIDES.length-1?setCur(cur+1):onComplete()} style={{background:`linear-gradient(135deg,${s.color},${s.color}cc)`,color:'white',boxShadow:`0 4px 18px ${s.color}55`}}>
-          {isLast?'🚀 Start Talking':'Next →'}
+        <button className="ob-cta" onClick={()=>cur<slides.length-1?setCur(cur+1):onComplete()} style={{background:`linear-gradient(135deg,${s.color},${s.color}cc)`,color:'white',boxShadow:`0 4px 18px ${s.color}55`}}>
+          {isLast?(t?.onboarding?.startButton||'🚀 Start Talking'):(t?.onboarding?.nextButton||'Next →')}
         </button>
       </div>
     </div>
@@ -629,39 +634,39 @@ function OnboardingSlider({onComplete}){
 }
 
 // ── Profile Gate ────────────────────────────────────────────────
-function ProfileGate({user,onComplete,onDismiss}){
+function ProfileGate({t,user,onComplete,onDismiss}){
   const[country,setCountry]=useState(user.country||'');
   const[lang,setLang]=useState(user.native_language||'');
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState('');
   const save=async()=>{
-    if(!country.trim()||!lang.trim()){setErr('Both fields are required.');return;}
+    if(!country.trim()||!lang.trim()){setErr(t?.modals?.profileGateError||'Both fields are required.');return;}
     setLoading(true);setErr('');
     try{
       const r=await authFetch(`${API_URL}/api/user/update`,{method:'POST',body:JSON.stringify({nickname:user.nickname,english_level:user.english_level,bio:user.bio,avatar_url:user.avatar_url,country:country.trim(),native_language:lang.trim()})});
       const d=await r.json();
       if(d.success){const u={...user,country:country.trim(),native_language:lang.trim()};localStorage.setItem('chatter3_user',JSON.stringify(u));onComplete(u);}
-      else setErr('Failed to save.');
-    }catch{setErr('Network error.');}finally{setLoading(false);}
+      else setErr(t?.modals?.profileGateFailed||'Failed to save.');
+    }catch{setErr(t?.modals?.profileGateNetwork||'Network error.');}finally{setLoading(false);}
   };
   return(
     <div className="profile-gate-overlay">
       <div className="profile-gate-card">
         <div style={{fontSize:'2.75rem',marginBottom:'.75rem'}}>🌍</div>
-        <h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.25rem',fontWeight:800,margin:'0 0 .4rem'}}>One quick thing…</h2>
-        <p style={{color:'#6b7280',fontSize:'.88rem',marginBottom:'1.25rem',lineHeight:'1.5'}}>Tell us where you're from and your native language — we use this to find you better conversation partners.</p>
+        <h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.25rem',fontWeight:800,margin:'0 0 .4rem'}}>{t?.modals?.profileGateTitle||'One quick thing…'}</h2>
+        <p style={{color:'#6b7280',fontSize:'.88rem',marginBottom:'1.25rem',lineHeight:'1.5'}}>{t?.modals?.profileGateDesc||'Tell us where you\'re from and your native language — we use this to find you better conversation partners.'}</p>
         {err&&<div className="error-message">{err}</div>}
         <div style={{marginBottom:'.55rem'}}><CountrySelect value={country} onChange={setCountry} required/></div>
-        <input className="profile-gate-input" placeholder="Native language (e.g. Japanese)" value={lang} onChange={e=>setLang(e.target.value)}/>
-        <button className="profile-gate-submit" onClick={save} disabled={loading}>{loading?'Saving…':'Save & Find a Partner →'}</button>
-        <button onClick={onDismiss} style={{marginTop:'.6rem',background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:'.82rem'}}>Maybe later</button>
+        <input className="profile-gate-input" placeholder={t?.modals?.profileGateLanguage||'Native language (e.g. Japanese)'} value={lang} onChange={e=>setLang(e.target.value)}/>
+        <button className="profile-gate-submit" onClick={save} disabled={loading}>{loading?(t?.modals?.profileGateSaving||'Saving…'):(t?.modals?.profileGateSubmit||'Save & Find a Partner →')}</button>
+        <button onClick={onDismiss} style={{marginTop:'.6rem',background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:'.82rem'}}>{t?.modals?.profileGateLater||'Maybe later'}</button>
       </div>
     </div>
   );
 }
 
 // ── RP→FP Exchange Modal ────────────────────────────────────────
-function ExchangeModal({user,onClose,onDone}){
+function ExchangeModal({t,user,onClose,onDone}){
   const[qty,setQty]=useState(1);
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState('');
@@ -673,32 +678,32 @@ function ExchangeModal({user,onClose,onDone}){
       const r=await authFetch(`${API_URL}/api/user/exchange-rp`,{method:'POST',body:JSON.stringify({quantity:qty})});
       const d=await r.json();
       if(d.success)onDone(d.fp,d.rp);
-      else setErr(d.error||'Exchange failed.');
-    }catch{setErr('Network error.');}finally{setLoading(false);}
+      else setErr(d.error||t?.modals?.exchangeFailed||'Exchange failed.');
+    }catch{setErr(t?.modals?.exchangeNetwork||'Network error.');}finally{setLoading(false);}
   };
   return(
     <div className="overlay" onClick={onClose}>
       <div className="modal-card" onClick={e=>e.stopPropagation()}>
         <div className="modal-icon">🔄</div>
-        <h2>Exchange RP for FP</h2>
-        <p>Use your Reward Points to get more call time.<br/><strong>{RP_TO_FP} RP = 1 FP</strong> (5 minutes)</p>
+        <h2>{t?.modals?.exchangeTitle||'Exchange RP for FP'}</h2>
+        <p>{t?.modals?.exchangeDesc||'Use your Reward Points to get more call time.'}<br/><strong>{t?.modals?.exchangeRate||`${RP_TO_FP} RP = 1 FP`}</strong> ({t?.modals?.exchangeDuration||'5 minutes'})</p>
          <div className="bg-light" style={{borderRadius:10,padding:'1rem',marginBottom:'1rem',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.75rem',textAlign:'center'}}>
-          <div><div style={{fontSize:'1.5rem',fontWeight:800,color:'#15803d',fontFamily:'Sora,sans-serif'}}>{(user.rp_balance||0).toFixed(1)}</div><div style={{fontSize:'.72rem',color:'#9ca3af'}}>RP Balance</div></div>
-          <div><div style={{fontSize:'1.5rem',fontWeight:800,color:'#1d4ed8',fontFamily:'Sora,sans-serif'}}>{user.fp_balance||0}</div><div style={{fontSize:'.72rem',color:'#9ca3af'}}>FP Balance</div></div>
+          <div><div style={{fontSize:'1.5rem',fontWeight:800,color:'#15803d',fontFamily:'Sora,sans-serif'}}>{(user.rp_balance||0).toFixed(1)}</div><div style={{fontSize:'.72rem',color:'#9ca3af'}}>{t?.modals?.exchangeRP||'RP Balance'}</div></div>
+          <div><div style={{fontSize:'1.5rem',fontWeight:800,color:'#1d4ed8',fontFamily:'Sora,sans-serif'}}>{user.fp_balance||0}</div><div style={{fontSize:'.72rem',color:'#9ca3af'}}>{t?.modals?.exchangeFP||'FP Balance'}</div></div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'.75rem',marginBottom:'.875rem',justifyContent:'center'}}>
            <button onClick={()=>setQty(Math.max(1,qty-1))} className="qty-btn">−</button>
           <div style={{textAlign:'center'}}>
             <div style={{fontFamily:'Sora,sans-serif',fontSize:'1.4rem',fontWeight:800}}>{qty} FP</div>
-            <div style={{fontSize:'.75rem',color:'#9ca3af'}}>costs {cost} RP</div>
+            <div style={{fontSize:'.75rem',color:'#9ca3af'}}>{t?.modals?.exchangeCost?.replace('{cost}',cost)||`costs ${cost} RP`}</div>
           </div>
            <button onClick={()=>setQty(qty+1)} className="qty-btn">+</button>
         </div>
         {err&&<div className="error-message">{err}</div>}
         <button className="modal-btn-primary" onClick={exchange} disabled={loading||!canAfford}>
-          {loading?'Processing…':canAfford?`Exchange ${cost} RP → ${qty} FP`:`Not enough RP (need ${cost})`}
+          {loading?(t?.modals?.exchangeProcessing||'Processing…'):canAfford?(t?.modals?.exchangeButton?.replace('{cost}',cost)?.replace('{qty}',qty)||`Exchange ${cost} RP → ${qty} FP`):(t?.modals?.exchangeInsufficient?.replace('{cost}',cost)||`Not enough RP (need ${cost})`)}
         </button>
-        <button className="modal-btn-ghost" onClick={onClose}>Cancel</button>
+        <button className="modal-btn-ghost" onClick={onClose}>{t?.modals?.exchangeCancel||'Cancel'}</button>
       </div>
     </div>
   );
@@ -706,7 +711,7 @@ function ExchangeModal({user,onClose,onDone}){
 
 // ── Report Modal ────────────────────────────────────────────────
 const REPORT_REASONS=['Inappropriate or offensive language','Harassment or bullying','Spam or scam behavior','Explicit or adult content','Impersonation','Other'];
-function ReportModal({targetUser,sessionId,onClose}){
+function ReportModal({targetUser,sessionId,onClose,t}){
   const[reason,setReason]=useState('');
   const[submitting,setSubmitting]=useState(false);
   const[done,setDone]=useState(null);
@@ -719,14 +724,15 @@ function ReportModal({targetUser,sessionId,onClose}){
       setDone(action);
     }catch{setDone(action);}finally{setSubmitting(false);}
   };
-  const name=targetUser?.nickname||targetUser?.username||'this user';
+  const name=targetUser?.nickname||targetUser?.username||t.modals.reportUnknown;
+  const reasonKeys=[t.modals.reportReason1,t.modals.reportReason2,t.modals.reportReason3,t.modals.reportReason4,t.modals.reportReason5,t.modals.reportReason6];
   if(done)return(
     <div className="report-overlay" onClick={onClose}>
       <div className="report-card" onClick={e=>e.stopPropagation()}>
         <div className="report-success"><div className="report-success-icon">✅</div>
-          <h3 style={{fontFamily:'Sora,sans-serif'}}>{done==='block'?`${name} blocked.`:done==='both'?`${name} reported & blocked.`:'Report submitted.'}</h3>
-          <p style={{color:'#6b7280',fontSize:'.83rem',marginTop:'.4rem'}}>{done==='block'?"You won't be matched again.":'Our team will review this. Thank you.'}</p>
-          <button className="modal-btn-primary" style={{marginTop:'1rem'}} onClick={onClose}>Done</button>
+          <h3 style={{fontFamily:'Sora,sans-serif'}}>{done==='block'?t.modals.reportBlocked.replace('{name}',name):done==='both'?t.modals.reportBlockedReport.replace('{name}',name):t.modals.reportSubmitted}</h3>
+          <p style={{color:'#6b7280',fontSize:'.83rem',marginTop:'.4rem'}}>{done==='block'?t.modals.reportBlockedSuccess:t.modals.reportReviewed}</p>
+          <button className="modal-btn-primary" style={{marginTop:'1rem'}} onClick={onClose}>{t.modals.reportDone}</button>
         </div>
       </div>
     </div>
@@ -734,21 +740,21 @@ function ReportModal({targetUser,sessionId,onClose}){
   return(
     <div className="report-overlay" onClick={onClose}>
       <div className="report-card" onClick={e=>e.stopPropagation()}>
-        <h3>Report or Block</h3>
-        <p>Reporting {name}. Select a reason, then choose an action.</p>
-        {REPORT_REASONS.map(r=><button key={r} className={`reason-btn ${reason===r?'sel':''}`} onClick={()=>setReason(r)}>{r}</button>)}
+        <h3>{t.modals.reportTitle}</h3>
+        <p>{t.modals.reportDesc.replace('{name}',name)}</p>
+        {REPORT_REASONS.map((r,i)=><button key={r} className={`reason-btn ${reason===r?'sel':''}`} onClick={()=>setReason(r)}>{reasonKeys[i]}</button>)}
         <div className="report-actions">
-          <button className="report-action-btn block" disabled={!reason||submitting} onClick={()=>submit('block')}>🚫 Block</button>
-          <button className="report-action-btn report" disabled={!reason||submitting} onClick={()=>submit('both')}>⚑ Report & Block</button>
+          <button className="report-action-btn block" disabled={!reason||submitting} onClick={()=>submit('block')}>{t.modals.reportBlock}</button>
+          <button className="report-action-btn report" disabled={!reason||submitting} onClick={()=>submit('both')}>{t.modals.reportBlockReport}</button>
         </div>
-        <button className="report-cancel" onClick={onClose}>Cancel</button>
+        <button className="report-cancel" onClick={onClose}>{t.modals.reportCancel}</button>
       </div>
     </div>
   );
 }
 
 // ── Friends + Invite Modal ─────────────────────────────────────
-function FriendsModal({user,onClose}){
+function FriendsModal({t,user,onClose}){
   const[tab,setTab]=useState('friends');
   const[friends,setFriends]=useState([]);
   const[pending,setPending]=useState([]);
@@ -777,7 +783,7 @@ function FriendsModal({user,onClose}){
   const sendRequest=async(rid)=>{
     await authFetch(`${API_URL}/api/friends/request`,{method:'POST',body:JSON.stringify({receiver_id:rid})});
     setSearchRes(sr=>sr.filter(u=>u.id!==rid));
-    alert('Friend request sent!');
+    alert(t?.modals?.friendRequestSent||'Friend request sent!');
   };
 
   const respond=async(reqId,action)=>{
@@ -794,11 +800,11 @@ function FriendsModal({user,onClose}){
   const copyLink=()=>{navigator.clipboard.writeText(inviteUrl).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);});};
 
   const shareLink=async(platform)=>{
-    const msg=`Join me on Chatter3 — practice English conversation with real people! ${inviteUrl}`;
-    const shortMsg=`Join me on Chatter3 — practice English with real people!`;
-    if(platform==='native'&&navigator.share){await navigator.share({title:'Join Chatter3',text:msg,url:inviteUrl});return;}
+    const msg=(t?.modals?.shareMessage||'Join me on Chatter3 — practice English conversation with real people!')+' '+inviteUrl;
+    const shortMsg=t?.modals?.shareShort||'Join me on Chatter3 — practice English with real people!';
+    if(platform==='native'&&navigator.share){await navigator.share({title:t?.modals?.shareTitle||'Join Chatter3',text:msg,url:inviteUrl});return;}
     if(platform==='copy'){navigator.clipboard.writeText(inviteUrl).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);});return;}
-    if(platform==='email'){window.open(`mailto:?subject=${encodeURIComponent('Join me on Chatter3!')}&body=${encodeURIComponent(msg)}`,'_blank');return;}
+    if(platform==='email'){window.open(`mailto:?subject=${encodeURIComponent(t?.modals?.shareEmailSubject||'Join me on Chatter3!')}&body=${encodeURIComponent(msg)}`,'_blank');return;}
     if(platform==='sms'){window.open(`sms:?body=${encodeURIComponent(msg)}`,'_blank');return;}
     const urls={
       whatsapp:`https://wa.me/?text=${encodeURIComponent(msg)}`,
@@ -821,7 +827,7 @@ function FriendsModal({user,onClose}){
         {f.avatar_url?<img src={f.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt=""/>:(f.nickname||f.username||'?').charAt(0).toUpperCase()}
       </div>
       <div className="friend-info">
-        <div className="friend-name">{f.nickname||f.username}{f.founding_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>🏆 FM</span>:null}{f.is_new_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>🆕 NEW</span>:null}</div>
+        <div className="friend-name">{f.nickname||f.username}{f.founding_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>{t?.modals?.fmBadge||'🏆 FM'}</span>:null}{f.is_new_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>{t?.modals?.newBadge||'🆕 NEW'}</span>:null}</div>
         <div className="friend-sub">{f.country?`${getFlag(f.country)} ${countryName(f.country)}`:''}{f.english_level?` · ${f.english_level}`:''}</div>
       </div>
       {actions}
@@ -832,22 +838,22 @@ function FriendsModal({user,onClose}){
     <div className="overlay" onClick={onClose}>
       <div className="modal-card" style={{maxWidth:440}} onClick={e=>e.stopPropagation()}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
-          <h2 style={{margin:0,textAlign:'left'}}>👥 Friends & Invite</h2>
+          <h2 style={{margin:0,textAlign:'left'}}>👥 {t?.modals?.friendsTitle||'Friends & Invite'}</h2>
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:'1.1rem'}}>✕</button>
         </div>
         <div className="modal-tab-row">
-          {['friends','search','invite'].map(t=><button key={t} className={`modal-tab ${tab===t?'active':''}`} onClick={()=>setTab(t)}>{t==='friends'?`Friends${pending.length>0?` (${pending.length})`:''}`:t.charAt(0).toUpperCase()+t.slice(1)}</button>)}
+          {['friends','search','invite'].map(tabName=><button key={tabName} className={`modal-tab ${tab===tabName?'active':''}`} onClick={()=>setTab(tabName)}>{tabName==='friends'?(t?.modals?.friendsTab||'Friends')+(pending.length>0?` (${pending.length})`:''):tabName==='search'?(t?.modals?.searchTab||'Search'):(t?.modals?.inviteTab||'Invite')}</button>)}
         </div>
 
         {tab==='friends'&&(
           <>
             {pending.length>0&&(
               <>
-                <p style={{fontSize:'.8rem',fontWeight:600,color:'#1e293b',margin:'0 0 .5rem'}}>Pending requests</p>
+                <p style={{fontSize:'.8rem',fontWeight:600,color:'#1e293b',margin:'0 0 .5rem'}}>{t?.modals?.pendingRequests||'Pending requests'}</p>
                 {pending.map(r=>(
                   <FriendRow key={r.id} f={r} actions={
                     <div style={{display:'flex',gap:5}}>
-                      <button className="friend-action-btn accept" onClick={()=>respond(r.id,'accept')}>Accept</button>
+                      <button className="friend-action-btn accept" onClick={()=>respond(r.id,'accept')}>{t?.modals?.accept||'Accept'}</button>
                       <button className="friend-action-btn decline" onClick={()=>respond(r.id,'decline')}>✕</button>
                     </div>
                   }/>
@@ -855,39 +861,39 @@ function FriendsModal({user,onClose}){
                 <hr style={{margin:'.75rem 0',border:'none',borderTop:'1px solid #f1f5f9'}}/>
               </>
             )}
-            {friends.length===0&&pending.length===0&&<p style={{color:'#9ca3af',fontSize:'.85rem',textAlign:'center',padding:'1rem 0'}}>No friends yet. Use Search to add people!</p>}
-            {friends.map(f=><FriendRow key={f.id} f={f} actions={<button className="friend-action-btn remove" onClick={()=>removeFriend(f.id)}>Remove</button>}/>)}
+            {friends.length===0&&pending.length===0&&<p style={{color:'#9ca3af',fontSize:'.85rem',textAlign:'center',padding:'1rem 0'}}>{t?.modals?.noFriends||'No friends yet. Use Search to add people!'}</p>}
+            {friends.map(f=><FriendRow key={f.id} f={f} actions={<button className="friend-action-btn remove" onClick={()=>removeFriend(f.id)}>{t?.modals?.remove||'Remove'}</button>}/>)}
           </>
         )}
 
         {tab==='search'&&(
           <>
             <div className="search-row" style={{marginBottom:'.75rem'}}>
-              <input className="search-input" placeholder="Search by username or nickname…" value={searchQ} onChange={e=>setSearchQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doSearch()}/>
-              <button className="search-btn" onClick={doSearch}>Search</button>
+              <input className="search-input" placeholder={t?.modals?.searchPlaceholder||'Search by username or nickname…'} value={searchQ} onChange={e=>setSearchQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doSearch()}/>
+              <button className="search-btn" onClick={doSearch}>{t?.modals?.searchButton||'Search'}</button>
             </div>
-            {loading&&<p style={{color:'#9ca3af',fontSize:'.85rem',textAlign:'center'}}>Searching…</p>}
+            {loading&&<p style={{color:'#9ca3af',fontSize:'.85rem',textAlign:'center'}}>{t?.modals?.searching||'Searching…'}</p>}
             {searchRes.map(u=>(
-              <FriendRow key={u.id} f={u} actions={<button className="modal-btn-primary" style={{width:'auto',padding:'5px 13px',margin:0,fontSize:'.78rem'}} onClick={()=>sendRequest(u.id)}>+ Add</button>}/>
+              <FriendRow key={u.id} f={u} actions={<button className="modal-btn-primary" style={{width:'auto',padding:'5px 13px',margin:0,fontSize:'.78rem'}} onClick={()=>sendRequest(u.id)}>+ {t?.modals?.addButton||'Add'}</button>}/>
             ))}
-            {!loading&&searchQ&&searchRes.length===0&&<p style={{color:'#9ca3af',fontSize:'.85rem',textAlign:'center'}}>No users found.</p>}
+            {!loading&&searchQ&&searchRes.length===0&&<p style={{color:'#9ca3af',fontSize:'.85rem',textAlign:'center'}}>{t?.modals?.noResults||'No users found.'}</p>}
           </>
         )}
 
         {tab==='invite'&&(
           <>
-            <p style={{textAlign:'center',margin:'0 0 .75rem'}}>Invite friends to Chatter3 and help grow the community!</p>
+            <p style={{textAlign:'center',margin:'0 0 .75rem'}}>{t?.modals?.inviteText||'Invite friends to Chatter3 and help grow the community!'}</p>
              <div className="bg-green" style={{borderRadius:9,padding:'.75rem 1rem',textAlign:'center',marginBottom:'.875rem'}}>
               <div style={{fontSize:'1.5rem',fontWeight:800,color:'#15803d',fontFamily:'Sora,sans-serif'}}>{inviteStats.used}</div>
-              <div style={{fontSize:'.75rem',color:'#6b7280'}}>friends joined via your invite</div>
+              <div style={{fontSize:'.75rem',color:'#6b7280'}}>{t?.modals?.inviteStats||'friends joined via your invite'}</div>
             </div>
             {inviteUrl&&(
               <>
                 <div className="invite-url-box">{inviteUrl}</div>
-                <button className="modal-btn-primary" onClick={copyLink}>{copied?'✓ Copied!':'📋 Copy Invite Link'}</button>
-                <p style={{fontSize:'.78rem',color:'#9ca3af',margin:'.5rem 0 .65rem',textAlign:'center'}}>Share on:</p>
+                <button className="modal-btn-primary" onClick={copyLink}>{copied?(t?.modals?.copied||'✓ Copied!'):(t?.modals?.copyInvite||'📋 Copy Invite Link')}</button>
+                <p style={{fontSize:'.78rem',color:'#9ca3af',margin:'.5rem 0 .65rem',textAlign:'center'}}>{t?.modals?.shareOn||'Share on:'}</p>
                 <div className="invite-share-row">
-                  {navigator.share&&<button className="invite-share-btn" onClick={()=>shareLink('native')}>📤<span>Share</span></button>}
+                  {navigator.share&&<button className="invite-share-btn" onClick={()=>shareLink('native')}>📤<span>{t?.modals?.share||'Share'}</span></button>}
                   <button className="invite-share-btn" onClick={()=>shareLink('whatsapp')}>💬<span>WhatsApp</span></button>
                   <button className="invite-share-btn" onClick={()=>shareLink('facebook')}>📘<span>Facebook</span></button>
                   <button className="invite-share-btn" onClick={()=>shareLink('twitter')}>🐦<span>X/Twitter</span></button>
@@ -912,7 +918,7 @@ function FriendsModal({user,onClose}){
 
 // ── Admin Dashboard ─────────────────────────────────────────────
 // ── Admin Settings Panel ────────────────────────────────────────
-function AdminSettingsPanel({user}){
+function AdminSettingsPanel({user,t}){
   const[settings,setSettings]=useState({matching_by_level:'true',matching_diff_country:'true',matching_diff_language:'true',custom_call_duration:'0',promo_fp_free_days:'0',promo_initial_rp:'0',promo_badge_days:'0'});
   const[loading,setLoading]=useState(true);
   const[saving,setSaving]=useState(false);
@@ -964,18 +970,18 @@ function AdminSettingsPanel({user}){
     setSaving(false);setSaved(true);setTimeout(()=>setSaved(false),3000);
   };
 
-  if(loading)return <p style={{color:'#9ca3af'}}>Loading settings…</p>;
+  if(loading)return <p style={{color:'#9ca3af'}}>{t.admin.settings.loading}</p>;
 
   const allOff=settings.matching_by_level==='false'&&settings.matching_diff_country==='false'&&settings.matching_diff_language==='false';
 
   return(
     <div>
     <div className="admin-section">
-      <h3>🎛️ Matching Settings <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— shared across all admins</span></h3>
+      <h3>🎛️ {t.admin.settings.matchingTitle} <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— {t.admin.settings.matchingSubtitle}</span></h3>
       {[
-        {key:'matching_by_level',name:'Match by English conversation Level',desc:'Only match users at the same proficiency level (Beginner / Intermediate / Advanced)'},
-        {key:'matching_diff_country',name:'Prefer Different Countries',desc:'Prioritize matching users from different countries for cross-cultural practice'},
-        {key:'matching_diff_language',name:'Prefer Different Native Languages',desc:'Prioritize matching users with different native languages'},
+        {key:'matching_by_level',name:t.admin.settings.matchByLevel,desc:t.admin.settings.matchByLevelDesc},
+        {key:'matching_diff_country',name:t.admin.settings.preferCountries,desc:t.admin.settings.preferCountriesDesc},
+        {key:'matching_diff_language',name:t.admin.settings.preferLanguages,desc:t.admin.settings.preferLanguagesDesc},
       ].map(({key,name,desc})=>(
         <div key={key} className="setting-row">
           <div className="setting-info">
@@ -991,57 +997,57 @@ function AdminSettingsPanel({user}){
       {allOff&&(
         <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
           <div className="setting-info">
-            <div className="setting-name">Custom Call Duration (minutes)</div>
-            <div className="setting-desc">Applied when all matching restrictions are disabled. Set 0 to use level-based defaults (5 or 10 min).</div>
+            <div className="setting-name">{t.admin.settings.customDuration}</div>
+            <div className="setting-desc">{t.admin.settings.customDurationDesc}</div>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
             <input type="number" className="duration-input" min="1" max="60" value={customDur} onChange={e=>setCustomDur(e.target.value)}/>
-            <span style={{fontSize:'.8rem',color:'#6b7280'}}>minutes per session</span>
+            <span style={{fontSize:'.8rem',color:'#6b7280'}}>{t.admin.settings.minutesPerSession}</span>
           </div>
         </div>
       )}
-      <button className="save-settings-btn" onClick={saveAll} disabled={saving}>{saving?'Saving…':saved?'✓ Saved!':'Save Settings'}</button>
+      <button className="save-settings-btn" onClick={saveAll} disabled={saving}>{saving?t.admin.settings.saving:saved?t.admin.settings.saved:t.admin.settings.saveSettings}</button>
     </div>
 
     <div className="admin-section" style={{marginTop:'1rem'}}>
-      <h3>🎁 Launch Promotions <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— early-user incentives</span></h3>
+      <h3>🎁 {t.admin.settings.promotionsTitle} <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— {t.admin.settings.promotionsSubtitle}</span></h3>
       <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
         <div className="setting-info">
-          <div className="setting-name">Free FP Period (days)</div>
-          <div className="setting-desc">New users skip FP consumption for this many days after registration. Set 0 to disable.</div>
+          <div className="setting-name">{t.admin.settings.freeFPPeriod}</div>
+          <div className="setting-desc">{t.admin.settings.freeFPPeriodDesc}</div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
           <input type="number" className="duration-input" min="0" max="365" value={promoFpFree} onChange={e=>setPromoFpFree(e.target.value)}/>
-          <span style={{fontSize:'.8rem',color:'#6b7280'}}>days (0 = off)</span>
-          {parseInt(promoFpFree)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● Active</span>}
+          <span style={{fontSize:'.8rem',color:'#6b7280'}}>{t.admin.settings.daysOff}</span>
+          {parseInt(promoFpFree)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● {t.admin.settings.active}</span>}
         </div>
       </div>
       <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
         <div className="setting-info">
-          <div className="setting-name">Registration RP Bonus</div>
-          <div className="setting-desc">Grant this many RP to new users upon registration. Set 0 to disable.</div>
+          <div className="setting-name">{t.admin.settings.registrationRP}</div>
+          <div className="setting-desc">{t.admin.settings.registrationRPDesc}</div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
           <input type="number" className="duration-input" min="0" max="100" value={promoInitRp} onChange={e=>setPromoInitRp(e.target.value)}/>
-          <span style={{fontSize:'.8rem',color:'#6b7280'}}>RP (0 = off)</span>
-          {parseInt(promoInitRp)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● Active</span>}
+          <span style={{fontSize:'.8rem',color:'#6b7280'}}>{t.admin.settings.rpOff}</span>
+          {parseInt(promoInitRp)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● {t.admin.settings.active}</span>}
         </div>
       </div>
       <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
         <div className="setting-info">
-          <div className="setting-name">New Member Badge (days)</div>
-          <div className="setting-desc">Show a "🆕 New Member" badge for this many days after registration. Set 0 to disable.</div>
+          <div className="setting-name">{t.admin.settings.newMemberBadge}</div>
+          <div className="setting-desc">{t.admin.settings.newMemberBadgeDesc}</div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'.65rem'}}>
           <input type="number" className="duration-input" min="0" max="365" value={newMemberDays} onChange={e=>setNewMemberDays(e.target.value)}/>
-          <span style={{fontSize:'.8rem',color:'#6b7280'}}>days (0 = off, default 30)</span>
-          {parseInt(newMemberDays)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● Active</span>}
+          <span style={{fontSize:'.8rem',color:'#6b7280'}}>{t.admin.settings.daysOffDefault}</span>
+          {parseInt(newMemberDays)>0&&<span style={{fontSize:'.7rem',color:'#22c55e',fontWeight:600}}>● {t.admin.settings.active}</span>}
         </div>
       </div>
       <div className="setting-row">
         <div className="setting-info">
-          <div className="setting-name">MVP Stage Mode</div>
-          <div className="setting-desc">When ON, all calls are fixed at 5 minutes regardless of user level. Keeps the experience simple during MVP.</div>
+          <div className="setting-name">{t.admin.settings.mvpMode}</div>
+          <div className="setting-desc">{t.admin.settings.mvpModeDesc}</div>
         </div>
         <label className="toggle">
           <input type="checkbox" checked={mvpMode} onChange={()=>setMvpMode(v=>!v)}/>
@@ -1051,11 +1057,11 @@ function AdminSettingsPanel({user}){
     </div>
 
     <div className="admin-section" style={{marginTop:'1rem'}}>
-      <h3>🔧 System <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— maintenance & system controls</span></h3>
+      <h3>🔧 {t.admin.settings.systemTitle} <span style={{fontSize:'.72rem',color:'#94a3b8',fontWeight:400}}>— {t.admin.settings.systemSubtitle}</span></h3>
       <div className="setting-row">
         <div className="setting-info">
-          <div className="setting-name" style={maintenanceMode?{color:'#ef4444'}:{}}>Maintenance Mode {maintenanceMode?'● ACTIVE':''}</div>
-          <div className="setting-desc">When ON, all non-admin users are blocked from using the app and see a maintenance message. Admins can still access everything.</div>
+          <div className="setting-name" style={maintenanceMode?{color:'#ef4444'}:{}}>{t.admin.settings.maintenanceMode} {maintenanceMode?'● '+t.admin.settings.active:''}</div>
+          <div className="setting-desc">{t.admin.settings.maintenanceModeDesc}</div>
         </div>
         <label className="toggle">
           <input type="checkbox" checked={maintenanceMode} onChange={()=>setMaintenanceMode(v=>!v)}/>
@@ -1065,19 +1071,19 @@ function AdminSettingsPanel({user}){
       {maintenanceMode&&(
         <div className="setting-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'.5rem'}}>
           <div className="setting-info">
-            <div className="setting-name">Maintenance Message</div>
-            <div className="setting-desc">Message shown to non-admin users during maintenance.</div>
+            <div className="setting-name">{t.admin.settings.maintenanceMessage}</div>
+            <div className="setting-desc">{t.admin.settings.maintenanceMessageDesc}</div>
           </div>
-          <textarea value={maintenanceMsg} onChange={e=>setMaintenanceMsg(e.target.value)} placeholder="We are currently performing maintenance. Please check back later." style={{width:'100%',minHeight:60,padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem',resize:'vertical'}}/>
+          <textarea value={maintenanceMsg} onChange={e=>setMaintenanceMsg(e.target.value)} placeholder={t.admin.settings.maintenancePlaceholder} style={{width:'100%',minHeight:60,padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem',resize:'vertical'}}/>
         </div>
       )}
-      <button className="save-settings-btn" onClick={saveAll} disabled={saving}>{saving?'Saving…':saved?'✓ Saved!':'Save Settings'}</button>
+      <button className="save-settings-btn" onClick={saveAll} disabled={saving}>{saving?t.admin.settings.saving:saved?t.admin.settings.saved:t.admin.settings.saveSettings}</button>
     </div>
     </div>
   );
 }
 
-function AdminDashboard({user,onBack}){
+function AdminDashboard({user,onBack,t}){
   const[tab,setTab]=useState('analytics');
   const[stats,setStats]=useState(null);
   const[reports,setReports]=useState([]);
@@ -1092,13 +1098,13 @@ function AdminDashboard({user,onBack}){
     return (
       <div>
         <div className="kpi-grid">
-          <div className="kpi-card"><div className="kpi-val">{stats.total_users?.toLocaleString()}</div><div className="kpi-lbl">Total Users</div><div className="kpi-sub">+{stats.new_users_today} today</div></div>
-          <div className="kpi-card"><div className="kpi-val">{stats.dau?.toLocaleString()}</div><div className="kpi-lbl">DAU</div></div>
-          <div className="kpi-card"><div className="kpi-val">{stats.mau?.toLocaleString()}</div><div className="kpi-lbl">MAU</div></div>
-          <div className="kpi-card"><div className="kpi-val">{stats.total_sessions?.toLocaleString()}</div><div className="kpi-lbl">Completed Calls</div></div>
-          <div className="kpi-card"><div className="kpi-val" style={{color:'#22c55e'}}>{stats.active_sessions}</div><div className="kpi-lbl">Live Calls Now</div></div>
-          <div className="kpi-card"><div className="kpi-val" style={{color:'#f59e0b'}}>{stats.queue_size}</div><div className="kpi-lbl">In Queue</div></div>
-          <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{stats.pending_reports}</div><div className="kpi-lbl">Pending Reports</div></div>
+          <div className="kpi-card"><div className="kpi-val">{stats.total_users?.toLocaleString()}</div><div className="kpi-lbl">{t.admin.analytics.totalUsers}</div><div className="kpi-sub">+{stats.new_users_today} {t.admin.analytics.today}</div></div>
+          <div className="kpi-card"><div className="kpi-val">{stats.dau?.toLocaleString()}</div><div className="kpi-lbl">{t.admin.analytics.dau}</div></div>
+          <div className="kpi-card"><div className="kpi-val">{stats.mau?.toLocaleString()}</div><div className="kpi-lbl">{t.admin.analytics.mau}</div></div>
+          <div className="kpi-card"><div className="kpi-val">{stats.total_sessions?.toLocaleString()}</div><div className="kpi-lbl">{t.admin.analytics.completedCalls}</div></div>
+          <div className="kpi-card"><div className="kpi-val" style={{color:'#22c55e'}}>{stats.active_sessions}</div><div className="kpi-lbl">{t.admin.analytics.liveCalls}</div></div>
+          <div className="kpi-card"><div className="kpi-val" style={{color:'#f59e0b'}}>{stats.queue_size}</div><div className="kpi-lbl">{t.admin.analytics.inQueue}</div></div>
+          <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{stats.pending_reports}</div><div className="kpi-lbl">{t.admin.analytics.pendingReports}</div></div>
         </div>
         {stats.connection_stats&&(function(){
             const cs=stats.connection_stats;
@@ -1109,14 +1115,14 @@ function AdminDashboard({user,onBack}){
             return (
               <div>
                 <div className="kpi-grid" style={{marginTop:'.75rem'}}>
-                  <div className="kpi-card"><div className="kpi-val" style={{color:connectRate>50?'#22c55e':'#ef4444'}}>{connectRate}%</div><div className="kpi-lbl">Connect Rate</div></div>
-                  <div className="kpi-card"><div className="kpi-val">{avgConnect?Math.round(avgConnect)+'s':'N/A'}</div><div className="kpi-lbl">Avg Connect Time</div></div>
-                  <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{cs.network_disconnects||0}</div><div className="kpi-lbl">Network Disconnects</div></div>
-                  <div className="kpi-card"><div className="kpi-val" style={{color:'#6b7280'}}>{cs.intentional_ends||0}</div><div className="kpi-lbl">Intentional End Call</div></div>
-                  <div className="kpi-card"><div className="kpi-val">{cs.connection_issues||0}</div><div className="kpi-lbl">Connection Issues</div></div>
+                  <div className="kpi-card"><div className="kpi-val" style={{color:connectRate>50?'#22c55e':'#ef4444'}}>{connectRate}%</div><div className="kpi-lbl">{t.admin.analytics.connectRate}</div></div>
+                  <div className="kpi-card"><div className="kpi-val">{avgConnect?Math.round(avgConnect)+'s':'N/A'}</div><div className="kpi-lbl">{t.admin.analytics.avgConnectTime}</div></div>
+                  <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{cs.network_disconnects||0}</div><div className="kpi-lbl">{t.admin.analytics.networkDisconnects}</div></div>
+                  <div className="kpi-card"><div className="kpi-val" style={{color:'#6b7280'}}>{cs.intentional_ends||0}</div><div className="kpi-lbl">{t.admin.analytics.intentionalEnd}</div></div>
+                  <div className="kpi-card"><div className="kpi-val">{cs.connection_issues||0}</div><div className="kpi-lbl">{t.admin.analytics.connectionIssues}</div></div>
                 </div>
                 <div className="admin-section" style={{marginTop:'.75rem'}}>
-                  <h3>Disconnect Reasons (30 Days)</h3>
+                  <h3>{t.admin.analytics.disconnectReasons}</h3>
                   <div className="chart-row" style={{height:'120px'}}>
                     <div className="chart-bar" style={{height:`${(cs.network_disconnects||0)/Math.max(total,1)*100}%`,background:'#ef4444'}} title={`Network: ${cs.network_disconnects||0}`}/>
                     <div className="chart-bar" style={{height:`${(cs.intentional_ends||0)/Math.max(total,1)*100}%`,background:'#6b7280'}} title={`Intentional End Call: ${cs.intentional_ends||0}`}/>
@@ -1124,10 +1130,10 @@ function AdminDashboard({user,onBack}){
                     <div className="chart-bar" style={{height:`${(cs.timeouts||0)/Math.max(total,1)*100}%`,background:'#3b82f6'}} title={`Timeout: ${cs.timeouts||0}`}/>
                   </div>
                   <div className="chart-labels" style={{marginTop:'.5rem'}}>
-                    <div className="chart-lbl" style={{color:'#ef4444'}}>Network</div>
-                    <div className="chart-lbl" style={{color:'#6b7280'}}>Intentional End</div>
-                    <div className="chart-lbl" style={{color:'#f59e0b'}}>Connection Issues</div>
-                    <div className="chart-lbl" style={{color:'#3b82f6'}}>Timeout</div>
+                    <div className="chart-lbl" style={{color:'#ef4444'}}>{t.admin.analytics.network}</div>
+                    <div className="chart-lbl" style={{color:'#6b7280'}}>{t.admin.analytics.intentionalEndChart}</div>
+                    <div className="chart-lbl" style={{color:'#f59e0b'}}>{t.admin.analytics.connectionIssuesChart}</div>
+                    <div className="chart-lbl" style={{color:'#3b82f6'}}>{t.admin.analytics.timeout}</div>
                   </div>
                 </div>
               </div>
@@ -1145,14 +1151,14 @@ function AdminDashboard({user,onBack}){
             return (
               <div>
                 <div className="admin-section" style={{marginTop:'.75rem'}}>
-                  <h3>Session Quality (30 Days)</h3>
+                  <h3>{t.admin.analytics.sessionQuality}</h3>
                   <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                    <div className="kpi-card"><div className="kpi-val">{ss.avg_duration?Math.round(ss.avg_duration/60)+'m': 'N/A'}</div><div className="kpi-lbl">Avg Duration</div></div>
-                    <div className="kpi-card"><div className="kpi-val">{ss.max_duration?Math.round(ss.max_duration/60)+'m':'N/A'}</div><div className="kpi-lbl">Max Duration</div></div>
-                    <div className="kpi-card"><div className="kpi-val" style={{color:completionRate>70?'#22c55e':'#ef4444'}}>{completionRate}%</div><div className="kpi-lbl">Full Completion Rate</div></div>
-                    <div className="kpi-card"><div className="kpi-val">{good}</div><div className="kpi-lbl" style={{color:'#10b981' }}>👍 Good</div></div>
-                    <div className="kpi-card"><div className="kpi-val">{meh}</div><div className="kpi-lbl" style={{color:'#6b7280'}}>😐 Meh</div></div>
-                    <div className="kpi-card"><div className="kpi-val">{issues}</div><div className="kpi-lbl" style={{color:'#f59e0b'}}>📡 Issues</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{ss.avg_duration?Math.round(ss.avg_duration/60)+'m': 'N/A'}</div><div className="kpi-lbl">{t.admin.analytics.avgDuration}</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{ss.max_duration?Math.round(ss.max_duration/60)+'m':'N/A'}</div><div className="kpi-lbl">{t.admin.analytics.maxDuration}</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:completionRate>70?'#22c55e':'#ef4444'}}>{completionRate}%</div><div className="kpi-lbl">{t.admin.analytics.fullCompletion}</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{good}</div><div className="kpi-lbl" style={{color:'#10b981' }}>{t.admin.analytics.good}</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{meh}</div><div className="kpi-lbl" style={{color:'#6b7280'}}>{t.admin.analytics.meh}</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{issues}</div><div className="kpi-lbl" style={{color:'#f59e0b'}}>{t.admin.analytics.issues}</div></div>
                   </div>
                   <div className="chart-row" style={{height:'100px'}}>
                     <div className="chart-bar" style={{height:`${totalRatings?Math.round((good/totalRatings)*100):0}%`,background:'#10b981'}} title={`Good: ${good}`}/>
@@ -1160,9 +1166,9 @@ function AdminDashboard({user,onBack}){
                     <div className="chart-bar" style={{height:`${totalRatings?Math.round((issues/totalRatings)*100):0}%`,background:'#f59e0b'}} title={`Issues: ${issues}`}/>
                   </div>
                   <div className="chart-labels" style={{marginTop:'.5rem'}}>
-                    <div className="chart-lbl" style={{color:'#10b981'}}>Good</div>
-                    <div className="chart-lbl" style={{color:'#6b7280'}}>Meh</div>
-                    <div className="chart-lbl" style={{color:'#f59e0b'}}>Issues</div>
+                    <div className="chart-lbl" style={{color:'#10b981'}}>{t.admin.analytics.goodChart}</div>
+                    <div className="chart-lbl" style={{color:'#6b7280'}}>{t.admin.analytics.mehChart}</div>
+                    <div className="chart-lbl" style={{color:'#f59e0b'}}>{t.admin.analytics.issuesChart}</div>
                   </div>
                 </div>
               </div>
@@ -1173,11 +1179,11 @@ function AdminDashboard({user,onBack}){
             return (
               <div>
                 <div className="admin-section" style={{marginTop:'.75rem'}}>
-                  <h3>Queue Wait Time (30 Days)</h3>
+                  <h3>{t.admin.analytics.queueWait}</h3>
                   <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                    <div className="kpi-card"><div className="kpi-val">{qs.avg_wait?Math.round(qs.avg_wait)+'s':'N/A'}</div><div className="kpi-lbl">Avg Wait</div></div>
-                    <div className="kpi-card"><div className="kpi-val">{qs.min_wait?Math.round(qs.min_wait)+'s':'N/A'}</div><div className="kpi-lbl">Min Wait</div></div>
-                    <div className="kpi-card"><div className="kpi-val">{qs.max_wait?Math.round(qs.max_wait)+'s':'N/A'}</div><div className="kpi-lbl">Max Wait</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{qs.avg_wait?Math.round(qs.avg_wait)+'s':'N/A'}</div><div className="kpi-lbl">{t.admin.analytics.avgWait}</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{qs.min_wait?Math.round(qs.min_wait)+'s':'N/A'}</div><div className="kpi-lbl">{t.admin.analytics.minWait}</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{qs.max_wait?Math.round(qs.max_wait)+'s':'N/A'}</div><div className="kpi-lbl">{t.admin.analytics.maxWait}</div></div>
                   </div>
                 </div>
               </div>
@@ -1191,11 +1197,11 @@ function AdminDashboard({user,onBack}){
             return (
               <div>
                 <div className="admin-section" style={{marginTop:'.75rem'}}>
-                  <h3>Cross-Border Matches (30 Days)</h3>
+                  <h3>{t.admin.analytics.crossBorder}</h3>
                   <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                    <div className="kpi-card"><div className="kpi-val">{total}</div><div className="kpi-lbl">Total Matches</div></div>
-                    <div className="kpi-card"><div className="kpi-val">{cross}</div><div className="kpi-lbl">Cross-Border</div></div>
-                    <div className="kpi-card"><div className="kpi-val" style={{color:rate>50?'#22c55e':'#ef4444'}}>{rate}%</div><div className="kpi-lbl">Cross-Border Rate</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{total}</div><div className="kpi-lbl">{t.admin.analytics.totalMatches}</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{cross}</div><div className="kpi-lbl">{t.admin.analytics.crossBorder}</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:rate>50?'#22c55e':'#ef4444'}}>{rate}%</div><div className="kpi-lbl">{t.admin.analytics.crossBorderRate}</div></div>
                   </div>
                 </div>
               </div>
@@ -1207,7 +1213,7 @@ function AdminDashboard({user,onBack}){
             return (
               <div>
                 <div className="admin-section" style={{marginTop:'.75rem'}}>
-                  <h3>WebRTC Failures by Browser (30 Days)</h3>
+                  <h3>{t.admin.analytics.webrtcFailures}</h3>
                   <div className="chart-row" style={{height:'100px'}}>
                     {stats.browser_stats.map((b,i)=>(
                       <div key={i} className="chart-bar" style={{height:`${(b.failures||0)/Math.max(totalFailures,1)*100}%`,background:['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'][i%5]}} title={`${b.browser}: ${b.failures||0} failures`}/>
@@ -1226,10 +1232,10 @@ function AdminDashboard({user,onBack}){
             return (
               <div>
                 <div className="admin-section" style={{marginTop:'.75rem'}}>
-                  <h3>Re-Match Rate (24h, 30 Days)</h3>
+                  <h3>{t.admin.analytics.reMatchRate}</h3>
                   <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                    <div className="kpi-card"><div className="kpi-val">{rs.rematches||0}</div><div className="kpi-lbl">Re-Matches</div></div>
-                    <div className="kpi-card"><div className="kpi-val">{rate}%</div><div className="kpi-lbl">Re-Match Rate</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{rs.rematches||0}</div><div className="kpi-lbl">{t.admin.analytics.reMatches}</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{rate}%</div><div className="kpi-lbl">{t.admin.analytics.reMatchRateStat}</div></div>
                   </div>
                 </div>
               </div>
@@ -1240,7 +1246,7 @@ function AdminDashboard({user,onBack}){
             return (
               <div>
                 <div className="admin-section" style={{marginTop:'.75rem'}}>
-                  <h3>Queue Depth Over Time (30 Days)</h3>
+                  <h3>{t.admin.analytics.queueDepth}</h3>
                   <div className="chart-row" style={{height:'120px'}}>
                     {qd.results.map((d,i)=>(
                       <div key={i} className="chart-bar" style={{height:`${(d.queue_size||0)/Math.max(...qd.results.map(x=>x.queue_size||0),1)*100}%`,background:'#3b82f6'}} title={`${d.day}: ${d.queue_size||0}`}/>
@@ -1259,13 +1265,13 @@ function AdminDashboard({user,onBack}){
             return (
               <div>
                 <div className="admin-section" style={{marginTop:'.75rem'}}>
-                  <h3>FP/RP Economy (30 Days)</h3>
+                  <h3>{t.admin.analytics.economy}</h3>
                   <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                    <div className="kpi-card"><div className="kpi-val" style={{color:'#10b981'}}>{stats.fp_rp_stats.fp_earned||0}</div><div className="kpi-lbl">FP Earned</div></div>
-                    <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{stats.fp_rp_stats.fp_spent||0}</div><div className="kpi-lbl">FP Spent</div></div>
-                    <div className="kpi-card"><div className="kpi-val" style={{color:'#f59e0b'}}>{stats.fp_rp_stats.rp_earned||0}</div><div className="kpi-lbl">RP Earned</div></div>
-                    <div className="kpi-card"><div className="kpi-val">{(stats.fp_rp_stats.fp_earned||0)/Math.max(stats.fp_rp_stats.active_users||1,1).toFixed(2)}</div><div className="kpi-lbl">FP/User</div></div>
-                    <div className="kpi-card"><div className="kpi-val">{(stats.fp_rp_stats.rp_earned||0)/Math.max(stats.fp_rp_stats.active_users||1,1).toFixed(2)}</div><div className="kpi-lbl">RP/User</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:'#10b981'}}>{stats.fp_rp_stats.fp_earned||0}</div><div className="kpi-lbl">{t.admin.analytics.fpEarned}</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:'#ef4444'}}>{stats.fp_rp_stats.fp_spent||0}</div><div className="kpi-lbl">{t.admin.analytics.fpSpent}</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:'#f59e0b'}}>{stats.fp_rp_stats.rp_earned||0}</div><div className="kpi-lbl">{t.admin.analytics.rpEarned}</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{(stats.fp_rp_stats.fp_earned||0)/Math.max(stats.fp_rp_stats.active_users||1,1).toFixed(2)}</div><div className="kpi-lbl">{t.admin.analytics.fpUser}</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{(stats.fp_rp_stats.rp_earned||0)/Math.max(stats.fp_rp_stats.active_users||1,1).toFixed(2)}</div><div className="kpi-lbl">{t.admin.analytics.rpUser}</div></div>
                   </div>
                 </div>
               </div>
@@ -1277,12 +1283,12 @@ function AdminDashboard({user,onBack}){
             return (
               <div>
                 <div className="admin-section" style={{marginTop:'.75rem'}}>
-                  <h3>Retention Curves (D1/D7/D30)</h3>
+                  <h3>{t.admin.analytics.retention}</h3>
                   <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                    <div className="kpi-card"><div className="kpi-val">{rt.total_users||0}</div><div className="kpi-lbl">Total Users</div></div>
-                    <div className="kpi-card"><div className="kpi-val" style={{color:rt.d1_users/total>0.4?'#22c55e':'#ef4444'}}>{Math.round((rt.d1_users||0)/total*100)}%</div><div className="kpi-lbl">Day 1 Retention</div></div>
-                    <div className="kpi-card"><div className="kpi-val" style={{color:rt.d7_users/total>0.2?'#22c55e':'#ef4444'}}>{Math.round((rt.d7_users||0)/total*100)}%</div><div className="kpi-lbl">Day 7 Retention</div></div>
-                    <div className="kpi-card"><div className="kpi-val" style={{color:rt.d30_users/total>0.1?'#22c55e':'#ef4444'}}>{Math.round((rt.d30_users||0)/total*100)}%</div><div className="kpi-lbl">Day 30 Retention</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{rt.total_users||0}</div><div className="kpi-lbl">{t.admin.analytics.totalUsers}</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:rt.d1_users/total>0.4?'#22c55e':'#ef4444'}}>{Math.round((rt.d1_users||0)/total*100)}%</div><div className="kpi-lbl">{t.admin.analytics.day1Retention}</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:rt.d7_users/total>0.2?'#22c55e':'#ef4444'}}>{Math.round((rt.d7_users||0)/total*100)}%</div><div className="kpi-lbl">{t.admin.analytics.day7Retention}</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:rt.d30_users/total>0.1?'#22c55e':'#ef4444'}}>{Math.round((rt.d30_users||0)/total*100)}%</div><div className="kpi-lbl">{t.admin.analytics.day30Retention}</div></div>
                   </div>
                 </div>
               </div>
@@ -1293,10 +1299,10 @@ function AdminDashboard({user,onBack}){
             return (
               <div>
                 <div className="admin-section" style={{marginTop:'.75rem'}}>
-                  <h3>Reports per 1000 Sessions (30 Days)</h3>
+                  <h3>{t.admin.analytics.reportsPer1000}</h3>
                   <div className="kpi-grid" style={{marginBottom:'.75rem'}}>
-                    <div className="kpi-card"><div className="kpi-val">{stats.report_stats.total_reports||0}</div><div className="kpi-lbl">Total Reports</div></div>
-                    <div className="kpi-card"><div className="kpi-val" style={{color:stats.report_stats.reports_per_1000>10?'#ef4444':stats.report_stats.reports_per_1000>5?'#f59e0b':'#22c55e'}}>{stats.report_stats.reports_per_1000?stats.report_stats.reports_per_1000.toFixed(1):'0'}</div><div className="kpi-lbl">Per 1000 Sessions</div></div>
+                    <div className="kpi-card"><div className="kpi-val">{stats.report_stats.total_reports||0}</div><div className="kpi-lbl">{t.admin.analytics.totalReports}</div></div>
+                    <div className="kpi-card"><div className="kpi-val" style={{color:stats.report_stats.reports_per_1000>10?'#ef4444':stats.report_stats.reports_per_1000>5?'#f59e0b':'#22c55e'}}>{stats.report_stats.reports_per_1000?stats.report_stats.reports_per_1000.toFixed(1):'0'}</div><div className="kpi-lbl">{t.admin.analytics.per1000Sessions}</div></div>
                   </div>
                 </div>
               </div>
@@ -1304,7 +1310,7 @@ function AdminDashboard({user,onBack}){
           }())}
         {stats.sessions_by_day&&stats.sessions_by_day.length>0&&(
         <div className="admin-section">
-          <h3>Sessions (Last 30 Days)</h3>
+          <h3>{t.admin.analytics.sessionsLast30}</h3>
           <div className="chart-row">
             {[...stats.sessions_by_day].reverse().map((r,i)=>(
               <div key={i} className="chart-bar" style={{height:`${(r.c/maxSessions)*100}%`}} title={`${r.day}: ${r.c} sessions`}/>
@@ -1319,7 +1325,7 @@ function AdminDashboard({user,onBack}){
         )}
       </div>
     );
-    } catch(e) { console.error('renderAnalytics error:', e); return <div style={{padding:'1rem',color:'#ef4444'}}>Error loading analytics.</div>; }
+    } catch(e) { console.error('renderAnalytics error:', e); return <div style={{padding:'1rem',color:'#ef4444'}}>{t.admin.analytics.errorLoading}</div>; }
   };
 
   useEffect(()=>{
@@ -1347,17 +1353,17 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
   return (
     <div className="admin-container">
       <div className="admin-header">
-        <h1>Admin Dashboard</h1>
-        <span className="admin-badge">ADMIN</span>
-        <button className="header-btn btn-logout" onClick={onBack}>← Back</button>
+        <h1>{t.admin.title}</h1>
+        <span className="admin-badge">{t.admin.badge}</span>
+        <button className="header-btn btn-logout" onClick={onBack}>{t.admin.back}</button>
       </div>
       <div className="admin-tabs">
-        {['analytics','users','referrals','reports','settings','health'].map(t=>(
-          <button key={t} className={`admin-tab ${tab===t?'active':''}`} style={{textTransform:'capitalize'}} onClick={()=>setTab(t)}>{t.replace('-',' ')}</button>
+        {['analytics','users','referrals','reports','settings','health'].map(tabName=>(
+          <button key={tabName} className={`admin-tab ${tab===tabName?'active':''}`} style={{textTransform:'capitalize'}} onClick={()=>setTab(tabName)}>{t.admin.tabs[tabName]}</button>
         ))}
       </div>
       {tab==='analytics' && renderAnalytics(stats, maxSessions)}
-      {tab==='users'&&(<UsersTab user={user} post={post}/>)}
+{tab==='users'&&(<UsersTab user={user} post={post} t={t}/>)} 
       {tab==='reports'&&(
         <>
           <div style={{display:'flex',gap:'.5rem',marginBottom:'1rem',flexWrap:'wrap'}}>
@@ -1365,12 +1371,12 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
               <button key={s} className={`admin-tab ${reportFilter===s?'active':''}`} style={{textTransform:'capitalize',padding:'6px 14px'}} onClick={()=>setReportFilter(s)}>{s}</button>
             ))}
           </div>
-          {loading?<p style={{color:'#9ca3af'}}>Loading…</p>:reports.length===0?<p style={{color:'#9ca3af',textAlign:'center'}}>No {reportFilter} reports.</p>:(
+          {loading?<p style={{color:'#9ca3af'}}>{t.admin.analytics.loading}</p>:reports.length===0?<p style={{color:'#9ca3af',textAlign:'center'}}>{t.admin.analytics.noReports.replace('{filter}',reportFilter)}</p>:(
             <div className="admin-section">
-              <h3>{reports.length} {reportFilter} reports</h3>
+              <h3>{reports.length} {reportFilter} {t.admin.analytics.reports}</h3>
               <div style={{overflowX:'auto'}}>
                 <table className="admin-table">
-                  <thead><tr><th>Reporter</th><th>Reported</th><th>Reason</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                  <thead><tr><th>{t.admin.analytics.reporter}</th><th>{t.admin.analytics.reported}</th><th>{t.admin.analytics.reason}</th><th>{t.admin.analytics.date}</th><th>{t.admin.analytics.status}</th><th>{t.admin.analytics.actions}</th></tr></thead>
                   <tbody>
                     {reports.map(r=>(
                       <tr key={r.id}>
@@ -1382,8 +1388,8 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
                         <td>
                           {r.status==='pending'&&(
                             <div className="action-row">
-                              <button className="act-btn dismiss" onClick={()=>doReportAction(r.id,'dismiss','Reviewed — no action needed')}>Dismiss</button>
-                              <button className="act-btn action" onClick={()=>doReportAction(r.id,'action','User warned')}>Action</button>
+                              <button className="act-btn dismiss" onClick={()=>doReportAction(r.id,'dismiss','Reviewed — no action needed')}>{t.admin.analytics.dismiss}</button>
+                              <button className="act-btn action" onClick={()=>doReportAction(r.id,'action','User warned')}>{t.admin.analytics.actionBtn}</button>
                             </div>
                           )}
                         </td>
@@ -1397,38 +1403,38 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
         </>
       )}
       {tab==='settings'&&(
-        <AdminSettingsPanel user={user}/>
+        <AdminSettingsPanel user={user} t={t}/>
       )}
       {tab==='referrals'&&(
-        <ReferralsTab post={post}/>
+        <ReferralsTab post={post} t={t}/>
       )}
       {tab==='health'&&(
-        <HealthTab stats={stats} user={user} post={post}/>
+        <HealthTab stats={stats} user={user} post={post} t={t}/>
       )}
     </div>
   );
 }
 
-function ReferralsTab({post}){
+function ReferralsTab({post,t}){
   const[data,setData]=useState(null);
   const[loading,setLoading]=useState(true);
   useEffect(()=>{
     post('/api/admin/referrals',{}).then(d=>{if(d.success)setData(d);}).catch(()=>{}).finally(()=>setLoading(false));
   },[]);
-  if(loading)return<p style={{color:'#9ca3af',padding:'1rem'}}>Loading…</p>;
-  if(!data)return<p style={{color:'#9ca3af',padding:'1rem'}}>Failed to load referral data.</p>;
+  if(loading)return<p style={{color:'#9ca3af',padding:'1rem'}}>{t.admin.referrals.loading}</p>;
+  if(!data)return<p style={{color:'#9ca3af',padding:'1rem'}}>{t.admin.referrals.failed}</p>;
   return(
     <div className="admin-section">
-      <h3>Referral Overview</h3>
+      <h3>{t.admin.referrals.overview}</h3>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.75rem',marginBottom:'1.5rem'}}>
-        <div className="kpi-card"><div className="kpi-val">{data.total_referrals}</div><div className="kpi-lbl">Total Referrals</div></div>
-        <div className="kpi-card"><div className="kpi-val" style={{color:'#4f46e5'}}>{data.total_rp_given} RP</div><div className="kpi-lbl">Total RP Awarded</div></div>
+        <div className="kpi-card"><div className="kpi-val">{data.total_referrals}</div><div className="kpi-lbl">{t.admin.referrals.totalReferrals}</div></div>
+        <div className="kpi-card"><div className="kpi-val" style={{color:'#4f46e5'}}>{data.total_rp_given} RP</div><div className="kpi-lbl">{t.admin.referrals.totalRP}</div></div>
       </div>
-      <h3>Recent Referral Rewards</h3>
-      {data.transactions.length===0?<p style={{color:'#9ca3af'}}>No referral rewards yet.</p>:(
+      <h3>{t.admin.referrals.recentRewards}</h3>
+      {data.transactions.length===0?<p style={{color:'#9ca3af'}}>{t.admin.referrals.noRewards}</p>:(
         <div style={{overflowX:'auto'}}>
           <table className="admin-table">
-            <thead><tr><th>Referred By</th><th>New User</th><th>Date</th></tr></thead>
+            <thead><tr><th>{t.admin.referrals.referredBy}</th><th>{t.admin.referrals.newUser}</th><th>{t.admin.referrals.date}</th></tr></thead>
             <tbody>
               {data.transactions.map(t=>(
                 <tr key={t.id}>
@@ -1445,7 +1451,7 @@ function ReferralsTab({post}){
   );
 }
 
-function UsersTab({user,post}){
+function UsersTab({user,post,t}){
   const[users,setUsers]=useState([]);
   const[page,setPage]=useState(0);
   const[loading,setLoading]=useState(true);
@@ -1521,17 +1527,17 @@ function UsersTab({user,post}){
         if(d.success){setUsers(prev=>[d.user,...prev]);setTotal(t=>t+1);}
       }
       setShowForm(false);
-    }catch(e){setFormError('Request failed');}
+    }catch(e){setFormError(t.admin.users.requestFailed);}
     setFormSaving(false);
   };
 
   const deleteUser=async(u)=>{
-    if(!confirm('Delete user "'+u.username+'"? This cannot be undone.'))return;
+    if(!confirm(t.admin.users.deleteConfirm.replace('{username}',u.username)))return;
     try{
       const d=await post('/api/admin/user/'+u.id+'/delete');
       if(d.error){alert(d.error);return;}
       if(d.success){setUsers(prev=>prev.filter(x=>x.id!==u.id));setTotal(t=>t-1);}
-    }catch(e){alert('Failed to delete user: '+e.message);}
+    }catch(e){alert(t.admin.users.deleteFailed+e.message);}
   };
 
   const loadUserDetail=async(uid)=>{
@@ -1541,18 +1547,18 @@ function UsersTab({user,post}){
 
   const doAdjust=async(uid)=>{
     await post('/api/admin/user/'+uid+'/adjust',{fp_delta:parseFloat(adjustFP)||0,rp_delta:parseFloat(adjustRP)||0});
-    alert('Balances updated.');loadUserDetail(uid);setAdjustFP('');setAdjustRP('');
+    alert(t.admin.users.balancesUpdated);loadUserDetail(uid);setAdjustFP('');setAdjustRP('');
   };
 
   const doBan=async(uid)=>{
-    if(!banReason.trim()){alert('Enter a reason.');return;}
+    if(!banReason.trim()){alert(t.admin.users.enterReason);return;}
     await post('/api/admin/user/'+uid+'/ban',{reason:banReason});
-    alert('User banned.');setBanReason('');loadUserDetail(uid);
+    alert(t.admin.users.userBanned);setBanReason('');loadUserDetail(uid);
   };
 
   const doUnban=async(uid)=>{
     await post('/api/admin/user/'+uid+'/unban',{});
-    alert('User unbanned.');loadUserDetail(uid);
+    alert(t.admin.users.userUnbanned);loadUserDetail(uid);
   };
 
   const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
@@ -1561,17 +1567,17 @@ function UsersTab({user,post}){
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:'.5rem'}}>
         <p style={{margin:0,fontSize:'.88rem',color:'#64748b'}}>
-          {searchMode?users.length+' search results':total+' total users · page '+(page+1)+' of '+Math.ceil(total/PAGE||1)}
+          {searchMode?t.admin.users.searchResults.replace('{N}',users.length):t.admin.users.pagination.replace('{N}',total).replace('{N}',page+1).replace('{N}',Math.ceil(total/PAGE||1))}
         </p>
         <div style={{display:'flex',gap:'.5rem'}}>
-          <button className="save-settings-btn" style={{margin:0,background:'#22c55e'}} onClick={openAdd}>+ Add User</button>
-          <button className="save-settings-btn" style={{margin:0}} onClick={exportCSV}>⬇ Export CSV</button>
+          <button className="save-settings-btn" style={{margin:0,background:'#22c55e'}} onClick={openAdd}>{t.admin.users.addUser}</button>
+          <button className="save-settings-btn" style={{margin:0}} onClick={exportCSV}>{t.admin.users.exportCSV}</button>
         </div>
       </div>
 
       <div className="search-row">
-        <input className="search-input" placeholder="Search by username, email, or nickname…" value={searchQ} onChange={e=>setSearchQ(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')searchUsers();if(e.key==='Escape')clearSearch();}}/>
-        {searchMode?<button className="search-btn" onClick={clearSearch} style={{background:'#64748b'}}>Clear</button>:<button className="search-btn" onClick={searchUsers}>Search</button>}
+        <input className="search-input" placeholder={t.admin.users.searchPlaceholder} value={searchQ} onChange={e=>setSearchQ(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')searchUsers();if(e.key==='Escape')clearSearch();}}/>
+        {searchMode?<button className="search-btn" onClick={clearSearch} style={{background:'#64748b'}}>{t.admin.users.clear}</button>:<button className="search-btn" onClick={searchUsers}>{t.admin.users.searchButton}</button>}
       </div>
 
       {selectedUser&&(
@@ -1580,69 +1586,69 @@ function UsersTab({user,post}){
             <div>
               <h3 style={{margin:0}}>{selectedUser.user?.nickname||selectedUser.user?.username} <span style={{fontWeight:400,color:'#94a3b8',fontSize:'.82rem'}}>{selectedUser.user?.email}</span></h3>
               <div style={{display:'flex',gap:.5,flexWrap:'wrap',marginTop:'.4rem'}}>
-                {selectedUser.user?.is_admin?<span className="badge-pill admin">Admin</span>:null}
-                {selectedUser.user?.is_banned?<span className="badge-pill banned">Banned</span>:null}
+                {selectedUser.user?.is_admin?<span className="badge-pill admin">{t.admin.users.adminBadge}</span>:null}
+                {selectedUser.user?.is_banned?<span className="badge-pill banned">{t.admin.users.bannedBadge}</span>:null}
                 <span style={{fontSize:'.78rem',color:'#94a3b8'}}>{selectedUser.user?.country?getFlag(selectedUser.user.country)+' '+countryName(selectedUser.user.country):'—'} · {selectedUser.user?.english_level}</span>
               </div>
             </div>
-            <button onClick={()=>setSelectedUser(null)} style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:.9}}>✕ Close</button>
+            <button onClick={()=>setSelectedUser(null)} style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:.9}}>{t.admin.users.close}</button>
           </div>
            <div className="bg-light" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'.5rem',margin:'.875rem 0',borderRadius:8,padding:'.75rem'}}>
-            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#1d4ed8'}}>{selectedUser.user?.fp_balance??0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>FP</div></div>
-            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#15803d'}}>{(selectedUser.user?.rp_balance||0).toFixed(1)}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>RP</div></div>
-            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem'}}>{selectedUser.sessions?.length||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>Sessions</div></div>
-            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#ef4444'}}>{selectedUser.reports_received||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>Reports</div></div>
+            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#1d4ed8'}}>{selectedUser.user?.fp_balance??0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>{t.admin.users.fp}</div></div>
+            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#15803d'}}>{(selectedUser.user?.rp_balance||0).toFixed(1)}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>{t.admin.users.rp}</div></div>
+            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem'}}>{selectedUser.sessions?.length||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>{t.admin.users.sessions}</div></div>
+            <div style={{textAlign:'center'}}><div style={{fontWeight:800,fontSize:'1.1rem',color:'#ef4444'}}>{selectedUser.reports_received||0}</div><div style={{fontSize:'.7rem',color:'#94a3b8'}}>{t.admin.users.reports}</div></div>
           </div>
-           <p style={{margin:'0 0 .5rem',fontSize:'.82rem',fontWeight:600}}>Adjust Balances</p>
+           <p style={{margin:'0 0 .5rem',fontSize:'.82rem',fontWeight:600}}>{t.admin.users.adjustBalances}</p>
           <div className="inline-form">
-            <input placeholder="FP delta (e.g. +2 or -1)" value={adjustFP} onChange={e=>setAdjustFP(e.target.value)}/>
-            <input placeholder="RP delta (e.g. +1.5)" value={adjustRP} onChange={e=>setAdjustRP(e.target.value)}/>
-            <button onClick={()=>doAdjust(selectedUser.user?.id)}>Apply</button>
+            <input placeholder={t.admin.users.fpDelta} value={adjustFP} onChange={e=>setAdjustFP(e.target.value)}/>
+            <input placeholder={t.admin.users.rpDelta} value={adjustRP} onChange={e=>setAdjustRP(e.target.value)}/>
+            <button onClick={()=>doAdjust(selectedUser.user?.id)}>{t.admin.users.apply}</button>
           </div>
           {!selectedUser.user?.is_banned?(
             <>
-               <p style={{margin:'.875rem 0 .4rem',fontSize:'.82rem',fontWeight:600}}>Ban User</p>
+               <p style={{margin:'.875rem 0 .4rem',fontSize:'.82rem',fontWeight:600}}>{t.admin.users.banUser}</p>
               <div className="inline-form">
-                <input placeholder="Ban reason (required)" value={banReason} onChange={e=>setBanReason(e.target.value)} style={{flex:2}}/>
-                <button style={{background:'#ef4444'}} onClick={()=>doBan(selectedUser.user?.id)}>Ban</button>
+                <input placeholder={t.admin.users.banReason} value={banReason} onChange={e=>setBanReason(e.target.value)} style={{flex:2}}/>
+                <button style={{background:'#ef4444'}} onClick={()=>doBan(selectedUser.user?.id)}>{t.admin.users.banButton}</button>
               </div>
             </>
           ):(
-            <button className="act-btn unban" style={{marginTop:'.75rem'}} onClick={()=>doUnban(selectedUser.user?.id)}>✓ Unban User</button>
+            <button className="act-btn unban" style={{marginTop:'.75rem'}} onClick={()=>doUnban(selectedUser.user?.id)}>{t.admin.users.unbanButton}</button>
           )}
         </div>
       )}
 
       {showForm&&(
         <div className="panel-white">
-          <h4 style={{margin:'0 0 12px',fontSize:'.95rem'}}>{editingUser?'Edit User':'Add New User'}</h4>
+          <h4 style={{margin:'0 0 12px',fontSize:'.95rem'}}>{editingUser?t.admin.users.editUser:t.admin.users.addUserTitle}</h4>
           {formError&&<p style={{color:'#ef4444',fontSize:'.82rem',margin:'0 0 8px'}}>{formError}</p>}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.75rem'}}>
-            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Username *</label><input value={form.username} onChange={upd('username')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
-            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Display Name</label><input value={form.nickname||''} onChange={upd('nickname')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
-            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Email *</label><input value={form.email} onChange={upd('email')} type="email" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
-            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>English conversation Level</label>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>{t.admin.users.usernameRequired}</label><input value={form.username} onChange={upd('username')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>{t.admin.users.displayName}</label><input value={form.nickname||''} onChange={upd('nickname')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>{t.admin.users.emailRequired}</label><input value={form.email} onChange={upd('email')} type="email" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>{t.admin.users.level}</label>
               <select value={form.english_level} onChange={upd('english_level')} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}>
                 <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
               </select>
             </div>
-            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Country</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))}/></div>
-            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>Native Language</label><input value={form.native_language} onChange={upd('native_language')} placeholder="e.g. Japanese" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>{t.admin.users.country}</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))}/></div>
+            <div><label style={{display:'block',fontSize:'.78rem',fontWeight:600,marginBottom:2}}>{t.admin.users.nativeLanguage}</label><input value={form.native_language} onChange={upd('native_language')} placeholder={t.admin.users.nativeLanguagePlaceholder} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.88rem'}}/></div>
           </div>
           <div style={{display:'flex',gap:'.5rem',marginTop:12}}>
-            <button onClick={()=>setShowForm(false)} className="btn-subtle" style={{padding:'8px 16px',fontSize:'.88rem'}}>Cancel</button>
-            <button onClick={saveUser} disabled={formSaving||!form.username||!form.email} style={{padding:'8px 16px',background:form.username&&form.email?'#4f8ef7':'#ccc',color:'white',border:'none',borderRadius:6,cursor:form.username&&form.email?'pointer':'not-allowed',fontWeight:600,fontSize:'.88rem'}}>{formSaving?'Saving…':editingUser?'Update':'Create'}</button>
+            <button onClick={()=>setShowForm(false)} className="btn-subtle" style={{padding:'8px 16px',fontSize:'.88rem'}}>{t.admin.users.cancel}</button>
+            <button onClick={saveUser} disabled={formSaving||!form.username||!form.email} style={{padding:'8px 16px',background:form.username&&form.email?'#4f8ef7':'#ccc',color:'white',border:'none',borderRadius:6,cursor:form.username&&form.email?'pointer':'not-allowed',fontWeight:600,fontSize:'.88rem'}}>{formSaving?t.admin.users.saving:editingUser?t.admin.users.update:t.admin.users.create}</button>
           </div>
         </div>
       )}
 
-      {loading?<p style={{color:'#9ca3af'}}>{searchMode?'Searching…':'Loading…'}</p>:users.length===0?(
-        <p style={{color:'#9ca3af',textAlign:'center'}}>{searchMode?'No results. Try a different query.':'No users found.'}</p>
+      {loading?<p style={{color:'#9ca3af'}}>{searchMode?t.admin.users.searching:t.admin.users.loading}</p>:users.length===0?(
+        <p style={{color:'#9ca3af',textAlign:'center'}}>{searchMode?t.admin.users.noResults:t.admin.users.noUsers}</p>
       ):(
         <div className="admin-section">
           <div style={{overflowX:'auto'}}>
             <table className="admin-table">
-              <thead><tr><th>#</th><th>Username</th><th>Display Name</th><th>Email</th><th>Country</th><th>Language</th><th>Level</th><th>FP</th><th>RP</th><th>Badge</th><th>New</th><th>Online</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+              <thead><tr><th>#</th><th>{t.admin.users.usernameHeader}</th><th>{t.admin.users.displayNameHeader}</th><th>{t.admin.users.emailHeader}</th><th>{t.admin.users.countryHeader}</th><th>{t.admin.users.languageHeader}</th><th>{t.admin.users.levelHeader}</th><th>{t.admin.users.fpHeader}</th><th>{t.admin.users.rpHeader}</th><th>{t.admin.users.badgeHeader}</th><th>{t.admin.users.newHeader}</th><th>{t.admin.users.onlineHeader}</th><th>{t.admin.users.statusHeader}</th><th>{t.admin.users.joinedHeader}</th><th>{t.admin.users.actionsHeader}</th></tr></thead>
               <tbody>
                 {users.map((u,i)=>(
                   <tr key={u.id}>
@@ -1662,24 +1668,24 @@ function UsersTab({user,post}){
                           if(d.success!==false)setUsers(prev=>prev.map(x=>x.id===u.id?{...x,founding_member_override:d.founding_member_override}:x));
                         }}
                         style={{background:u.founding_member_override?'linear-gradient(135deg,#f59e0b,#f97316)':'#334155',color:'white',border:'none',borderRadius:10,padding:'3px 10px',fontSize:'.72rem',fontWeight:700,cursor:'pointer'}}
-                        title={u.founding_member_override?'Remove Founding Member badge':'Grant Founding Member badge'}
+                        title={u.founding_member_override?t.admin.users.removeFM:t.admin.users.grantFM}
                       >
-                        {u.founding_member_override?'🏆 FM':'—'}
+                        {u.founding_member_override?t.admin.users.fmBadge:t.admin.users.dash}
                       </button>
                     </td>
-                    <td>{u.is_new_member?<span style={{padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.68rem',fontWeight:700}}>NEW</span>:'—'}</td>
+                    <td>{u.is_new_member?<span style={{padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.68rem',fontWeight:700}}>{t.admin.users.newBadge}</span>:'—'}</td>
                     <td style={{textAlign:'center'}}>{(()=>{
                       const s=statuses[u.id]||'offline';
                       const colors={online:'#22c55e',searching:'#3b82f6',in_call:'#f97316',offline:'#d1d5db'};
-                      const labels={online:'Online',searching:'Searching',in_call:'In Call',offline:'Offline'};
+                      const labels={online:t.admin.users.onlineStatus,searching:t.admin.users.searchingStatus,in_call:t.admin.users.inCallStatus,offline:t.admin.users.offlineStatus};
                       const pulse=s!=='offline';
                       return<span title={labels[s]} style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:colors[s],...(pulse?{boxShadow:'0 0 6px '+colors[s]}:{})}}/>;
                     })()}</td>
-                    <td>{u.is_banned?<span className="badge-pill banned">Banned</span>:u.is_admin?<span className="badge-pill admin">Admin</span>:'—'}</td>
+                    <td>{u.is_banned?<span className="badge-pill banned">{t.admin.users.bannedStatus}</span>:u.is_admin?<span className="badge-pill admin">{t.admin.users.adminStatus}</span>:'—'}</td>
                     <td style={{fontSize:'.75rem',color:'#94a3b8'}}>{u.created_at?.slice(0,10)}</td>
                     <td>
                       <div style={{display:'flex',gap:4}}>
-                        <button className="act-btn adjust" onClick={()=>loadUserDetail(u.id)} style={{fontSize:'.7rem'}}>Details</button>
+                        <button className="act-btn adjust" onClick={()=>loadUserDetail(u.id)} style={{fontSize:'.7rem'}}>{t.admin.users.details}</button>
                         <button onClick={()=>openEdit(u)} style={{background:'#4f8ef7',color:'white',border:'none',borderRadius:6,padding:'3px 8px',fontSize:'.7rem',cursor:'pointer'}} title="Edit">✏️</button>
                         {!u.is_admin?<button onClick={()=>deleteUser(u)} style={{background:'#ef4444',color:'white',border:'none',borderRadius:6,padding:'3px 8px',fontSize:'.7rem',cursor:'pointer'}} title="Delete">🗑️</button>:null}
                       </div>
@@ -1691,9 +1697,9 @@ function UsersTab({user,post}){
           </div>
           {!searchMode&&(
             <div style={{display:'flex',gap:'.5rem',marginTop:'.875rem',justifyContent:'center'}}>
-              <button className="act-btn" disabled={page===0} onClick={()=>setPage(p=>p-1)}>← Prev</button>
-              <span style={{padding:'4px 12px',fontSize:'.83rem',color:'#64748b'}}>{page*PAGE+1}–{Math.min((page+1)*PAGE,total)+' of '+total}</span>
-              <button className="act-btn" disabled={(page+1)*PAGE>=total} onClick={()=>setPage(p=>p+1)}>Next →</button>
+              <button className="act-btn" disabled={page===0} onClick={()=>setPage(p=>p-1)}>{t.admin.users.prev}</button>
+              <span style={{padding:'4px 12px',fontSize:'.83rem',color:'#64748b'}}>{page*PAGE+1}–{Math.min((page+1)*PAGE,total)+' '+t.admin.users.of+' '+total}</span>
+              <button className="act-btn" disabled={(page+1)*PAGE>=total} onClick={()=>setPage(p=>p+1)}>{t.admin.users.next}</button>
             </div>
           )}
         </div>
@@ -1702,7 +1708,7 @@ function UsersTab({user,post}){
   );
 }
 
-function HealthTab({user,post}){
+function HealthTab({user,post,stats,t}){
   const[health,setHealth]=useState(null);
   const[usage,setUsage]=useState(null);
   useEffect(()=>{
@@ -1735,62 +1741,62 @@ function HealthTab({user,post}){
     <div>
       {usage?(
         <div className="admin-section">
-          <h3>Infrastructure Usage (Cloudflare Free Tier)</h3>
-          <p style={{fontSize:'.78rem',color:'#94a3b8',margin:'0 0 1rem'}}>Monitoring API requests, D1 database operations, and Durable Object usage against free tier limits.</p>
+          <h3>{t.admin.health.infraTitle}</h3>
+          <p style={{fontSize:'.78rem',color:'#94a3b8',margin:'0 0 1rem'}}>{t.admin.health.infraDesc}</p>
 
           <div style={{marginBottom:'1.25rem'}}>
-            <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>📅 Today</h4>
-            <UsageBar label="Worker Requests" used={usage.daily?.api_requests||0} limit={LIMITS.workers_req}/>
-            <UsageBar label="D1 Rows Read" used={usage.daily?.d1_reads||0} limit={LIMITS.d1_reads}/>
-            <UsageBar label="D1 Rows Written" used={usage.daily?.d1_writes||0} limit={LIMITS.d1_writes}/>
-            <UsageBar label="Durable Object Requests" used={usage.daily?.do_requests||0} limit={LIMITS.do_req}/>
+            <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>{t.admin.health.today}</h4>
+            <UsageBar label={t.admin.health.workerRequests} used={usage.daily?.api_requests||0} limit={LIMITS.workers_req}/>
+            <UsageBar label={t.admin.health.d1RowsRead} used={usage.daily?.d1_reads||0} limit={LIMITS.d1_reads}/>
+            <UsageBar label={t.admin.health.d1RowsWritten} used={usage.daily?.d1_writes||0} limit={LIMITS.d1_writes}/>
+            <UsageBar label={t.admin.health.durableRequests} used={usage.daily?.do_requests||0} limit={LIMITS.do_req}/>
           </div>
 
           <div style={{marginBottom:'1.25rem'}}>
-            <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>📊 This Month</h4>
-            <UsageBar label="Worker Requests" used={usage.monthly?.api_requests||0} limit={LIMITS.workers_req*30}/>
-            <UsageBar label="D1 Rows Read" used={usage.monthly?.d1_reads||0} limit={LIMITS.d1_reads*30}/>
-            <UsageBar label="D1 Rows Written" used={usage.monthly?.d1_writes||0} limit={LIMITS.d1_writes*30}/>
-            <UsageBar label="Durable Object Requests" used={usage.monthly?.do_requests||0} limit={LIMITS.do_req*30}/>
+            <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>{t.admin.health.thisMonth}</h4>
+            <UsageBar label={t.admin.health.workerRequests} used={usage.monthly?.api_requests||0} limit={LIMITS.workers_req*30}/>
+            <UsageBar label={t.admin.health.d1RowsRead} used={usage.monthly?.d1_reads||0} limit={LIMITS.d1_reads*30}/>
+            <UsageBar label={t.admin.health.d1RowsWritten} used={usage.monthly?.d1_writes||0} limit={LIMITS.d1_writes*30}/>
+            <UsageBar label={t.admin.health.durableRequests} used={usage.monthly?.do_requests||0} limit={LIMITS.do_req*30}/>
           </div>
 
           <div>
-            <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>🗄️ Storage Estimates</h4>
+            <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>{t.admin.health.storageTitle}</h4>
             <table className="admin-table">
               <tbody>
-                <tr><td>Estimated D1 Rows</td><td style={{color:'#60a5fa',fontWeight:700}}>{(usage.estimates?.total_rows||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>Free tier: 5M rows</td></tr>
-                <tr><td>Total Users</td><td style={{fontWeight:700}}>{(usage.estimates?.total_users||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>~1 row each</td></tr>
-                <tr><td>Total Sessions</td><td style={{fontWeight:700}}>{(usage.estimates?.total_sessions||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>~3-4 rows each (session + events + queue)</td></tr>
-                <tr><td>All-Time D1 Writes</td><td style={{fontWeight:700}}>{(usage.estimates?.total_d1_writes_all_time||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>100K/day limit</td></tr>
+                <tr><td>{t.admin.health.estimatedD1}</td><td style={{color:'#60a5fa',fontWeight:700}}>{(usage.estimates?.total_rows||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>{t.admin.health.freeTier5M}</td></tr>
+                <tr><td>{t.admin.health.totalUsers}</td><td style={{fontWeight:700}}>{(usage.estimates?.total_users||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>{t.admin.health['~1Row']}</td></tr>
+                <tr><td>{t.admin.health.totalSessions}</td><td style={{fontWeight:700}}>{(usage.estimates?.total_sessions||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>{t.admin.health['~3-4Rows']}</td></tr>
+                <tr><td>{t.admin.health.allTimeWrites}</td><td style={{fontWeight:700}}>{(usage.estimates?.total_d1_writes_all_time||0).toLocaleString()}</td><td style={{color:'#94a3b8'}}>{t.admin.health.limit100K}</td></tr>
               </tbody>
             </table>
           </div>
         </div>
-      ):<p style={{color:'#9ca3af'}}>Loading infrastructure data…</p>}
+      ):<p style={{color:'#9ca3af'}}>{t.admin.health.loadingInfra}</p>}
 
       <div className="admin-section" style={{marginTop:'1rem'}}>
-        <h3>System Info</h3>
+        <h3>{t.admin.health.systemInfo}</h3>
         <table className="admin-table">
           <tbody>
-            <tr><td>Backend</td><td>Cloudflare Workers (api.chatter3.com)</td></tr>
-            <tr><td>Database</td><td>Cloudflare D1 (chatter3-db)</td></tr>
-            <tr><td>Signaling</td><td>Durable Objects WebSocket</td></tr>
-            <tr><td>Email</td><td>Resend API → report@chatter3.com</td></tr>
-            <tr><td>Point System</td><td>FP (daily, expires) + RP (permanent)</td></tr>
-            <tr><td>FP per Day</td><td>1 FP (reset midnight UTC)</td></tr>
-            <tr><td>RP per Completion</td><td>+1 RP (both rate) +0.5 RP if received Good</td></tr>
-            <tr><td>Exchange Rate</td><td>3 RP → 1 FP</td></tr>
+            <tr><td>{t.admin.health.backend}</td><td>{t.admin.health.backendDesc}</td></tr>
+            <tr><td>{t.admin.health.database}</td><td>{t.admin.health.databaseDesc}</td></tr>
+            <tr><td>{t.admin.health.signaling}</td><td>{t.admin.health.signalingDesc}</td></tr>
+            <tr><td>{t.admin.health.email}</td><td>{t.admin.health.emailDesc}</td></tr>
+            <tr><td>{t.admin.health.pointSystem}</td><td>{t.admin.health.pointSystemDesc}</td></tr>
+            <tr><td>{t.admin.health.fpPerDay}</td><td>{t.admin.health.fpPerDayDesc}</td></tr>
+            <tr><td>{t.admin.health.rpPerCompletion}</td><td>{t.admin.health.rpPerCompletionDesc}</td></tr>
+            <tr><td>{t.admin.health.exchangeRate}</td><td>{t.admin.health.exchangeRateDesc}</td></tr>
           </tbody>
         </table>
       </div>
       <div className="admin-section" style={{marginTop:'1rem'}}>
-        <h3>🌐 TURN/STUN Servers (metered.ca)</h3>
+        <h3>{t.admin.health.turnTitle}</h3>
         <table className="admin-table">
           <tbody>
-            <tr><td>Provider</td><td style={{fontWeight:700}}>metered.ca</td><td style={{color:'#94a3b8'}}>chatter3.metered.live</td></tr>
-            <tr><td>Protocol</td><td>TURN over TLS + STUN</td><td style={{color:'#94a3b8'}}>Used for WebRTC relay when P2P fails</td></tr>
-            <tr><td>Free Tier</td><td>50 GB bandwidth/month</td><td style={{color:'#94a3b8'}}>Exceeding → paid plan required</td></tr>
-            <tr><td>Fallback</td><td>Google STUN (stun.l.google.com:19302)</td><td style={{color:'#94a3b8'}}>Used if metered.ca is unreachable</td></tr>
+            <tr><td>{t.admin.health.provider}</td><td style={{fontWeight:700}}>metered.ca</td><td style={{color:'#94a3b8'}}>chatter3.metered.live</td></tr>
+            <tr><td>{t.admin.health.protocol}</td><td>{t.admin.health.turnProtocol}</td><td style={{color:'#94a3b8'}}>Used for WebRTC relay when P2P fails</td></tr>
+            <tr><td>{t.admin.health.freeTier}</td><td>{t.admin.health.bandwidth}</td><td style={{color:'#94a3b8'}}>Exceeding → paid plan required</td></tr>
+            <tr><td>{t.admin.health.fallback}</td><td>{t.admin.health.googleStun}</td><td style={{color:'#94a3b8'}}>Used if metered.ca is unreachable</td></tr>
           </tbody>
         </table>
         {usage?.relay?(()=>{
@@ -1809,24 +1815,24 @@ function HealthTab({user,post}){
           return(
             <div style={{marginTop:'.75rem',background:'#1e293b',borderRadius:8,padding:'12px'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'.5rem'}}>
-                <h4 style={{margin:0,fontSize:'.85rem',fontWeight:700}}>P2P vs TURN Relay Usage</h4>
-                <span style={{fontSize:'.7rem',color:'#94a3b8'}}>Lower relay % = less bandwidth cost</span>
+                <h4 style={{margin:0,fontSize:'.85rem',fontWeight:700}}>{t.admin.health.p2pVsTurn}</h4>
+                <span style={{fontSize:'.7rem',color:'#94a3b8'}}>{t.admin.health.p2pDesc}</span>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:'.5rem',marginBottom:'.5rem'}}>
                 <div style={{textAlign:'center',padding:'8px'}}>
                   <div style={{fontSize:'1.3rem',fontWeight:800,color:'#22c55e'}}>{todayPct}%</div>
-                  <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Today Relay</div>
-                  <div style={{fontSize:'.65rem',color:'#6b7280'}}>{tRelay}/{todayAll} calls</div>
+                  <div style={{fontSize:'.7rem',color:'#94a3b8'}}>{t.admin.health.todayRelay}</div>
+                  <div style={{fontSize:'.65rem',color:'#6b7280'}}>{tRelay}/{todayAll} {t.admin.health.callsUnit}</div>
                 </div>
                 <div style={{textAlign:'center',padding:'8px'}}>
                   <div style={{fontSize:'1.3rem',fontWeight:800,color:'#60a5fa'}}>{monthPct}%</div>
-                  <div style={{fontSize:'.7rem',color:'#94a3b8'}}>This Month Relay</div>
-                  <div style={{fontSize:'.65rem',color:'#6b7280'}}>{mRelay}/{monthAll} calls</div>
+                  <div style={{fontSize:'.7rem',color:'#94a3b8'}}>{t.admin.health.monthRelay}</div>
+                  <div style={{fontSize:'.65rem',color:'#6b7280'}}>{mRelay}/{monthAll} {t.admin.health.callsUnit}</div>
                 </div>
                 <div style={{textAlign:'center',padding:'8px'}}>
                   <div style={{fontSize:'1.3rem',fontWeight:800,color:'#a78bfa'}}>{relayPct}%</div>
-                  <div style={{fontSize:'.7rem',color:'#94a3b8'}}>All-Time Relay</div>
-                  <div style={{fontSize:'.65rem',color:'#6b7280'}}>{totalRelay}/{totalAll} calls</div>
+                  <div style={{fontSize:'.7rem',color:'#94a3b8'}}>{t.admin.health.allTimeRelay}</div>
+                  <div style={{fontSize:'.65rem',color:'#6b7280'}}>{totalRelay}/{totalAll} {t.admin.health.callsUnit}</div>
                 </div>
               </div>
               <div style={{display:'flex',gap:'.5rem',alignItems:'center',marginTop:'.5rem'}}>
@@ -1837,14 +1843,14 @@ function HealthTab({user,post}){
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.5rem',marginTop:'.75rem',fontSize:'.72rem'}}>
                 <div style={{background:'#0f172a',borderRadius:6,padding:'8px'}}>
-                  <div style={{color:'#22c55e',fontWeight:600,marginBottom:2}}>P2P (Free)</div>
-                  <div style={{color:'#94a3b8'}}>Direct connection, 0 bandwidth cost</div>
-                  <div style={{color:'#6b7280',fontSize:'.65rem'}}>Google STUN discovers IP, devices connect directly</div>
+                  <div style={{color:'#22c55e',fontWeight:600,marginBottom:2}}>{t.admin.health.p2pTitle}</div>
+                  <div style={{color:'#94a3b8'}}>{t.admin.health.p2pDesc1}</div>
+                  <div style={{color:'#6b7280',fontSize:'.65rem'}}>{t.admin.health.p2pDesc2}</div>
                 </div>
                 <div style={{background:'#0f172a',borderRadius:6,padding:'8px'}}>
-                  <div style={{color:'#f59e0b',fontWeight:600,marginBottom:2}}>TURN Relay (Metered)</div>
-                  <div style={{color:'#94a3b8'}}>Server relay, uses 50GB/month budget</div>
-                  <div style={{color:'#6b7280',fontSize:'.65rem'}}>Used when P2P fails (symmetric NAT, firewalls)</div>
+                  <div style={{color:'#f59e0b',fontWeight:600,marginBottom:2}}>{t.admin.health.turnTitle2}</div>
+                  <div style={{color:'#94a3b8'}}>{t.admin.health.turnDesc1}</div>
+                  <div style={{color:'#6b7280',fontSize:'.65rem'}}>{t.admin.health.turnDesc2}</div>
                 </div>
               </div>
             </div>
@@ -1885,42 +1891,42 @@ function HealthTab({user,post}){
         const turnPct=usage.monthly?.api_requests?((todaySessions*mbPerCall/MB_PER_GB/METERED_MONTH_GB)*100*30):0;
         return(
           <div className="admin-section" style={{marginTop:'1rem'}}>
-            <h3>📊 Capacity Planning (Free Tier Limits)</h3>
+            <h3>{t.admin.health.capacityTitle}</h3>
             <p style={{fontSize:'.78rem',color:'#94a3b8',margin:'0 0 .75rem'}}>Max concurrent calls based on current free tier constraints. Current bottleneck: <strong style={{color:'#f59e0b'}}>{bottleneckLabel}</strong></p>
 
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:'.5rem',marginBottom:'1rem'}}>
               <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
                 <div style={{fontSize:'1.4rem',fontWeight:800,color:'#22c55e'}}>{bottleneck.toLocaleString()}</div>
-                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Max Sessions/Day</div>
-                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>Overall bottleneck</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>{t.admin.health.maxSessionsDay}</div>
+                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>{t.admin.health.maxSessionsDayDesc}</div>
               </div>
               <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
                 <div style={{fontSize:'1.4rem',fontWeight:800,color:'#60a5fa'}}>{(bottleneck*30).toLocaleString()}</div>
-                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Max Sessions/Month</div>
-                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>Based on daily bottleneck ×30</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>{t.admin.health.maxSessionsMonth}</div>
+                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>{t.admin.health.maxSessionsMonthDesc}</div>
               </div>
               <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
                 <div style={{fontSize:'1.4rem',fontWeight:800,color:'#a78bfa'}}>{Math.round(bottleneck*avgDur/3600)}</div>
-                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Avg Concurrent Calls</div>
-                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>Average at any given moment</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>{t.admin.health.avgConcurrent}</div>
+                <div style={{fontSize:'.65rem',color:'#6b7280',marginTop:2}}>{t.admin.health.avgConcurrentDesc}</div>
               </div>
             </div>
 
-            <UsageBar label={`Worker Requests (${usage.daily?.api_requests||0} today)`} used={usage.daily?.api_requests||0} limit={CF_WORKERS_DAY}/>
-            <UsageBar label={`D1 Writes (${usage.daily?.d1_writes||0} today)`} used={usage.daily?.d1_writes||0} limit={CF_D1_WRITES_DAY}/>
-            <UsageBar label={`Durable Object Requests (${usage.daily?.do_requests||0} today)`} used={usage.daily?.do_requests||0} limit={CF_DO_DAY}/>
-            <UsageBar label={`TURN Bandwidth (~${Math.round((usage.relay?.today_relay||0)*mbPerCall)}MB relay today)`} used={(usage.relay?.today_relay||0)*mbPerCall} limit={METERED_MONTH_GB*MB_PER_GB/30}/>
+            <UsageBar label={`${t.admin.health.workerRequests} (${usage.daily?.api_requests||0} today)`} used={usage.daily?.api_requests||0} limit={CF_WORKERS_DAY}/>
+            <UsageBar label={`${t.admin.health.d1Writes} (${usage.daily?.d1_writes||0} today)`} used={usage.daily?.d1_writes||0} limit={CF_D1_WRITES_DAY}/>
+            <UsageBar label={`${t.admin.health.durableObjs} (${usage.daily?.do_requests||0} today)`} used={usage.daily?.do_requests||0} limit={CF_DO_DAY}/>
+            <UsageBar label={`${t.admin.health.turnFree} (~${Math.round((usage.relay?.today_relay||0)*mbPerCall)}MB relay today)`} used={(usage.relay?.today_relay||0)*mbPerCall} limit={METERED_MONTH_GB*MB_PER_GB/30}/>
 
             <table className="admin-table" style={{marginTop:'.75rem'}}>
               <tbody>
-                <tr><td style={{fontWeight:600}}>Avg Session Duration</td><td>{avgDurMin}m {avgDurSec}s</td><td style={{color:'#94a3b8'}}>Based on last 30 days</td></tr>
-                <tr><td style={{fontWeight:600}}>Est. MB per Call</td><td>{mbPerCall.toFixed(1)} MB</td><td style={{color:'#94a3b8'}}>~2.5 MB/min (video + audio)</td></tr>
-                <tr><td style={{fontWeight:600}}>TURN Free Tier</td><td>{METERED_MONTH_GB} GB/month</td><td style={{color:'#94a3b8'}}>metered.ca free plan</td></tr>
-                <tr><td style={{fontWeight:600}}>Cloudflare Workers</td><td>{CF_WORKERS_DAY.toLocaleString()}/day</td><td style={{color:'#94a3b8'}}>~10 API calls per session</td></tr>
-                <tr><td style={{fontWeight:600}}>D1 Writes</td><td>{CF_D1_WRITES_DAY.toLocaleString()}/day</td><td style={{color:'#94a3b8'}}>~5 writes per session</td></tr>
-                <tr><td style={{fontWeight:600}}>Durable Objects</td><td>{CF_DO_DAY.toLocaleString()}/day</td><td style={{color:'#94a3b8'}}>~100 signaling msgs per session</td></tr>
-                <tr><td style={{fontWeight:600}}>Sessions Today</td><td style={{fontWeight:700,color:todaySessions>bottleneck?'#ef4444':'#22c55e'}}>{todaySessions}</td><td style={{color:'#94a3b8'}}>{bottleneck>0?((todaySessions/bottleneck)*100).toFixed(1):0}% of daily capacity</td></tr>
-                <tr><td style={{fontWeight:600}}>Sessions This Month</td><td style={{fontWeight:700}}>{monthSessions}</td><td style={{color:'#94a3b8'}}>{Math.round(bottleneck/30)>0?((monthSessions/(bottleneck/30*30))*100).toFixed(1):0}% of monthly capacity</td></tr>
+                <tr><td style={{fontWeight:600}}>{t.admin.health.avgDuration}</td><td>{avgDurMin}m {avgDurSec}s</td><td style={{color:'#94a3b8'}}>{t.admin.health.avgDurationDesc}</td></tr>
+                <tr><td style={{fontWeight:600}}>{t.admin.health.estMB}</td><td>{mbPerCall.toFixed(1)} MB</td><td style={{color:'#94a3b8'}}>{t.admin.health.estMBDesc}</td></tr>
+                <tr><td style={{fontWeight:600}}>{t.admin.health.turnFree}</td><td>{METERED_MONTH_GB} GB/month</td><td style={{color:'#94a3b8'}}>{t.admin.health.turnFreeDesc}</td></tr>
+                <tr><td style={{fontWeight:600}}>{t.admin.health.cfWorkers}</td><td>{CF_WORKERS_DAY.toLocaleString()}/day</td><td style={{color:'#94a3b8'}}>{t.admin.health.cfWorkersDesc}</td></tr>
+                <tr><td style={{fontWeight:600}}>{t.admin.health.d1Writes}</td><td>{CF_D1_WRITES_DAY.toLocaleString()}/day</td><td style={{color:'#94a3b8'}}>{t.admin.health.d1WritesDesc}</td></tr>
+                <tr><td style={{fontWeight:600}}>{t.admin.health.durableObjs}</td><td>{CF_DO_DAY.toLocaleString()}/day</td><td style={{color:'#94a3b8'}}>{t.admin.health.durableObjsDesc}</td></tr>
+                <tr><td style={{fontWeight:600}}>{t.admin.health.sessionsToday}</td><td style={{fontWeight:700,color:todaySessions>bottleneck?'#ef4444':'#22c55e'}}>{todaySessions}</td><td style={{color:'#94a3b8'}}>{bottleneck>0?((todaySessions/bottleneck)*100).toFixed(1):0}% {t.admin.health.sessionsTodayDesc}</td></tr>
+                <tr><td style={{fontWeight:600}}>{t.admin.health.sessionsMonth}</td><td style={{fontWeight:700}}>{monthSessions}</td><td style={{color:'#94a3b8'}}>{Math.round(bottleneck/30)>0?((monthSessions/(bottleneck/30*30))*100).toFixed(1):0}% {t.admin.health.sessionsMonthDesc}</td></tr>
               </tbody>
             </table>
           </div>
@@ -1928,12 +1934,12 @@ function HealthTab({user,post}){
       })()}
 
       <div className="admin-section" style={{marginTop:'1rem'}}>
-        <h3>🎁 Launch Promotions</h3>
+        <h3>{t.admin.health.launchTitle}</h3>
         <table className="admin-table">
           <tbody>
-            <tr><td>Free FP Period</td><td>New users skip FP consumption for N days after registration (configurable in Settings)</td></tr>
-            <tr><td>Registration RP Bonus</td><td>RP granted on signup to encourage retention (configurable in Settings)</td></tr>
-            <tr><td>Founding Member Badge</td><td>Exclusive badge shown for N days after registration (configurable in Settings)</td></tr>
+            <tr><td>{t.admin.health.freeFP}</td><td>New users skip FP consumption for N days after registration (configurable in Settings)</td></tr>
+            <tr><td>{t.admin.health.registrationRP}</td><td>RP granted on signup to encourage retention (configurable in Settings)</td></tr>
+            <tr><td>{t.admin.health.fmBadge}</td><td>Exclusive badge shown for N days after registration (configurable in Settings)</td></tr>
           </tbody>
         </table>
       </div>
@@ -2235,6 +2241,9 @@ function BlogPage({lang='en'}){
 // MAIN APP
 // ─────────────────────────────────────────────────────────────────
 export default function App(){
+  // Detect browser language on first visit (before useTranslation reads localStorage)
+  if(!localStorage.getItem('chatter3_lang')) detectLanguage();
+
   const path=window.location.pathname;
   
   // Language-prefixed landing pages
@@ -2274,6 +2283,7 @@ export default function App(){
   const[maintenanceMsg,setMaintenanceMsg]=useState('');
   const[appSettings,setAppSettings]=useState({matching_by_level:'false'});
   const[resetToken,setResetToken]=useState(null);
+  const{t,lang}=useTranslation();
 
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
@@ -2361,14 +2371,14 @@ export default function App(){
           </div>
         ):(
         <>
-        {showOnboarding&&<OnboardingSlider onComplete={()=>{localStorage.setItem('chatter3_onboarding_seen','1');setShowOnboarding(false);}}/>}
-        {showProfileGate&&user&&<ProfileGate user={user} onComplete={u=>{setAndSaveUser(u);setShowProfileGate(false);setView('matching');}} onDismiss={()=>setShowProfileGate(false)}/>}
-        {showExchange&&user&&<ExchangeModal user={user} onClose={()=>setShowExchange(false)} onDone={(fp,rp)=>{setAndSaveUser({...user,fp_balance:fp,rp_balance:rp});setShowExchange(false);if(fp>=1)setView('matching');}}/>}
-        {showFriends&&user&&<FriendsModal user={user} onClose={()=>setShowFriends(false)}/>}
+        {showOnboarding&&<OnboardingSlider t={t} onComplete={()=>{localStorage.setItem('chatter3_onboarding_seen','1');setShowOnboarding(false);}}/>}
+        {showProfileGate&&user&&<ProfileGate t={t} user={user} onComplete={u=>{setAndSaveUser(u);setShowProfileGate(false);setView('matching');}} onDismiss={()=>setShowProfileGate(false)}/>}
+        {showExchange&&user&&<ExchangeModal t={t} user={user} onClose={()=>setShowExchange(false)} onDone={(fp,rp)=>{setAndSaveUser({...user,fp_balance:fp,rp_balance:rp});setShowExchange(false);if(fp>=1)setView('matching');}}/>}
+        {showFriends&&user&&<FriendsModal t={t} user={user} onClose={()=>setShowFriends(false)}/>}
 
-        {view==='auth'&&<AuthView onLogin={handleLogin} setView={setView}/>}
-        {view==='forgot'&&<ForgotPasswordView onBack={()=>setView('auth')}/>}
-        {view==='reset'&&resetToken&&<ResetPasswordView token={resetToken} onBack={()=>setView('auth')}/>}
+        {view==='auth'&&<AuthView onLogin={handleLogin} setView={setView} t={t} lang={lang}/>}
+        {view==='forgot'&&<ForgotPasswordView onBack={()=>setView('auth')} t={t} lang={lang}/>}
+        {view==='reset'&&resetToken&&<ResetPasswordView token={resetToken} onBack={()=>setView('auth')} t={t} lang={lang}/>}
 
         {view!=='auth'&&view!=='video'&&view!=='precall'&&(
           <header className="app-header">
@@ -2376,20 +2386,20 @@ export default function App(){
               <div><img src="/chatter3_logo.png" alt="Chatter3" className="header-logo-img"/></div>
               {user&&(
                 <div className="user-info">
-                   <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🏆 Founding Member</span>:null}{user.is_new_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🆕 New Member</span>:null}</span>
+                   <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>{t.profile.foundingMember}</span>:null}{user.is_new_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>{t.profile.newMember}</span>:null}</span>
                   <div className="header-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
-                  <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 Friends</button>
-                  <div className="help-menu-wrapper">
-                    <button className="header-btn btn-help" style={{position:'relative'}}>❓ Help</button>
-                    <div className="help-dropdown">
-                      <a href="/how-it-works" target="_blank">📖 How It Works</a>
-                      <a href="/for-beginners" target="_blank">🌱 For Beginners</a>
-                      <a href="/blog" target="_blank">📝 Blog</a>
-                    </div>
-                  </div>
-                  <LanguageSwitcher currentLang={getLangFromPath(window.location.pathname)||localStorage.getItem('chatter3_lang')||'en'}/>
-                  {user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ Admin</button>:null}
-                  <button className="header-btn btn-logout" onClick={handleLogout}>Logout</button>
+                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 {t.nav.friends||'Friends'}</button>
+                   <div className="help-menu-wrapper">
+                     <button className="header-btn btn-help" style={{position:'relative'}}>❓ {t.nav.help||'Help'}</button>
+                     <div className="help-dropdown">
+                       <a href="/how-it-works" target="_blank">📖 {t.nav.howItWorks}</a>
+                       <a href="/for-beginners" target="_blank">🌱 {t.nav.forBeginners}</a>
+                       <a href="/blog" target="_blank">📝 {t.nav.blog}</a>
+                     </div>
+                   </div>
+                  <LanguageSwitcher currentLang={localStorage.getItem('chatter3_lang')||'en'}/>
+                  {user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ {t.admin.badge}</button>:null}
+                  <button className="header-btn btn-logout" onClick={handleLogout}>{t.nav.logout||'Logout'}</button>
                 </div>
               )}
             </div>
@@ -2397,21 +2407,21 @@ export default function App(){
         )}
 
         <main className="app-content">
-          {view==='dashboard'&&user&&<DashboardView user={user} settings={appSettings} onNavigate={setView} onFindPartner={handleFindPartner} onExchange={()=>setShowExchange(true)} onRefreshUser={()=>refreshUser(user.id)}/>}
-           {view==='matching'&&user&&<MatchingView user={user} settings={appSettings} onCancel={()=>setView('dashboard')} onMatch={s=>{setSession(s);setView('precall');}}/>}
-          {view==='precall'&&user&&session&&<PreCallView session={session} onStart={()=>{setCallStartedAt(Date.now());setView('video');}} onCancel={async()=>{try{await authFetch(`${API_URL}/api/matching/end`,{method:'POST',body:JSON.stringify({session_id:session.id,reason:'cancelled'})});}catch{}setSession(null);setView('matching');}}/>}
-          {view==='video'&&user&&session&&<VideoRoomView user={user} session={session} callStartedAt={callStartedAt} onEnd={()=>{setSession(null);setCallStartedAt(null);refreshUser(user.id);setView('dashboard');}}/>}
-          {view==='profile'&&user&&<ProfileView user={user} onBack={()=>setView('dashboard')} onUpdate={setAndSaveUser} onShowOnboarding={()=>setShowOnboarding(true)}/>}
-          {view==='admin'&&user&&user.is_admin?<AdminDashboard user={user} onBack={()=>setView('dashboard')}/>:null}
+          {view==='dashboard'&&user&&<DashboardView user={user} settings={appSettings} onNavigate={setView} onFindPartner={handleFindPartner} onExchange={()=>setShowExchange(true)} onRefreshUser={()=>refreshUser(user.id)} t={t}/>}
+           {view==='matching'&&user&&<MatchingView user={user} settings={appSettings} onCancel={()=>setView('dashboard')} onMatch={s=>{setSession(s);setView('precall');}} t={t}/>}
+          {view==='precall'&&user&&session&&<PreCallView session={session} onStart={()=>{setCallStartedAt(Date.now());setView('video');}} onCancel={async()=>{try{await authFetch(`${API_URL}/api/matching/end`,{method:'POST',body:JSON.stringify({session_id:session.id,reason:'cancelled'})});}catch{}setSession(null);setView('matching');}} t={t}/>}
+          {view==='video'&&user&&session&&<VideoRoomView user={user} session={session} callStartedAt={callStartedAt} onEnd={()=>{setSession(null);setCallStartedAt(null);refreshUser(user.id);setView('dashboard');}} t={t}/>}
+          {view==='profile'&&user&&<ProfileView user={user} onBack={()=>setView('dashboard')} onUpdate={setAndSaveUser} onShowOnboarding={()=>setShowOnboarding(true)} t={t}/>}
+          {view==='admin'&&user&&user.is_admin?<AdminDashboard user={user} onBack={()=>setView('dashboard')} t={getTranslations('en')}/>:null}
         </main>
         {user&&view!=='video'&&view!=='precall'&&(
           <footer style={{background:'#f8fafc',borderTop:'1px solid #e5e7eb',padding:'1.5rem',textAlign:'center',fontSize:'.8rem',color:'#6b7280'}}>
             <div style={{maxWidth:600,margin:'0 auto',display:'flex',justifyContent:'center',gap:'1.5rem',flexWrap:'wrap',marginBottom:'.75rem'}}>
-              <a href="/how-it-works" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>How It Works</a>
-              <a href="/for-beginners" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>For Beginners</a>
-              <a href="/blog" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>Blog</a>
+              <a href="/how-it-works" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>{t.nav.howItWorks}</a>
+              <a href="/for-beginners" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>{t.nav.forBeginners}</a>
+              <a href="/blog" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>{t.nav.blog}</a>
             </div>
-            <p style={{margin:0}}>© 2026 Chatter3. Practice English with real people.</p>
+            <p style={{margin:0}}>{t.footer.copyright}</p>
           </footer>
         )}
         </>
@@ -2424,7 +2434,7 @@ export default function App(){
 // ─────────────────────────────────────────────────────────────────
 // FORGOT PASSWORD VIEW
 // ─────────────────────────────────────────────────────────────────
-function ForgotPasswordView({onBack}){
+function ForgotPasswordView({onBack,t,lang}){
   const[email,setEmail]=useState('');
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState('');
@@ -2436,31 +2446,34 @@ function ForgotPasswordView({onBack}){
     try{
       const r=await fetch(`${API_URL}/api/auth/forgot-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
       const d=await r.json();
-      if(d.success)setSent(true);else setErr(d.error||'Something went wrong');
-    }catch{setErr('Network error.');}finally{setLoading(false);}
+      if(d.success)setSent(true);else setErr(d.error||t.forgotPassword.error);
+    }catch{setErr(t.forgotPassword.networkError);}finally{setLoading(false);}
   };
 
   return(
     <div className="auth-container">
+      <div style={{position:'absolute',top:16,right:16,zIndex:10}}>
+        <LanguageSwitcher currentLang={lang}/>
+      </div>
       <div className="auth-box">
         <div className="auth-header">
           <img src="/chatter3_logo.png" alt="Chatter3" className="auth-logo"/>
-          <p className="auth-subtitle">Reset your password</p>
+          <p className="auth-subtitle">{t.forgotPassword.title}</p>
         </div>
         {err&&<div className="error-message">{err}</div>}
         {sent?(
           <div style={{textAlign:'center'}}>
             <div style={{fontSize:'2rem',marginBottom:'.75rem'}}>📧</div>
-             <p style={{fontSize:'.92rem',margin:'0 0 .5rem'}}>Check your inbox</p>
-            <p style={{fontSize:'.82rem',color:'#6b7280',margin:0}}>If an account exists with <strong>{email}</strong>, we've sent a password reset link. The link expires in 1 hour.</p>
-            <button className="auth-link" onClick={onBack} style={{marginTop:'1.25rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.88rem',cursor:'pointer'}}>← Back to Sign In</button>
+             <p style={{fontSize:'.92rem',margin:'0 0 .5rem'}}>{t.forgotPassword.checkInbox}</p>
+            <p style={{fontSize:'.82rem',color:'#6b7280',margin:0}}>{t.forgotPassword.emailSent.replace('{email}',email)}</p>
+            <button className="auth-link" onClick={onBack} style={{marginTop:'1.25rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.88rem',cursor:'pointer'}}>{t.forgotPassword.backToSignIn}</button>
           </div>
         ):(
           <form onSubmit={submit} className="register-form">
-            <p style={{fontSize:'.85rem',color:'#6b7280',margin:'0 0 1rem'}}>Enter your email address and we'll send you a link to reset your password.</p>
-            <div className="form-group"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></div>
-            <button type="submit" disabled={loading}>{loading?'Sending…':'Send Reset Link'}</button>
-            <button type="button" className="auth-link" onClick={onBack} style={{marginTop:'.75rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.85rem',cursor:'pointer',width:'100%'}}>← Back to Sign In</button>
+            <p style={{fontSize:'.85rem',color:'#6b7280',margin:'0 0 1rem'}}>{t.forgotPassword.instruction}</p>
+            <div className="form-group"><label>{t.auth.email}</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></div>
+            <button type="submit" disabled={loading}>{loading?t.forgotPassword.sending:t.forgotPassword.sendResetLink}</button>
+            <button type="button" className="auth-link" onClick={onBack} style={{marginTop:'.75rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.85rem',cursor:'pointer',width:'100%'}}>{t.forgotPassword.backToSignIn}</button>
           </form>
         )}
       </div>
@@ -2471,7 +2484,7 @@ function ForgotPasswordView({onBack}){
 // ─────────────────────────────────────────────────────────────────
 // RESET PASSWORD VIEW
 // ─────────────────────────────────────────────────────────────────
-function ResetPasswordView({token,onBack}){
+function ResetPasswordView({token,onBack,t,lang}){
   const[password,setPassword]=useState('');
   const[confirm,setConfirm]=useState('');
   const[loading,setLoading]=useState(false);
@@ -2480,37 +2493,40 @@ function ResetPasswordView({token,onBack}){
 
   const submit=async(e)=>{
     e.preventDefault();
-    if(password!==confirm){setErr('Passwords do not match');return;}
-    if(password.length<6){setErr('Password must be at least 6 characters');return;}
+    if(password!==confirm){setErr(t.resetPassword.passwordsMismatch);return;}
+    if(password.length<6){setErr(t.resetPassword.passwordTooShort);return;}
     setLoading(true);setErr('');
     try{
       const r=await fetch(`${API_URL}/api/auth/reset-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,new_password:password})});
       const d=await r.json();
-      if(d.success)setSuccess(true);else setErr(d.error||'Something went wrong');
-    }catch{setErr('Network error.');}finally{setLoading(false);}
+      if(d.success)setSuccess(true);else setErr(d.error||t.resetPassword.error);
+    }catch{setErr(t.resetPassword.networkError);}finally{setLoading(false);}
   };
 
   return(
     <div className="auth-container">
+      <div style={{position:'absolute',top:16,right:16,zIndex:10}}>
+        <LanguageSwitcher currentLang={lang}/>
+      </div>
       <div className="auth-box">
         <div className="auth-header">
           <img src="/chatter3_logo.png" alt="Chatter3" className="auth-logo"/>
-          <p className="auth-subtitle">Set new password</p>
+          <p className="auth-subtitle">{t.resetPassword.title}</p>
         </div>
         {err&&<div className="error-message">{err}</div>}
         {success?(
           <div style={{textAlign:'center'}}>
             <div style={{fontSize:'2rem',marginBottom:'.75rem'}}>✅</div>
-             <p style={{fontSize:'.92rem',margin:'0 0 .5rem'}}>Password updated!</p>
-            <p style={{fontSize:'.82rem',color:'#6b7280',margin:0}}>Your password has been changed. You can now sign in with your new password.</p>
-            <button className="auth-link" onClick={onBack} style={{marginTop:'1.25rem',background:'#4f46e5',color:'white',border:'none',borderRadius:8,padding:'10px 24px',fontSize:'.88rem',cursor:'pointer'}}>Sign In</button>
+             <p style={{fontSize:'.92rem',margin:'0 0 .5rem'}}>{t.resetPassword.successTitle}</p>
+            <p style={{fontSize:'.82rem',color:'#6b7280',margin:0}}>{t.resetPassword.successBody}</p>
+            <button className="auth-link" onClick={onBack} style={{marginTop:'1.25rem',background:'#4f46e5',color:'white',border:'none',borderRadius:8,padding:'10px 24px',fontSize:'.88rem',cursor:'pointer'}}>{t.resetPassword.signIn}</button>
           </div>
         ):(
           <form onSubmit={submit} className="register-form">
-            <div className="form-group"><label>New Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={6}/></div>
-            <div className="form-group"><label>Confirm New Password</label><input type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} required minLength={6}/></div>
-            <button type="submit" disabled={loading}>{loading?'Updating…':'Update Password'}</button>
-            <button type="button" className="auth-link" onClick={onBack} style={{marginTop:'.75rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.85rem',cursor:'pointer',width:'100%'}}>← Back to Sign In</button>
+            <div className="form-group"><label>{t.resetPassword.newPassword}</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={6}/></div>
+            <div className="form-group"><label>{t.resetPassword.confirmPassword}</label><input type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} required minLength={6}/></div>
+            <button type="submit" disabled={loading}>{loading?t.resetPassword.updating:t.resetPassword.updatePassword}</button>
+            <button type="button" className="auth-link" onClick={onBack} style={{marginTop:'.75rem',background:'none',border:'none',color:'#4f46e5',fontSize:'.85rem',cursor:'pointer',width:'100%'}}>{t.resetPassword.backToSignIn}</button>
           </form>
         )}
       </div>
@@ -2521,7 +2537,7 @@ function ResetPasswordView({token,onBack}){
 // ─────────────────────────────────────────────────────────────────
 // AUTH VIEW
 // ─────────────────────────────────────────────────────────────────
-function AuthView({onLogin,setView}){
+function AuthView({onLogin,setView,t,lang}){
   const[reg,setReg]=useState(false);
   const[loading,setLoading]=useState(false);
   const[terms,setTerms]=useState(false);
@@ -2533,15 +2549,15 @@ function AuthView({onLogin,setView}){
 
   const submit=async(e)=>{
     e.preventDefault();
-    if(reg&&!terms){setErr('Please accept the Terms of Service, Privacy Policy, and Refund Policy.');return;}
-    if(!turnstileToken){setErr('Please complete the verification.');return;}
+    if(reg&&!terms){setErr(t.auth.termsError);return;}
+    if(!turnstileToken){setErr(t.auth.captchaError);return;}
     setLoading(true);setErr('');
     try{
       const body={...form,turnstileToken,...(refParam?{ref:refParam}:{})};
       const r=await fetch(`${API_URL}${reg?'/api/auth/register':'/api/auth/login'}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
-      if(d.success){if(d.token)localStorage.setItem('chatter3_token',d.token);onLogin(d.user);}else setErr(d.error||'Authentication failed');
-    }catch{setErr('Network error.');}finally{setLoading(false);}
+      if(d.success){if(d.token)localStorage.setItem('chatter3_token',d.token);onLogin(d.user);}else setErr(d.error||t.auth.authError);
+    }catch{setErr(t.auth.networkError);}finally{setLoading(false);}
   };
 
   const googleSuccess=async(cr)=>{
@@ -2549,59 +2565,62 @@ function AuthView({onLogin,setView}){
     try{
       const r=await fetch(`${API_URL}/api/auth/google`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential:cr.credential,...(refParam?{ref:refParam}:{})})});
       const d=await r.json();
-      if(d.success){if(d.token)localStorage.setItem('chatter3_token',d.token);onLogin(d.user);}else setErr(d.detail||d.error||'Google auth failed');
-    }catch{setErr('Network error.');}finally{setLoading(false);}
+      if(d.success){if(d.token)localStorage.setItem('chatter3_token',d.token);onLogin(d.user);}else setErr(d.detail||d.error||t.auth.googleError);
+    }catch{setErr(t.auth.networkError);}finally{setLoading(false);}
   };
 
   return(
     <div className="auth-container">
+      <div style={{position:'absolute',top:16,right:16,zIndex:10}}>
+        <LanguageSwitcher currentLang={lang}/>
+      </div>
       <div className="auth-box">
         <div className="auth-header">
           <img src="/chatter3_logo.png" alt="Chatter3" className="auth-logo"/>
-          <p className="auth-subtitle">Master English conversation with real people</p>
+          <p className="auth-subtitle">{t.auth.subtitle}</p>
         </div>
         {err&&<div className="error-message">{err}</div>}
         <form onSubmit={submit} className="register-form">
           {reg&&<>
-            <div className="form-group"><label>Username</label><input value={form.username} onChange={upd('username')} required/></div>
-            <div className="form-group"><label>Country of Origin</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))} required/></div>
-            <div className="form-group"><label>Native Language</label><input value={form.native_language} onChange={upd('native_language')} required placeholder="e.g. Japanese"/></div>
-            <div className="form-group"><label>English conversation Level</label>
+            <div className="form-group"><label>{t.auth.username}</label><input value={form.username} onChange={upd('username')} required/></div>
+            <div className="form-group"><label>{t.auth.country}</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))} required/></div>
+            <div className="form-group"><label>{t.auth.nativeLanguage}</label><input value={form.native_language} onChange={upd('native_language')} required placeholder={t.auth.nativeLanguagePlaceholder}/></div>
+            <div className="form-group"><label>{t.auth.level}</label>
               <select value={form.english_level} onChange={upd('english_level')}>
-                <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
+                <option value="beginner">{t.auth.beginner}</option><option value="intermediate">{t.auth.intermediate}</option><option value="advanced">{t.auth.advanced}</option>
               </select>
             </div>
           </>}
-          <div className="form-group"><label>Email</label><input type="email" value={form.email} onChange={upd('email')} required/></div>
-          <div className="form-group"><label>Password</label><input type="password" value={form.password} onChange={upd('password')} required minLength={6}/></div>
-          {!reg&&<div style={{textAlign:'right',marginTop:'-8px',marginBottom:'8px'}}><button type="button" className="auth-link" onClick={()=>setView('forgot')} style={{background:'none',border:'none',color:'#4f46e5',fontSize:'.82rem',cursor:'pointer',padding:0}}>Forgot Password?</button></div>}
+          <div className="form-group"><label>{t.auth.email}</label><input type="email" value={form.email} onChange={upd('email')} required/></div>
+          <div className="form-group"><label>{t.auth.password}</label><input type="password" value={form.password} onChange={upd('password')} required minLength={6}/></div>
+          {!reg&&<div style={{textAlign:'right',marginTop:'-8px',marginBottom:'8px'}}><button type="button" className="auth-link" onClick={()=>setView('forgot')} style={{background:'none',border:'none',color:'#4f46e5',fontSize:'.82rem',cursor:'pointer',padding:0}}>{t.auth.forgotPassword}</button></div>}
           {reg&&(
             <div className="terms-row">
               <input type="checkbox" id="terms" checked={terms} onChange={e=>setTerms(e.target.checked)}/>
-              <label htmlFor="terms">I agree to the <a href="https://chatter3.com/terms-of-service" target="_blank" rel="noopener noreferrer">Terms of Service</a>, <a href="https://chatter3.com/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>, and <a href="https://chatter3.com/refund-policy" target="_blank" rel="noopener noreferrer">Refund Policy</a>.</label>
+              <label htmlFor="terms">{t.auth.terms}</label>
             </div>
           )}
           <TurnstileWidget onVerify={setTurnstileToken} onExpire={()=>setTurnstileToken('')}/>
           <button type="submit" disabled={loading||(reg&&!terms)} style={{opacity:reg&&!terms?0.55:1,cursor:reg&&!terms?'not-allowed':'pointer'}}>
-            {loading?'Loading…':reg?'Create Account':'Sign In'}
+            {loading?t.auth.loading:reg?t.auth.createAccount:t.auth.signIn}
           </button>
         </form>
-        <div className="auth-divider">or</div>
+        <div className="auth-divider">{t.auth.or}</div>
         <div className="google-button-container">
-          <GoogleLogin onSuccess={googleSuccess} onError={()=>setErr('Google Sign In was unsuccessful.')}/>
+          <GoogleLogin onSuccess={googleSuccess} onError={()=>setErr(t.auth.googleError)}/>
         </div>
         <button className="auth-link" onClick={()=>{setReg(v=>!v);setErr('');setTerms(false);}}>
-          {reg?'Already have an account? Sign In':'New to Chatter3? Create Account'}
+          {reg?t.auth.hasAccount:t.auth.noAccount}
         </button>
       </div>
       <div className="auth-footer">
         <div className="auth-footer-links">
-          <a href="/how-it-works">How It Works</a>
-          <a href="/for-beginners">For Beginners</a>
-          <a href="/blog">Blog</a>
+          <a href="/how-it-works">{t.nav.howItWorks}</a>
+          <a href="/for-beginners">{t.nav.forBeginners}</a>
+          <a href="/blog">{t.nav.blog}</a>
           <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
         </div>
-        <p>© 2026 Chatter3. Practice English with real people.</p>
+        <p>{t.footer.copyright}</p>
       </div>
     </div>
   );
@@ -2610,7 +2629,7 @@ function AuthView({onLogin,setView}){
 // ─────────────────────────────────────────────────────────────────
 // LEADERBOARD CARD
 // ─────────────────────────────────────────────────────────────────
-function LeaderboardCard({userId}){
+function LeaderboardCard({userId,t}){
   const[leaderboard,setLeaderboard]=useState([]);
   const[mode,setMode]=useState('all-time');
   const[loading,setLoading]=useState(true);
@@ -2628,16 +2647,16 @@ function LeaderboardCard({userId}){
   return(
     <div className="leaderboard-card">
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'.75rem'}}>
-        <h3 style={{margin:0}}>🏆 Leaderboard</h3>
+        <h3 style={{margin:0}}>🏆 {t?.leaderboard?.title||'Leaderboard'}</h3>
         <div className="lb-tabs">
-          <button onClick={()=>setMode('all-time')} className={`lb-tab${mode==='all-time'?' active':''}`}>All-Time</button>
-          <button onClick={()=>setMode('weekly')} className={`lb-tab${mode==='weekly'?' active':''}`}>Weekly</button>
+          <button onClick={()=>setMode('all-time')} className={`lb-tab${mode==='all-time'?' active':''}`}>{t?.leaderboard?.allTime||'All-Time'}</button>
+          <button onClick={()=>setMode('weekly')} className={`lb-tab${mode==='weekly'?' active':''}`}>{t?.leaderboard?.weekly||'Weekly'}</button>
         </div>
       </div>
       {loading?(
-        <div style={{textAlign:'center',padding:'1rem',color:'#6b7280',fontSize:'.85rem'}}>Loading...</div>
+        <div style={{textAlign:'center',padding:'1rem',color:'#6b7280',fontSize:'.85rem'}}>{t?.leaderboard?.loading||'Loading...'}</div>
       ):leaderboard.length===0?(
-        <div style={{textAlign:'center',padding:'1rem',color:'#6b7280',fontSize:'.85rem'}}>No data yet. Complete calls to climb the leaderboard!</div>
+        <div style={{textAlign:'center',padding:'1rem',color:'#6b7280',fontSize:'.85rem'}}>{t?.leaderboard?.empty||'No data yet. Complete calls to climb the leaderboard!'}</div>
       ):(
         <div>
           {leaderboard.map((entry,i)=>{
@@ -2646,9 +2665,9 @@ function LeaderboardCard({userId}){
               <div key={i} className={`lb-row${isMe?' me':''}`}>
                 <span className="lb-rank">{i<3?medals[i]:entry.rank}</span>
                 <span className="lb-name">{entry.nickname}</span>
-                <span className="lb-sessions">{entry.totalSessions} calls</span>
-                <span className="lb-score">{entry.score} pts</span>
-                {entry.streak>0&&<span className="lb-streak" title={`${entry.streak} day streak`}>🔥{entry.streak}</span>}
+                <span className="lb-sessions">{entry.totalSessions} {t?.leaderboard?.calls||'calls'}</span>
+                <span className="lb-score">{entry.score} {t?.leaderboard?.pts||'pts'}</span>
+                {entry.streak>0&&<span className="lb-streak" title={(t?.leaderboard?.streakTooltip||'{streak} day streak').replace('{streak}',entry.streak)}>🔥{entry.streak}</span>}
               </div>
             );
           })}
@@ -2661,7 +2680,7 @@ function LeaderboardCard({userId}){
 // ─────────────────────────────────────────────────────────────────
 // DASHBOARD VIEW
 // ─────────────────────────────────────────────────────────────────
-function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefreshUser}){
+function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefreshUser,t}){
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
   const isFreePeriod=!!user.in_free_period;
@@ -2680,69 +2699,69 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
   return(
     <div className="dashboard-container">
       <div className="welcome-message">
-        <h2>Ready to start a conversation?</h2>
-        <p>Your English conversation practice journey begins here!</p>
+        <h2>{t.dashboard.welcome}</h2>
+        <p>{t.dashboard.welcomeSubtitle}</p>
         {totalOnline>0&&(
           <div style={{display:'flex',justifyContent:'center',marginBottom:'.75rem'}}>
             <span className="dashboard-online-pill">
               <span className="live-dot"/>
-              {totalOnline===1?'1 person online now':`${totalOnline} people online now`}
-              {online.searching>0&&<span style={{opacity:.7,fontWeight:400}}>&nbsp;· {online.searching} searching</span>}
+              {totalOnline===1?t.dashboard.online1:t.dashboard.onlineMany.replace('{totalOnline}',totalOnline)}
+              {online.searching>0&&<span style={{opacity:.7,fontWeight:400}}>&nbsp;· {online.searching} {t.dashboard.searching}</span>}
             </span>
           </div>
         )}
         {isFreePeriod&&user.founding_member&&(
           <div style={{background:'linear-gradient(135deg,#fef3c7,#fde68a)',border:'1px solid #fbbf24',borderRadius:10,padding:'10px 16px',marginBottom:'.75rem',fontSize:'.85rem',color:'#92400e',fontWeight:500}}>
-            🎉 <strong>Founding Member</strong> — FP consumption is waived during your free period!
+            {t.dashboard.foundingMember}
           </div>
         )}
         {user.streak_count>0&&(
           <div style={{background:user.streak_count>=7?'linear-gradient(135deg,#fbbf24,#f59e0b)':user.streak_count>=3?'linear-gradient(135deg,#34d399,#10b981)':'linear-gradient(135deg,#e0e7ff,#c7d2fe)',border:`1px solid ${user.streak_count>=7?'#f59e0b':user.streak_count>=3?'#10b981':'#818cf8'}`,borderRadius:10,padding:'10px 16px',marginBottom:'.75rem',fontSize:'.85rem',color:user.streak_count>=7?'#92400e':user.streak_count>=3?'#065f46':'#3730a3',fontWeight:500}}>
-            🔥 <strong>{user.streak_count} day streak!</strong>{user.streak_count>=7?' Keep it going!':user.streak_count>=3?' Nice progress!':' Great start!'}
+            {t.dashboard.streak.replace('{count}',user.streak_count)}{user.streak_count>=7?t.dashboard.streakGreat:user.streak_count>=3?t.dashboard.streakGood:t.dashboard.streakStart}
           </div>
         )}
         <button onClick={onFindPartner} className="start-matching-btn" disabled={!canCall}>
-          {!canCall?'No FP Available — Exchange RP First':'Find a Conversation Partner'}
+          {!canCall?t.dashboard.noFP:t.dashboard.findPartner}
         </button>
         {!canCall&&!isFreePeriod&&(
           <p style={{fontSize:'.82rem',color:'#f59e0b',marginTop:'.5rem'}}>
-            ⚡ No FP remaining — <button onClick={onExchange} style={{background:'none',border:'none',color:'#4f46e5',fontWeight:700,cursor:'pointer',fontSize:'.82rem',textDecoration:'underline'}}>exchange RP for FP</button> to continue.
+            ⚡ {t.dashboard.noFPWarning.replace('exchange RP for FP',t.dashboard.exchangeRP)}
           </p>
         )}
       </div>
 
       <div className="stats-card">
-        <h3>Your Balances</h3>
+        <h3>{t.dashboard.yourBalances}</h3>
         <div className="balance-grid">
           <div className="balance-tile fp">
             <div className="balance-num fp">{balances.fp}</div>
-            <div className="balance-lbl">🎫 Free Points (FP)</div>
-            <div style={{fontSize:'.7rem',color:'#6b7280',marginTop:2}}>1 FP = 5 min call · resets daily</div>
+            <div className="balance-lbl">{t.dashboard.freePoints}</div>
+            <div style={{fontSize:'.7rem',color:'#6b7280',marginTop:2}}>{t.dashboard.fpDesc}</div>
           </div>
           <div className="balance-tile rp">
             <div className="balance-num rp">{balances.rp.toFixed(1)}</div>
-            <div className="balance-lbl">⭐ Reward Points (RP)</div>
-            <div style={{fontSize:'.7rem',color:'#6b7280',marginTop:2}}>Never expires · {RP_TO_FP} RP = 1 FP</div>
+            <div className="balance-lbl">{t.dashboard.rewardPoints}</div>
+            <div style={{fontSize:'.7rem',color:'#6b7280',marginTop:2}}>{t.dashboard.rpDesc.replace('{RP_TO_FP}',RP_TO_FP)}</div>
           </div>
         </div>
-        <button className="exchange-btn" onClick={onExchange}>🔄 Exchange RP → FP</button>
+        <button className="exchange-btn" onClick={onExchange}>{t.dashboard.exchangeButton}</button>
 
-        <h3 style={{marginTop:'1.25rem'}}>Your Stats</h3>
-        <div className="stat-row"><span className="stat-label">Level</span><span className="stat-value" style={{textTransform:'capitalize'}}>{user.english_level}</span></div>
-        <div className="stat-row"><span className="stat-label">Call Duration</span><span className="stat-value">{user.english_level==='beginner'?'5 mins':'10 mins'}</span></div>
-        <div className="stat-row"><span className="stat-label">🔥 Streak</span><span className="stat-value">{user.streak_count||0} days</span></div>
+        <h3 style={{marginTop:'1.25rem'}}>{t.dashboard.yourStats}</h3>
+        <div className="stat-row"><span className="stat-label">{t.dashboard.level}</span><span className="stat-value" style={{textTransform:'capitalize'}}>{user.english_level}</span></div>
+        <div className="stat-row"><span className="stat-label">{t.dashboard.callDuration}</span><span className="stat-value">{user.english_level==='beginner'?t.dashboard.durationBeginner:t.dashboard.durationOther}</span></div>
+        <div className="stat-row"><span className="stat-label">{t.dashboard.streakStat}</span><span className="stat-value">{user.streak_count||0} {t.dashboard.days}</span></div>
         {settings.matching_by_level==='true'&&totalOnline>0&&sameLevel<=1&&(
-          <div className="stat-row"><span className="stat-label" style={{color:'#f59e0b',fontSize:'.8rem'}}>⚠️ No {user.english_level}-level users online right now</span></div>
+          <div className="stat-row"><span className="stat-label" style={{color:'#f59e0b',fontSize:'.8rem'}}>{t.dashboard.noLevelWarning.replace('{level}',user.english_level)}</span></div>
         )}
         <div className="stat-row" style={{border:'none',paddingTop:'.875rem'}}>
           <button onClick={()=>onNavigate('profile')} className="btn-subtle">
-            Profile & Conversation History
+            {t.dashboard.profileHistory}
           </button>
         </div>
       </div>
 
       {/* Leaderboard */}
-      <LeaderboardCard userId={user.id}/>
+      <LeaderboardCard userId={user.id} t={t}/>
     </div>
   );
 }
@@ -2750,15 +2769,16 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
 // ─────────────────────────────────────────────────────────────────
 // MATCHING VIEW
 // ─────────────────────────────────────────────────────────────────
-function MatchingView({user,settings,onCancel,onMatch}){
-  const[status,setStatus]=useState('Looking for a partner...');
+function MatchingView({user,settings,onCancel,onMatch,t}){
+  const[status,setStatus]=useState(t.matching.looking);
   const[matched,setMatched]=useState(false);
   const[online,setOnline]=useState({searching:0,in_call:0,by_level:{}});
   const[elapsed,setElapsed]=useState(0);
   const[timedOut,setTimedOut]=useState(false);
   const stopRingRef=useRef(null);
   const t0=useRef(Date.now());
-  const[matchTip]=useState(()=>STARTERS[Math.floor(Math.random()*STARTERS.length)]('your partner'));
+  const starters=getStarters(t);
+  const[matchTip]=useState(()=>starters[Math.floor(Math.random()*starters.length)](t?.matching?.yourPartner||'your partner'));
 
   useEffect(()=>{
     stopRingRef.current=startRinging();
@@ -2786,15 +2806,15 @@ function MatchingView({user,settings,onCancel,onMatch}){
             // Check if partner already matched us before bailing
             const sr=await authFetch(`${API_URL}/api/matching/session/${user.id}`);
             const sd=await sr.json();
-            if(sd.active_session){clearInterval(polling);setStatus('Connecting…');onMatch(sd.session);return;}
+            if(sd.active_session){clearInterval(polling);setStatus(t.matching.connecting);onMatch(sd.session);return;}
             stopRingRef.current?.();onCancel();return;
           }
-          if(d.matched){setMatched(true);setStatus('Partner found!');stopRingRef.current?.();}
+          if(d.matched){setMatched(true);setStatus(t.matching.partnerFound);stopRingRef.current?.();}
         }
                 const sr=await authFetch(`${API_URL}/api/matching/session/${user.id}`);
         const sd=await sr.json();
-        if(sd.active_session){clearInterval(polling);setStatus('Connecting…');onMatch(sd.session);}
-      }catch{setStatus('Connection error. Retrying…');}
+        if(sd.active_session){clearInterval(polling);setStatus(t.matching.connecting);onMatch(sd.session);}
+      }catch{setStatus(t.matching.error);}
     };
     search();polling=setInterval(search,3000);
     return()=>clearInterval(polling);
@@ -2814,12 +2834,12 @@ function MatchingView({user,settings,onCancel,onMatch}){
     return(
       <div className="matching-screen">
         <div style={{fontSize:'2.8rem',marginBottom:'.875rem'}}>😔</div>
-        <p className="match-status">No match found</p>
+        <p className="match-status">{t.matching.noMatch}</p>
         <p className="match-sub" style={{maxWidth:300,textAlign:'center'}}>
-          {noLevel?`${total} user${total!==1?'s':''} online, but none at the ${user.english_level} level right now. Try again soon!`
-            :"Unfortunately we couldn't find a match. Please try again later — new users join throughout the day."}
+          {noLevel?t.matching.noLevel.replace('{total}',total).replace('{level}',user.english_level)
+            :t.matching.noMatchDesc}
         </p>
-        <button onClick={cancel} className="start-matching-btn" style={{marginTop:'1.25rem'}}>Back to Dashboard</button>
+        <button onClick={cancel} className="start-matching-btn" style={{marginTop:'1.25rem'}}>{t.matching.backToDashboard}</button>
       </div>
     );
   }
@@ -2832,18 +2852,18 @@ function MatchingView({user,settings,onCancel,onMatch}){
       </div>
       <p className="match-status">{status}</p>
       {user.mvp_mode
-        ?<p className="match-sub">Finding a conversation partner…</p>
-        :<p className="match-sub">Finding a <span style={{fontWeight:600,textTransform:'capitalize'}}>{user.english_level}</span> level partner…</p>}
-      <div className="level-badge">📊 {user.mvp_mode?'All levels':user.english_level} · {user.mvp_mode||user.english_level==='beginner'?'5':'10'} min sessions</div>
-      {total>0&&<div className="online-badge"><span className="online-dot"/>{total===1?'1 person online':`${total} people online now`}</div>}
-      {elapsed>=15&&noLevel&&<p style={{fontSize:'.78rem',color:'#f59e0b',maxWidth:260,textAlign:'center',margin:'.4rem 0'}}>⚠️ {user.mvp_mode?'No users available':'No '+user.english_level+'-level users available'}. Continuing to search…</p>}
+        ?<p className="match-sub">{t.matching.findingPartner}</p>
+        :<p className="match-sub">{t.matching.findingLevel.replace('{level}',user.english_level)}</p>}
+      <div className="level-badge">📊 {user.mvp_mode?t.matching.allLevels:user.english_level} · {user.mvp_mode||user.english_level==='beginner'?'5':'10'} {t.matching.minSessions}</div>
+      {total>0&&<div className="online-badge"><span className="online-dot"/>{total===1?t.matching.online1:t.matching.onlineMany.replace('{total}',total)}</div>}
+      {elapsed>=15&&noLevel&&<p style={{fontSize:'.78rem',color:'#f59e0b',maxWidth:260,textAlign:'center',margin:'.4rem 0'}}>⚠️ {user.mvp_mode?t.matching.noUsers:t.matching.noLevelUsers.replace('{level}',user.english_level)}{t.matching.continuing}</p>}
       <div className="progress-bar"><div className="progress-fill" style={{width:`${Math.min(100,(elapsed/MATCH_TIMEOUT)*100)}%`,background:elapsed>60?'#f59e0b':'#4f8ef7'}}/></div>
-      <p style={{fontSize:'.72rem',color:'#9ca3af',margin:'0 0 .875rem'}}>{MATCH_TIMEOUT-elapsed}s remaining</p>
+      <p style={{fontSize:'.72rem',color:'#9ca3af',margin:'0 0 .875rem'}}>{t.matching.remaining.replace('{N}',MATCH_TIMEOUT-elapsed)}</p>
       <div style={{background:'rgba(79,142,247,0.1)',border:'1px solid rgba(79,142,247,0.25)',borderRadius:12,padding:'.75rem 1rem',maxWidth:320,textAlign:'center',margin:'0 0 .875rem'}}>
-        <p style={{fontSize:'.75rem',fontWeight:600,color:'#4f8ef7',margin:'0 0 .35rem'}}>While you wait...</p>
+        <p style={{fontSize:'.75rem',fontWeight:600,color:'#4f8ef7',margin:'0 0 .35rem'}}>{t.matching.whileYouWait}</p>
         <p style={{fontSize:'.72rem',color:'#94a3b8',margin:0}}>{matchTip}</p>
       </div>
-      <button onClick={cancel} className="cancel-btn">Cancel Search</button>
+      <button onClick={cancel} className="cancel-btn">{t.matching.cancelSearch}</button>
     </div>
   );
 }
@@ -2851,13 +2871,14 @@ function MatchingView({user,settings,onCancel,onMatch}){
 // ─────────────────────────────────────────────────────────────────
 // PRE-CALL VIEW
 // ─────────────────────────────────────────────────────────────────
-function PreCallView({session,onStart,onCancel}){
+function PreCallView({session,onStart,onCancel,t}){
   const FROM=5;
   const[cd,setCd]=useState(FROM);
   const partner=session.partner||{};
-  const name=partner.nickname||partner.username||'Your partner';
-  const tip=STARTERS[Math.floor(Math.random()*STARTERS.length)](name);
-  const LEVEL={beginner:'🟢 Beginner',intermediate:'🟡 Intermediate',advanced:'🔵 Advanced'};
+  const name=partner.nickname||partner.username||t.precall.yourPartner;
+  const starters=getStarters(t);
+  const tip=starters[Math.floor(Math.random()*starters.length)](name);
+  const LEVEL={beginner:t.auth.beginner,intermediate:t.auth.intermediate,advanced:t.auth.advanced};
   useEffect(()=>{playSound('match');},[]);
   useEffect(()=>{if(cd<=0){onStart();return;}const t=setTimeout(()=>setCd(c=>c-1),1000);return()=>clearTimeout(t);},[cd]);
   const R=27,C=2*Math.PI*R,offset=C*(1-cd/FROM);
@@ -2866,20 +2887,20 @@ function PreCallView({session,onStart,onCancel}){
     <div className="precall-overlay">
       <div className="precall-bg"/>
       <div className="precall-card">
-        <div className="precall-tag">You've been matched</div>
+        <div className="precall-tag">{t.precall.matched}</div>
         <div className="precall-avatar-wrap">
           <div className="precall-avatar-ring"/>
           <div className="precall-avatar-inner">
             {partner.avatar_url?<img src={partner.avatar_url} alt={name}/>:<span style={{fontFamily:'Sora,sans-serif',fontSize:'2.2rem',fontWeight:800,color:'white'}}>{name.charAt(0).toUpperCase()}</span>}
           </div>
         </div>
-        <h2 className="precall-name">{name}{partner.founding_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>🏆 Founding Member</span>:null}{partner.is_new_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#22c55e',letterSpacing:'.03em'}}>🆕 New Member</span>:null}</h2>
+        <h2 className="precall-name">{name}{partner.founding_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>{t.precall.foundingMember}</span>:null}{partner.is_new_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#22c55e',letterSpacing:'.03em'}}>{t.precall.newMember}</span>:null}</h2>
         <div className="precall-chips">
           {partner.country&&<span className="chip country">{getFlag(partner.country)} {countryName(partner.country)}</span>}
           {partner.native_language&&<span className="chip lang">🗣️ {partner.native_language}</span>}
           {partner.english_level&&<span className="chip level">{LEVEL[partner.english_level]||partner.english_level}</span>}
         </div>
-        <div className="precall-starter"><strong>💡 Conversation Starter</strong>{tip}</div>
+        <div className="precall-starter"><strong>💡 {t.precall.starter}</strong>{tip}</div>
         <div className="precall-countdown">
           <div style={{display:'flex',alignItems:'center',gap:'1.25rem',justifyContent:'center'}}>
             <div className="countdown-ring">
@@ -2889,11 +2910,11 @@ function PreCallView({session,onStart,onCancel}){
               </svg>
               <span className="countdown-num" style={{color:stroke}}>{cd}</span>
             </div>
-            <button className="precall-start-btn" onClick={onStart}>Start Now →</button>
+            <button className="precall-start-btn" onClick={onStart}>{t.precall.startNow}</button>
           </div>
-          <p style={{color:'rgba(255,255,255,.28)',fontSize:'.75rem',margin:'.65rem 0 0'}}>Auto-starts in {cd}s</p>
+          <p style={{color:'rgba(255,255,255,.28)',fontSize:'.75rem',margin:'.65rem 0 0'}}>{t.precall.autoStart.replace('{cd}',cd)}</p>
         </div>
-        <button className="precall-back-btn" onClick={onCancel}>↩ Go back to search</button>
+        <button className="precall-back-btn" onClick={onCancel}>{t.precall.goBack}</button>
       </div>
     </div>
   );
@@ -2902,7 +2923,7 @@ function PreCallView({session,onStart,onCancel}){
 // ─────────────────────────────────────────────────────────────────
 // FEEDBACK MODAL
 // ─────────────────────────────────────────────────────────────────
-function FeedbackModal({userId,onClose}){
+function FeedbackModal({t,userId,onClose}){
   const[category,setCategory]=useState('general');
   const[message,setMessage]=useState('');
   const[sending,setSending]=useState(false);
@@ -2925,31 +2946,31 @@ function FeedbackModal({userId,onClose}){
         {done?(
           <div style={{textAlign:'center',padding:'1rem 0'}}>
             <div style={{fontSize:'2.5rem',marginBottom:12}}>✅</div>
-            <h3 style={{fontFamily:'Sora,sans-serif',margin:'0 0 8px'}}>Thank you for your feedback!</h3>
-            <p style={{fontSize:'.88rem',color:'#6b7280',margin:'0 0 12px'}}>Your input helps us improve Chatter3.</p>
-            {rpAwarded>0&&<p style={{fontSize:'.82rem',color:'#4f8ef7',fontWeight:600}}>+{rpAwarded} RP earned!</p>}
-            <button onClick={onClose} style={{marginTop:12,padding:'10px 24px',background:'#4f8ef7',color:'white',border:'none',borderRadius:8,cursor:'pointer',fontWeight:600}}>Done</button>
+            <h3 style={{fontFamily:'Sora,sans-serif',margin:'0 0 8px'}}>{t?.modals?.feedbackSuccessTitle||'Thank you for your feedback!'}</h3>
+            <p style={{fontSize:'.88rem',color:'#6b7280',margin:'0 0 12px'}}>{t?.modals?.feedbackSuccessDesc||'Your input helps us improve Chatter3.'}</p>
+            {rpAwarded>0&&<p style={{fontSize:'.82rem',color:'#4f8ef7',fontWeight:600}}>+{rpAwarded} {(t?.modals?.feedbackRP||'RP earned!').replace('{rp}',rpAwarded)}</p>}
+            <button onClick={onClose} style={{marginTop:12,padding:'10px 24px',background:'#4f8ef7',color:'white',border:'none',borderRadius:8,cursor:'pointer',fontWeight:600}}>{t?.modals?.feedbackDone||'Done'}</button>
           </div>
         ):(
           <div>
-            <h3 style={{fontFamily:'Sora,sans-serif',margin:'0 0 4px',fontSize:'1.1rem'}}>Send Feedback</h3>
-            <p style={{fontSize:'.82rem',margin:'0 0 16px'}}>Help us improve Chatter3. Your feedback is sent directly to our team.</p>
+            <h3 style={{fontFamily:'Sora,sans-serif',margin:'0 0 4px',fontSize:'1.1rem'}}>{t?.modals?.feedbackTitle||'Send Feedback'}</h3>
+            <p style={{fontSize:'.82rem',margin:'0 0 16px'}}>{t?.modals?.feedbackDesc||'Help us improve Chatter3. Your feedback is sent directly to our team.'}</p>
             <div style={{marginBottom:12}}>
-              <label style={{display:'block',fontSize:'.82rem',fontWeight:600,marginBottom:4}}>Category</label>
+              <label style={{display:'block',fontSize:'.82rem',fontWeight:600,marginBottom:4}}>{t?.modals?.feedbackCategory||'Category'}</label>
               <select value={category} onChange={e=>setCategory(e.target.value)} className="admin-select" style={{width:'100%',padding:'10px 12px',borderRadius:8,fontSize:'.88rem'}}>
-                <option value="general">General Feedback</option>
-                <option value="bug">Bug Report</option>
-                <option value="feature">Feature Request</option>
-                <option value="improvement">Improvement Suggestion</option>
+                <option value="general">{t?.modals?.feedbackGeneral||'General Feedback'}</option>
+                <option value="bug">{t?.modals?.feedbackBug||'Bug Report'}</option>
+                <option value="feature">{t?.modals?.feedbackFeature||'Feature Request'}</option>
+                <option value="improvement">{t?.modals?.feedbackImprovement||'Improvement Suggestion'}</option>
               </select>
             </div>
             <div style={{marginBottom:16}}>
-              <label style={{display:'block',fontSize:'.82rem',fontWeight:600,marginBottom:4}}>Message</label>
-              <textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder="Tell us what's on your mind..." rows={5} className="admin-input" style={{width:'100%',padding:'10px 12px',borderRadius:8,fontSize:'.88rem',resize:'vertical',boxSizing:'border-box',fontFamily:'inherit'}}/>
+              <label style={{display:'block',fontSize:'.82rem',fontWeight:600,marginBottom:4}}>{t?.modals?.feedbackMessage||'Message'}</label>
+              <textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder={t?.modals?.feedbackPlaceholder||"Tell us what's on your mind..."} rows={5} className="admin-input" style={{width:'100%',padding:'10px 12px',borderRadius:8,fontSize:'.88rem',resize:'vertical',boxSizing:'border-box',fontFamily:'inherit'}}/>
             </div>
             <div style={{display:'flex',gap:8}}>
-              <button onClick={onClose} className="btn-subtle" style={{flex:1,padding:'10px',borderRadius:8,fontSize:'.88rem'}}>Cancel</button>
-              <button onClick={submit} disabled={!message.trim()||sending} style={{flex:1,padding:'10px',background:message.trim()?'#4f8ef7':'#ccc',color:'white',border:'none',borderRadius:8,cursor:message.trim()?'pointer':'not-allowed',fontWeight:600,fontSize:'.88rem'}}>{sending?'Sending…':'Submit'}</button>
+              <button onClick={onClose} className="btn-subtle" style={{flex:1,padding:'10px',borderRadius:8,fontSize:'.88rem'}}>{t?.modals?.feedbackCancel||'Cancel'}</button>
+              <button onClick={submit} disabled={!message.trim()||sending} style={{flex:1,padding:'10px',background:message.trim()?'#4f8ef7':'#ccc',color:'white',border:'none',borderRadius:8,cursor:message.trim()?'pointer':'not-allowed',fontWeight:600,fontSize:'.88rem'}}>{sending?(t?.modals?.feedbackSending||'Sending…'):(t?.modals?.feedbackSubmit||'Submit')}</button>
             </div>
           </div>
         )}
@@ -2961,7 +2982,7 @@ function FeedbackModal({userId,onClose}){
 // ─────────────────────────────────────────────────────────────────
 // VIDEO ROOM VIEW
 // ─────────────────────────────────────────────────────────────────
-function VideoRoomView({user,session,callStartedAt,onEnd}){
+function VideoRoomView({user,session,callStartedAt,onEnd,t}){
   const customDur=(session.custom_duration||0)*60;
   const total=customDur>0?customDur:(session.english_level==='beginner'?300:600);
   const[timeLeft,setTimeLeft]=useState(total);
@@ -3116,18 +3137,16 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
 
   const fmt=s=>`${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
   const tc=timeLeft>60?'normal':timeLeft>30?'warning':'critical';
-  const SM={new:{l:'Initializing',c:'new'},checking:{l:'Connecting…',c:'checking'},connecting:{l:'Connecting…',c:'connecting'},connected:{l:'Connected',c:'connected'},disconnected:{l:'Reconnecting…',c:'disconnected'},failed:{l:'Connection failed',c:'failed'},closed:{l:'Ended',c:'closed'}};
+  const SM={new:{l:t.video.initializing,c:'new'},checking:{l:t.video.connecting,c:'checking'},connecting:{l:t.video.connecting,c:'connecting'},connected:{l:t.video.connected,c:'connected'},disconnected:{l:t.video.reconnecting,c:'disconnected'},failed:{l:t.video.connectionFailed,c:'failed'},closed:{l:t.video.ended,c:'closed'}};
   const si=SM[connStatus]||SM.new;
 
   if(err)return(
     <div className="matching-screen">
       <p style={{color:'red',fontWeight:600}}>{err}</p>
        <div className="warning-box">
-        <strong>📱 iPhone / Safari users:</strong> Camera permission resets after each session in Safari. To keep it permanent:<br/>
-        1. Tap <strong>Share → Add to Home Screen</strong> to install as an app — permissions persist like Android.<br/>
-        2. Or go to <strong>Settings → Safari → Camera</strong> and set to <em>Allow</em>.
+        <strong>{t.video.iphoneWarning}</strong> {t.video.safariWarning}
       </div>
-      <button onClick={onEnd} className="cancel-btn">Go Back</button>
+      <button onClick={onEnd} className="cancel-btn">{t.video.goBack}</button>
     </div>
   );
 
@@ -3137,7 +3156,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         <img src="/chatter3_logo.png" alt="Chatter3"/>
         <span className="video-compact-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</span>
       </div>
-        {showReport&&<ReportModal targetUser={session.partner} sessionId={session.id} onClose={()=>setShowReport(false)}/>}
+        {showReport&&<ReportModal targetUser={session.partner} sessionId={session.id} onClose={()=>setShowReport(false)} t={t}/>}
       <div className="video-container">
         <video ref={rv} autoPlay playsInline className="video-el"/>
         <video ref={lv} autoPlay playsInline muted className="video-el local"/>
@@ -3149,32 +3168,32 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
         {partnerReconnecting&&(
           <div className="ended-overlay">
             <div className="spinner"/>
-            <h3>Partner disconnected</h3>
-            <p>Waiting for them to reconnect… (15s)</p>
-            <button className="disc-end-btn" onClick={()=>{clearTimeout(partnerReconnectTimer.current);cleanup();playSound('end');setEndReason('partner');setPartnerReconnecting(false);setShowRating(true);}}>End Call Now</button>
+            <h3>{t.video.partnerDisconnected}</h3>
+            <p>{t.video.waitingReconnect}</p>
+            <button className="disc-end-btn" onClick={()=>{clearTimeout(partnerReconnectTimer.current);cleanup();playSound('end');setEndReason('partner');setPartnerReconnecting(false);setShowRating(true);}}>{t.video.endCallNow}</button>
           </div>
         )}
-        {partnerEndedScreen&&!partnerReconnecting&&<div className="ended-overlay"><div style={{fontSize:'2.25rem',marginBottom:'.65rem'}}>📵</div><h3>Your partner ended the call</h3><p>Taking you to the rating screen…</p></div>}
+        {partnerEndedScreen&&!partnerReconnecting&&<div className="ended-overlay"><div style={{fontSize:'2.25rem',marginBottom:'.65rem'}}>📵</div><h3>{t.video.partnerEnded}</h3><p>{t.video.takingToRating}</p></div>}
         {showDisc&&!showRating&&!partnerEndedScreen&&!partnerReconnecting&&(
           <div className="disconnect-overlay">
             <div className="spinner"/>
-            <h3>Connection Lost</h3>
-            <p>Trying to reconnect… will end automatically if this persists.</p>
-            <button className="disc-end-btn" onClick={hangup}>End Call Now</button>
+            <h3>{t.video.connectionLost}</h3>
+            <p>{t.video.tryingReconnect}</p>
+            <button className="disc-end-btn" onClick={hangup}>{t.video.endCallNow}</button>
           </div>
         )}
         {showRating&&(
           <div className="rating-overlay">
-            {endReason==='network'&&<div className="context-note warning">⚠️ The call ended due to a network issue.</div>}
-            {endReason==='partner'&&<div className="context-note muted">Your partner ended the call.</div>}
-            <h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,margin:'0 0 .4rem'}}>Rate your partner</h2>
-            <p style={{color:'rgba(255,255,255,.6)',margin:0,fontSize:'.88rem'}}>How was your conversation with {session.partner?.username}?</p>
-            <p style={{color:'rgba(255,255,255,.38)',fontSize:'.78rem',margin:'.5rem 0 0'}}>Both users rating = +1 RP each · Receiving Good = +0.5 RP bonus</p>
+            {endReason==='network'&&<div className="context-note warning">{t.video.networkIssue}</div>}
+            {endReason==='partner'&&<div className="context-note muted">{t.video.partnerEndedCall}</div>}
+            <h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,margin:'0 0 .4rem'}}>{t.video.ratePartner}</h2>
+            <p style={{color:'rgba(255,255,255,.6)',margin:0,fontSize:'.88rem'}}>{t.video.howWasConversation.replace('{username}',session.partner?.username)}</p>
+            <p style={{color:'rgba(255,255,255,.38)',fontSize:'.78rem',margin:'.5rem 0 0'}}>{t.video.ratingInstruction}</p>
             <div className="rating-buttons">
-              <button className="rating-btn good" onClick={()=>rate('good')}>👍 Good</button>
-              <button className="rating-btn meh" onClick={()=>rate('meh')}>😐 Meh</button>
+              <button className="rating-btn good" onClick={()=>rate('good')}>{t.video.good}</button>
+              <button className="rating-btn meh" onClick={()=>rate('meh')}>{t.video.meh}</button>
               {endReason==='network'&&(
-                <button className="rating-btn warn" onClick={()=>rate('connection_issue')}>📡 Connection Issue</button>
+                <button className="rating-btn warn" onClick={()=>rate('connection_issue')}>{t.video.connectionIssue}</button>
               )}
             </div>
           </div>
@@ -3183,28 +3202,28 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
           <div className="rating-overlay" style={{background:'rgba(0,0,0,.85)'}}>
             <div style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)',borderRadius:16,padding:'1.5rem',maxWidth:320,width:'100%',textAlign:'center',boxShadow:'0 20px 40px rgba(0,0,0,.3)'}}>
               <div style={{fontSize:'2rem',marginBottom:'.5rem'}}>🎉</div>
-              <h3 style={{color:'white',margin:'0 0 .25rem',fontFamily:'Sora,sans-serif',fontSize:'1.1rem'}}>Call Complete!</h3>
-              <p style={{color:'rgba(255,255,255,.7)',margin:'0 0 1rem',fontSize:'.85rem'}}>with {shareData.partner}</p>
+              <h3 style={{color:'white',margin:'0 0 .25rem',fontFamily:'Sora,sans-serif',fontSize:'1.1rem'}}>{t.video.callComplete}</h3>
+              <p style={{color:'rgba(255,255,255,.7)',margin:'0 0 1rem',fontSize:'.85rem'}}>{t.video.withPartner.replace('{partner}',shareData.partner)}</p>
               <div style={{display:'flex',justifyContent:'center',gap:'1.5rem',marginBottom:'1rem'}}>
                 <div style={{textAlign:'center'}}>
                   <div style={{color:'white',fontSize:'1.5rem',fontWeight:800}}>{Math.floor(shareData.duration/60)}:{(shareData.duration%60).toString().padStart(2,'0')}</div>
-                  <div style={{color:'rgba(255,255,255,.6)',fontSize:'.7rem'}}>MINUTES</div>
+                  <div style={{color:'rgba(255,255,255,.6)',fontSize:'.7rem'}}>{t.video.minutes}</div>
                 </div>
                 {shareData.rp>0&&<div style={{textAlign:'center'}}>
                   <div style={{color:'#fbbf24',fontSize:'1.5rem',fontWeight:800}}>+{shareData.rp}</div>
-                  <div style={{color:'rgba(255,255,255,.6)',fontSize:'.7rem'}}>RP EARNED</div>
+                  <div style={{color:'rgba(255,255,255,.6)',fontSize:'.7rem'}}>{t.video.rpEarned}</div>
                 </div>}
                 {shareData.streak>1&&<div style={{textAlign:'center'}}>
                   <div style={{color:'#f97316',fontSize:'1.5rem',fontWeight:800}}>🔥{shareData.streak}</div>
-                  <div style={{color:'rgba(255,255,255,.6)',fontSize:'.7rem'}}>STREAK</div>
+                  <div style={{color:'rgba(255,255,255,.6)',fontSize:'.7rem'}}>{t.video.streakStat}</div>
                 </div>}
               </div>
-              <p style={{color:'rgba(255,255,255,.5)',fontSize:'.75rem',margin:'0 0 .75rem'}}>I just practiced English on Chatter3!</p>
+              <p style={{color:'rgba(255,255,255,.5)',fontSize:'.75rem',margin:'0 0 .75rem'}}>{t.video.shareText}</p>
               <div style={{display:'flex',gap:'.5rem',justifyContent:'center',flexWrap:'wrap'}}>
-                <button onClick={()=>{const t=`🎉 I just practiced English for ${Math.floor(shareData.duration/60)} min on Chatter3!${shareData.streak>1?` 🔥${shareData.streak} day streak!`:''} Join me: https://app.chatter3.com`;navigator.share?navigator.share({title:'Chatter3',text:t,url:'https://app.chatter3.com'}):navigator.clipboard.writeText(t).then(()=>alert('Copied!'));}} style={{background:'white',color:'#6366f1',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:700,fontSize:'.8rem',cursor:'pointer'}}>Share</button>
-                <button onClick={()=>{const t=`🎉 I just practiced English for ${Math.floor(shareData.duration/60)} min on Chatter3!${shareData.streak>1?` 🔥${shareData.streak} day streak!`:''} Join me: https://app.chatter3.com`;navigator.clipboard.writeText(t).then(()=>alert('Copied!'));}} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',borderRadius:8,padding:'8px 16px',fontWeight:600,fontSize:'.8rem',cursor:'pointer'}}>Copy</button>
+                <button onClick={()=>{const streakTxt=shareData.streak>1?(t.video.shareMessageStreak||' 🔥{streak} day streak!').replace('{streak}',shareData.streak):'';const msg=(t.video.shareMessage||'🎉 I just practiced English for {duration} min on Chatter3!{streak} Join me: https://app.chatter3.com').replace('{duration}',Math.floor(shareData.duration/60)).replace('{streak}',streakTxt);navigator.share?navigator.share({title:'Chatter3',text:msg,url:'https://app.chatter3.com'}):navigator.clipboard.writeText(msg).then(()=>alert(t.video.copied));}} style={{background:'white',color:'#6366f1',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:700,fontSize:'.8rem',cursor:'pointer'}}>{t.video.share}</button>
+                <button onClick={()=>{const streakTxt=shareData.streak>1?(t.video.shareMessageStreak||' 🔥{streak} day streak!').replace('{streak}',shareData.streak):'';const msg=(t.video.shareMessage||'🎉 I just practiced English for {duration} min on Chatter3!{streak} Join me: https://app.chatter3.com').replace('{duration}',Math.floor(shareData.duration/60)).replace('{streak}',streakTxt);navigator.clipboard.writeText(msg).then(()=>alert(t.video.copied));}} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',borderRadius:8,padding:'8px 16px',fontWeight:600,fontSize:'.8rem',cursor:'pointer'}}>{t.video.copy}</button>
               </div>
-              <button onClick={()=>{setShowShareCard(false);onEnd();}} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',marginTop:'.75rem',cursor:'pointer',fontSize:'.8rem'}}>Skip →</button>
+              <button onClick={()=>{setShowShareCard(false);onEnd();}} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',marginTop:'.75rem',cursor:'pointer',fontSize:'.8rem'}}>{t.video.skip}</button>
             </div>
           </div>
         )}
@@ -3212,12 +3231,12 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
       {!showRating&&(
         <div className="call-controls">
           <div>
-            <p style={{fontSize:'.82rem',color:'#999',margin:0}}>Talking to</p>
+            <p style={{fontSize:'.82rem',color:'#999',margin:0}}>{t.video.talkingTo}</p>
             <p style={{fontWeight:700,fontSize:'1rem',margin:0}}>{session.partner?.username}</p>
             {session.partner?.country&&<p style={{fontSize:'.78rem',color:'#6b7280',margin:'1px 0 0'}}>{getFlag(session.partner.country)} {countryName(session.partner.country)}</p>}
-            <button className="report-btn" onClick={()=>setShowReport(true)}>⚑ Report</button>
+            <button className="report-btn" onClick={()=>setShowReport(true)}>{t.video.report}</button>
           </div>
-          <button onClick={hangup} className="control-btn-end"><PhoneOff style={{width:17,height:17}}/> End Call</button>
+          <button onClick={hangup} className="control-btn-end"><PhoneOff style={{width:17,height:17}}/> {t.video.endCall}</button>
         </div>
       )}
     </div>
@@ -3227,7 +3246,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
 // ─────────────────────────────────────────────────────────────────
 // PROFILE VIEW
 // ─────────────────────────────────────────────────────────────────
-function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
+function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
   const[form,setForm]=useState({username:user.username||'',nickname:user.nickname||'',country:user.country||'',native_language:user.native_language||'',english_level:user.english_level||'beginner',bio:user.bio||'',avatar_url:user.avatar_url||''});
   const[history,setHistory]=useState([]);
   const[showFeedback,setShowFeedback]=useState(false);
@@ -3241,88 +3260,88 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding}){
   },[]);
   const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
   const onFile=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();const rd=new FileReader();rd.onload=ev=>{img.onload=()=>{const M=800;let{width:w,height:h}=img;if(w>M||h>M){const r=Math.min(M/w,M/h);w=Math.round(w*r);h=Math.round(h*r);}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);setForm(p=>({...p,avatar_url:c.toDataURL('image/jpeg',.75)}));};img.src=ev.target.result;};rd.readAsDataURL(f);};
-  const save=async()=>{const r=await authFetch(`${API_URL}/api/user/update`,{method:'POST',body:JSON.stringify({...form})});const d=await r.json();if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));onUpdate(u);alert('Profile Saved!');}};
+  const save=async()=>{const r=await authFetch(`${API_URL}/api/user/update`,{method:'POST',body:JSON.stringify({...form})});const d=await r.json();if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));onUpdate(u);alert(t.profile.profileSaved);}};
   const changePassword=async()=>{
     setPwErr('');setPwMsg('');
-    if(!pwForm.new_password){setPwErr('New password is required');return;}
-    if(pwForm.new_password.length<6){setPwErr('Password must be at least 6 characters');return;}
-    if(pwForm.new_password!==pwForm.confirm_password){setPwErr('Passwords do not match');return;}
+    if(!pwForm.new_password){setPwErr(t.profile.passwordRequired);return;}
+    if(pwForm.new_password.length<6){setPwErr(t.profile.passwordTooShort);return;}
+    if(pwForm.new_password!==pwForm.confirm_password){setPwErr(t.profile.passwordsMismatch);return;}
     try{
       const r=await authFetch(`${API_URL}/api/auth/change-password`,{method:'POST',body:JSON.stringify({current_password:pwForm.current_password,new_password:pwForm.new_password})});
       const d=await r.json();
-      if(d.success){setPwMsg('Password updated!');setPwForm({current_password:'',new_password:'',confirm_password:''});setTimeout(()=>setShowPwChange(false),1500);}else{setPwErr(d.error||'Failed to change password');}
-    }catch{setPwErr('Network error');}
+      if(d.success){setPwMsg(t.profile.passwordUpdated);setPwForm({current_password:'',new_password:'',confirm_password:''});setTimeout(()=>setShowPwChange(false),1500);}else{setPwErr(d.error||t.profile.passwordFailed);}
+    }catch{setPwErr(t.profile.networkError);}
   };
   return(
     <div className="dashboard-container">
-      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,margin:0}}>Edit Profile</h2>{user.founding_member?<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🏆 Founding Member</span>:null}{user.is_new_member?<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>🆕 New Member</span>:null}</div>
+      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,margin:0}}>{t.profile.editProfile}</h2>{user.founding_member?<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>{t.profile.foundingMember}</span>:null}{user.is_new_member?<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>{t.profile.newMember}</span>:null}</div>
       <div className="profile-section">
         <div className="profile-avatar">
-          {form.avatar_url?<img src={form.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt="Profile"/>:(form.username||user.username).charAt(0).toUpperCase()}
+          {form.avatar_url?<img src={form.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt={t.profile.profileAlt}/>:(form.username||user.username).charAt(0).toUpperCase()}
         </div>
         <div style={{textAlign:'center',marginBottom:'1.1rem'}}>
           <input type="file" accept="image/*" onChange={onFile} style={{display:'none'}} ref={fileRef}/>
-          <button className="upload-btn" onClick={()=>fileRef.current.click()}><UploadIcon style={{width:13,height:13,marginRight:4}}/> Upload Picture</button>
-          <p style={{fontSize:'.72rem',color:'#9ca3af',margin:'3px 0 0'}}>Auto-compressed on upload.</p>
+          <button className="upload-btn" onClick={()=>fileRef.current.click()}><UploadIcon style={{width:13,height:13,marginRight:4}}/> {t.profile.uploadPicture}</button>
+          <p style={{fontSize:'.72rem',color:'#9ca3af',margin:'3px 0 0'}}>{t.profile.autoCompress}</p>
         </div>
-        <div className="form-group"><label>Username</label><input value={form.username} onChange={upd('username')}/></div>
-        <div className="form-group"><label>Display Name</label><input value={form.nickname} onChange={upd('nickname')} placeholder="How others see you"/></div>
-        <div className="form-group"><label>Country</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))}/></div>
-        <div className="form-group"><label>Native Language</label><input value={form.native_language} onChange={upd('native_language')} placeholder="e.g. Japanese"/></div>
-        <div className="form-group"><label>English conversation Level</label>
+        <div className="form-group"><label>{t.profile.username}</label><input value={form.username} onChange={upd('username')}/></div>
+        <div className="form-group"><label>{t.profile.displayName}</label><input value={form.nickname} onChange={upd('nickname')} placeholder={t.profile.displayNamePlaceholder}/></div>
+        <div className="form-group"><label>{t.profile.country}</label><CountrySelect value={form.country} onChange={v=>setForm(f=>({...f,country:v}))}/></div>
+        <div className="form-group"><label>{t.profile.nativeLanguage}</label><input value={form.native_language} onChange={upd('native_language')} placeholder={t.profile.nativeLanguagePlaceholder}/></div>
+        <div className="form-group"><label>{t.profile.level}</label>
           <select value={form.english_level} onChange={upd('english_level')}>
-            <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
+            <option value="beginner">{t.profile.beginner}</option><option value="intermediate">{t.profile.intermediate}</option><option value="advanced">{t.profile.advanced}</option>
           </select>
         </div>
-        <button className="save-btn" onClick={save}>Save Profile</button>
+        <button className="save-btn" onClick={save}>{t.profile.saveProfile}</button>
         {user.auth_provider!=='google'&&<>
-        <button onClick={()=>{setShowPwChange(!showPwChange);setPwErr('');setPwMsg('');}} className="btn-accent-outline">&#x1f512; {user.has_password?'Change Password':'Set Password'}</button>
+        <button onClick={()=>{setShowPwChange(!showPwChange);setPwErr('');setPwMsg('');}} className="btn-accent-outline">&#x1f512; {user.has_password?t.profile.changePassword:t.profile.setPassword}</button>
         {showPwChange&&(
            <div className="pw-box">
-            <div style={{fontWeight:600,fontSize:'.85rem',marginBottom:8}}>{user.has_password?'Change Password':'Set Password'}</div>
+            <div style={{fontWeight:600,fontSize:'.85rem',marginBottom:8}}>{user.has_password?t.profile.changePasswordTitle:t.profile.setPasswordTitle}</div>
             {pwErr&&<div style={{color:'#ef4444',fontSize:'.8rem',marginBottom:6}}>{pwErr}</div>}
             {pwMsg&&<div style={{color:'#22c55e',fontSize:'.8rem',marginBottom:6}}>{pwMsg}</div>}
-            {user.has_password&&<div className="form-group"><label>Current Password</label><input type="password" value={pwForm.current_password} onChange={e=>setPwForm(f=>({...f,current_password:e.target.value}))}/></div>}
-            <div className="form-group"><label>New Password</label><input type="password" value={pwForm.new_password} onChange={e=>setPwForm(f=>({...f,new_password:e.target.value}))} minLength={6}/></div>
-            <div className="form-group"><label>Confirm New Password</label><input type="password" value={pwForm.confirm_password} onChange={e=>setPwForm(f=>({...f,confirm_password:e.target.value}))} minLength={6}/></div>
-            <button className="save-btn" onClick={changePassword} style={{width:'100%'}}>{user.has_password?'Update Password':'Set Password'}</button>
+            {user.has_password&&<div className="form-group"><label>{t.profile.currentPassword}</label><input type="password" value={pwForm.current_password} onChange={e=>setPwForm(f=>({...f,current_password:e.target.value}))}/></div>}
+            <div className="form-group"><label>{t.profile.newPassword}</label><input type="password" value={pwForm.new_password} onChange={e=>setPwForm(f=>({...f,new_password:e.target.value}))} minLength={6}/></div>
+            <div className="form-group"><label>{t.profile.confirmPassword}</label><input type="password" value={pwForm.confirm_password} onChange={e=>setPwForm(f=>({...f,confirm_password:e.target.value}))} minLength={6}/></div>
+            <button className="save-btn" onClick={changePassword} style={{width:'100%'}}>{user.has_password?t.profile.updatePassword:t.profile.setPasswordBtn}</button>
           </div>
         )}
         </>}
-        <button onClick={()=>setShowFeedback(true)} className="btn-accent-outline">💬 Send Feedback</button>
-        <button onClick={onShowOnboarding} className="btn-accent-outline">👋 View Introduction Again</button>
-        <button onClick={onBack} className="btn-subtle">Back</button>
+        <button onClick={()=>setShowFeedback(true)} className="btn-accent-outline">{t.profile.sendFeedback}</button>
+        <button onClick={onShowOnboarding} className="btn-accent-outline">{t.profile.viewIntro}</button>
+        <button onClick={onBack} className="btn-subtle">{t.profile.back}</button>
       </div>
       <div style={{background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:12,padding:'1.25rem',marginBottom:'1.25rem'}}>
-        <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',margin:'0 0 .75rem',color:'#1e293b'}}>📚 Learn More</h3>
+        <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',margin:'0 0 .75rem',color:'#1e293b'}}>{t.profile.learnMore}</h3>
         <div style={{display:'flex',flexDirection:'column',gap:'.5rem'}}>
           <a href="/how-it-works" target="_blank" style={{display:'flex',alignItems:'center',gap:'.5rem',padding:'.6rem .75rem',background:'white',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:'.88rem',border:'1px solid #e5e7eb',transition:'border-color .15s'}} onMouseEnter={e=>e.currentTarget.style.borderColor='#4f46e5'} onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
-            <span>📖</span><span>How Chatter3 Works</span><span style={{marginLeft:'auto',color:'#9ca3af',fontSize:'.8rem'}}>→</span>
+            <span>📖</span><span>{t.profile.howItWorks}</span><span style={{marginLeft:'auto',color:'#9ca3af',fontSize:'.8rem'}}>→</span>
           </a>
           <a href="/for-beginners" target="_blank" style={{display:'flex',alignItems:'center',gap:'.5rem',padding:'.6rem .75rem',background:'white',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:'.88rem',border:'1px solid #e5e7eb',transition:'border-color .15s'}} onMouseEnter={e=>e.currentTarget.style.borderColor='#4f46e5'} onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
-            <span>🌱</span><span>English for Beginners</span><span style={{marginLeft:'auto',color:'#9ca3af',fontSize:'.8rem'}}>→</span>
+            <span>🌱</span><span>{t.profile.forBeginners}</span><span style={{marginLeft:'auto',color:'#9ca3af',fontSize:'.8rem'}}>→</span>
           </a>
           <a href="/blog" target="_blank" style={{display:'flex',alignItems:'center',gap:'.5rem',padding:'.6rem .75rem',background:'white',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:'.88rem',border:'1px solid #e5e7eb',transition:'border-color .15s'}} onMouseEnter={e=>e.currentTarget.style.borderColor='#4f46e5'} onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
-            <span>📝</span><span>Blog & Tips</span><span style={{marginLeft:'auto',color:'#9ca3af',fontSize:'.8rem'}}>→</span>
+            <span>📝</span><span>{t.profile.blogTips}</span><span style={{marginLeft:'auto',color:'#9ca3af',fontSize:'.8rem'}}>→</span>
           </a>
         </div>
       </div>
-      {showFeedback&&<FeedbackModal userId={user.id} onClose={()=>setShowFeedback(false)}/>}
+      {showFeedback&&<FeedbackModal t={t} userId={user.id} onClose={()=>setShowFeedback(false)}/>}
       <div className="history-list">
-        <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',margin:'0 0 .875rem'}}>Recent Conversations</h3>
-        {history.length===0&&<p style={{color:'#9ca3af',fontSize:'.88rem'}}>No calls yet. Find a partner to get started!</p>}
+        <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',margin:'0 0 .875rem'}}>{t.profile.recentConversations}</h3>
+        {history.length===0&&<p style={{color:'#9ca3af',fontSize:'.88rem'}}>{t.profile.noCalls}</p>}
         {history.map(h=>(
           <div key={h.id} className="history-item">
             <div className="history-avatar">
               {h.partner_avatar?<img src={h.partner_avatar} style={{width:'100%',height:'100%',borderRadius:'50%'}} alt=""/>:(h.partner_name||'?').charAt(0).toUpperCase()}
             </div>
             <div style={{flex:1}}>
-              <strong style={{fontSize:'.9rem'}}>{h.partner_name||'Unknown'}</strong>
+              <strong style={{fontSize:'.9rem'}}>{h.partner_name||t.profile.unknown}</strong>
               <div style={{fontSize:'.76rem',color:'#9ca3af',marginTop:1}}>{new Date(h.created_at).toLocaleDateString()}</div>
               {h.points_earned!=null&&<span className="history-points">⭐ +{parseFloat(h.points_earned).toFixed(1)} RP</span>}
             </div>
             <div style={{textAlign:'right',fontSize:'.82rem',color:'#6b7280',flexShrink:0}}>
-              {h.duration?Math.floor(h.duration/60)+'m '+(h.duration%60)+'s':'Incomplete'}
+              {h.duration?Math.floor(h.duration/60)+'m '+(h.duration%60)+'s':t.profile.incomplete}
             </div>
           </div>
         ))}

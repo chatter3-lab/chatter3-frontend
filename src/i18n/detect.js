@@ -1,25 +1,30 @@
-import en from './en.json';
-import es from './es.json';
-import ja from './ja.json';
-import ar from './ar.json';
-import zh from './zh.json';
-import fr from './fr.json';
-import ru from './ru.json';
-import hi from './hi.json';
-import bn from './bn.json';
-import pt from './pt.json';
-import ur from './ur.json';
-import id from './id.json';
-import de from './de.json';
-import mr from './mr.json';
-import te from './te.json';
-import tr from './tr.json';
-import ta from './ta.json';
-import vi from './vi.json';
-import pcm from './pcm.json';
-import yue from './yue.json';
+const translationCache = {};
 
-export const translations = { en, es, ja, ar, zh, fr, ru, hi, bn, pt, ur, id, de, mr, te, tr, ta, vi, pcm, yue };
+const translationModules = {
+  en: () => import('./en.json'),
+  es: () => import('./es.json'),
+  ja: () => import('./ja.json'),
+  ar: () => import('./ar.json'),
+  zh: () => import('./zh.json'),
+  fr: () => import('./fr.json'),
+  ru: () => import('./ru.json'),
+  hi: () => import('./hi.json'),
+  bn: () => import('./bn.json'),
+  pt: () => import('./pt.json'),
+  ur: () => import('./ur.json'),
+  id: () => import('./id.json'),
+  de: () => import('./de.json'),
+  mr: () => import('./mr.json'),
+  te: () => import('./te.json'),
+  tr: () => import('./tr.json'),
+  ta: () => import('./ta.json'),
+  vi: () => import('./vi.json'),
+  pcm: () => import('./pcm.json'),
+  yue: () => import('./yue.json'),
+};
+
+// Eagerly load English as fallback
+import('./en.json').then(m => { translationCache.en = m.default || m; });
 
 export const languages = [
   { code: 'en', flag: '🇬🇧' },
@@ -46,12 +51,11 @@ export const languages = [
 
 export function detectLanguage() {
   const saved = localStorage.getItem('chatter3_lang');
-  if (saved && translations[saved]) return saved;
+  if (saved && translationModules[saved]) return saved;
 
   const fullLang = navigator.language.toLowerCase();
   const shortLang = fullLang.slice(0, 2);
 
-  // Check full language tag first (e.g., zh-hk → yue, en-ng → pcm)
   if (fullLang.includes('zh-hk') || fullLang.includes('zh-hant')) {
     localStorage.setItem('chatter3_lang', 'yue');
     return 'yue';
@@ -61,8 +65,7 @@ export function detectLanguage() {
     return 'pcm';
   }
 
-  // Check 2-letter code
-  if (translations[shortLang]) {
+  if (translationModules[shortLang]) {
     localStorage.setItem('chatter3_lang', shortLang);
     return shortLang;
   }
@@ -89,11 +92,29 @@ export function getLocalizedPath(path, lang) {
 }
 
 export function setLanguage(lang) {
-  if (translations[lang]) {
+  if (translationModules[lang]) {
     localStorage.setItem('chatter3_lang', lang);
+    // Preload the language
+    loadTranslation(lang);
   }
 }
 
+function loadTranslation(lang) {
+  if (translationCache[lang]) return Promise.resolve(translationCache[lang]);
+  const loader = translationModules[lang];
+  if (!loader) return Promise.resolve(translationCache.en);
+  return loader().then(m => {
+    translationCache[lang] = m.default || m;
+    return translationCache[lang];
+  });
+}
+
 export function getTranslations(lang) {
-  return translations[lang] || translations.en;
+  return translationCache[lang] || translationCache.en || {};
+}
+
+// Preload current language on module load
+const currentLang = localStorage.getItem('chatter3_lang') || 'en';
+if (currentLang !== 'en') {
+  loadTranslation(currentLang);
 }
