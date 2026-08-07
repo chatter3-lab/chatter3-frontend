@@ -48,10 +48,23 @@ export function detectLanguage() {
   const saved = localStorage.getItem('chatter3_lang');
   if (saved && translations[saved]) return saved;
 
-  const browserLang = navigator.language.slice(0, 2);
-  if (translations[browserLang]) {
-    localStorage.setItem('chatter3_lang', browserLang);
-    return browserLang;
+  const fullLang = navigator.language.toLowerCase();
+  const shortLang = fullLang.slice(0, 2);
+
+  // Check full language tag first (e.g., zh-hk → yue, en-ng → pcm)
+  if (fullLang.includes('zh-hk') || fullLang.includes('zh-hant')) {
+    localStorage.setItem('chatter3_lang', 'yue');
+    return 'yue';
+  }
+  if (fullLang.includes('en-ng') || fullLang === 'pcm') {
+    localStorage.setItem('chatter3_lang', 'pcm');
+    return 'pcm';
+  }
+
+  // Check 2-letter code
+  if (translations[shortLang]) {
+    localStorage.setItem('chatter3_lang', shortLang);
+    return shortLang;
   }
 
   return 'en';

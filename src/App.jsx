@@ -99,7 +99,7 @@ const SLIDES=[
 const STYLES=`
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500&display=swap');
 *{box-sizing:border-box;}
-body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans-serif;background:#f5f5f5;}
+body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans-serif;background:#f5f5f5;overflow-x:hidden;}
 #root{width:100%;margin:0;padding:0;}
 .app-container{display:flex;flex-direction:column;min-height:100vh;width:100%;}
 .app-content{flex:1;display:flex;flex-direction:column;width:100%;max-width:1200px;margin:0 auto;padding:0 1rem;}
@@ -200,10 +200,9 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .lb-streak{margin-left:6px;font-size:.75rem;}
 
 /* Language switcher */
-.lang-btn{display:flex;align-items:center;gap:5px;background:none;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.78rem;font-weight:600;letter-spacing:.04em;color:#374151;}
-.lang-dropdown{position:absolute;right:0;top:100%;margin-top:4px;background:white;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:1000;max-height:320px;overflow-y:auto;}
-.lang-option{display:flex;align-items:center;gap:6px;width:100%;padding:8px 14px;border:none;background:white;cursor:pointer;font-size:.82rem;font-weight:600;letter-spacing:.04em;color:#374151;text-align:left;}
-.lang-option.active{color:#4f46e5;background:#f3f4f6;}
+.lang-select{appearance:none;-webkit-appearance:none;-moz-appearance:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:4px 28px 4px 8px;cursor:pointer;font-size:.78rem;font-weight:600;letter-spacing:.04em;color:#374151;line-height:1;background-color:transparent;font-family:inherit;}
+.lang-select:hover{border-color:rgba(0,0,0,.25);}
+.lang-select:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 2px rgba(79,70,229,.2);}
 
 /* FP/RP balance display */
 .balance-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin:.75rem 0 1rem;}
@@ -510,10 +509,10 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
   .lb-name{color:#e2e8f0;}
   .lb-sessions{color:#94a3b8;}
   .lb-score{color:#93c5fd;}
-  .lang-btn{border-color:rgba(255,255,255,.2);color:#e2e8f0;}
-  .lang-dropdown{background:#1a1d2e;border-color:#2d3a5c;}
-  .lang-option{background:#1a1d2e;color:#e2e8f0;}
-  .lang-option.active{color:#93c5fd;background:#1e2740;}
+  .lang-select{border-color:rgba(255,255,255,.2);color:#e2e8f0;background-color:transparent;}
+  .lang-select option{background:#1a1d2e;color:#e2e8f0;}
+  .lang-select:hover{border-color:rgba(255,255,255,.35);}
+  .lang-select:focus{border-color:#93c5fd;box-shadow:0 0 0 2px rgba(147,197,253,.2);}
   .friend-item{background:#1e293b;border-color:#2d3a5c;}
   .friend-name{color:#e2e8f0;}
   .friend-sub{color:#94a3b8;}
@@ -604,7 +603,7 @@ function OnboardingSlider({onComplete}){
       </div>
       <button className="ob-skip" onClick={onComplete}>Skip</button>
       <div className="ob-card">
-        <div className="ob-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></div>
+        <div className="ob-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></div>
         <div className="slides-wrapper">
           <div className="slides-track" style={{transform:`translateX(-${cur*100}%)`}}>
             {SLIDES.map(sl=>(
@@ -1947,7 +1946,7 @@ function HealthTab({user,post}){
 // ─────────────────────────────────────────────────────────────────
 const LP_STYLES=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{display:block!important;place-items:unset!important;background:#f5f5f5!important;color:#1a1a2e!important;min-height:100vh!important;width:100%!important;margin:0!important;padding:0!important;}
+html,body{display:block!important;place-items:unset!important;background:#f5f5f5!important;color:#1a1a2e!important;min-height:100vh!important;width:100%!important;margin:0!important;padding:0!important;overflow-x:hidden!important;}
 body{display:block!important;place-items:unset!important;}
 #root{display:block!important;width:100%!important;max-width:100%!important;margin:0!important;padding:0!important;}
 a{color:inherit;text-decoration:none;}
@@ -2006,8 +2005,12 @@ a{color:inherit;text-decoration:none;}
   .lp-footer{background:#0f1117;}
 }
 @media(max-width:640px){
+  .lp-nav-inner{flex-wrap:wrap;gap:.5rem;}
+  .lp-nav-links{display:none;}
   .lp-hero h1{font-size:1.8rem;}
   .lp-hero p{font-size:1rem;}
+  .lp-step{flex-direction:column;gap:.75rem;}
+  .lp-grid{grid-template-columns:1fr;}
 }
 `;
 function HowItWorksPage({lang='en'}){
@@ -2018,7 +2021,7 @@ function HowItWorksPage({lang='en'}){
     <div className="lp">
       <style>{LP_STYLES}</style>
       <SEOHead title={t.meta.howItWorks.title} description={t.meta.howItWorks.description} canonical={canonical} lang={lang}/>
-      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`} className="active">{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a><a href={`${prefix}/blog`}>{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`} className="active">{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a><a href={`${prefix}/blog`}>{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
       <div className="lp-hero">
         <h1>{t.howItWorks.title}</h1>
         <p>{t.howItWorks.subtitle}</p>
@@ -2081,7 +2084,7 @@ function ForBeginnersPage({lang='en'}){
     <div className="lp">
       <style>{LP_STYLES}</style>
       <SEOHead title={t.meta.forBeginners.title} description={t.meta.forBeginners.description} canonical={canonical} lang={lang}/>
-      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`} className="active">{t.nav.forBeginners}</a><a href={`${prefix}/blog`}>{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`} className="active">{t.nav.forBeginners}</a><a href={`${prefix}/blog`}>{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
       <div className="lp-hero">
         <h1>{t.forBeginners.title}</h1>
         <p>{t.forBeginners.subtitle}</p>
@@ -2176,7 +2179,7 @@ function BlogPage({lang='en'}){
     <div className="lp">
       <style>{LP_STYLES}</style>
       <SEOHead title={t.meta.blog.title} description={t.meta.blog.description} canonical={canonical} lang={lang}/>
-      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a><a href={`${prefix}/blog`} className="active">{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
+      <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a><a href={`${prefix}/blog`} className="active">{t.nav.blog}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
       <div className="lp-hero">
         <h1>{t.blog.title}</h1>
         <p>{t.blog.subtitle}</p>
@@ -2370,7 +2373,7 @@ export default function App(){
         {view!=='auth'&&view!=='video'&&view!=='precall'&&(
           <header className="app-header">
             <div className="app-header-content">
-              <div><img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="header-logo-img"/></div>
+              <div><img src="/chatter3_logo.png" alt="Chatter3" className="header-logo-img"/></div>
               {user&&(
                 <div className="user-info">
                    <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🏆 Founding Member</span>:null}{user.is_new_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>🆕 New Member</span>:null}</span>
@@ -2441,7 +2444,7 @@ function ForgotPasswordView({onBack}){
     <div className="auth-container">
       <div className="auth-box">
         <div className="auth-header">
-          <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="auth-logo"/>
+          <img src="/chatter3_logo.png" alt="Chatter3" className="auth-logo"/>
           <p className="auth-subtitle">Reset your password</p>
         </div>
         {err&&<div className="error-message">{err}</div>}
@@ -2491,7 +2494,7 @@ function ResetPasswordView({token,onBack}){
     <div className="auth-container">
       <div className="auth-box">
         <div className="auth-header">
-          <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="auth-logo"/>
+          <img src="/chatter3_logo.png" alt="Chatter3" className="auth-logo"/>
           <p className="auth-subtitle">Set new password</p>
         </div>
         {err&&<div className="error-message">{err}</div>}
@@ -2554,7 +2557,7 @@ function AuthView({onLogin,setView}){
     <div className="auth-container">
       <div className="auth-box">
         <div className="auth-header">
-          <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3" className="auth-logo"/>
+          <img src="/chatter3_logo.png" alt="Chatter3" className="auth-logo"/>
           <p className="auth-subtitle">Master English conversation with real people</p>
         </div>
         {err&&<div className="error-message">{err}</div>}
@@ -3131,7 +3134,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd}){
   return(
     <div className="video-call-interface">
       <div className="video-compact-header">
-        <img src="https://i.postimg.cc/50qdw8dy/Catter3logo-new-transparent.png" alt="Chatter3"/>
+        <img src="/chatter3_logo.png" alt="Chatter3"/>
         <span className="video-compact-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</span>
       </div>
         {showReport&&<ReportModal targetUser={session.partner} sessionId={session.id} onClose={()=>setShowReport(false)}/>}
