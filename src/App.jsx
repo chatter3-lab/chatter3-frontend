@@ -366,7 +366,7 @@ function FriendsModal({t,user,onClose}){
         {f.avatar_url?<img src={f.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt=""/>:(f.nickname||f.username||'?').charAt(0).toUpperCase()}
       </div>
       <div className="friend-info">
-        <div className="friend-name">{f.nickname||f.username}{f.founding_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>{t?.modals?.fmBadge||'🏆 FM'}</span>:null}{f.is_new_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>{t?.modals?.newBadge||'🆕 NEW'}</span>:null}</div>
+        <div className="friend-name">{f.nickname||f.username}{f.founding_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>{t?.modals?.fmBadge||'🏆 FM'}</span>:null}{f.is_new_member&&!f.founding_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>{t?.modals?.newBadge||'🆕 NEW'}</span>:null}</div>
         <div className="friend-sub">{f.country?`${getFlag(f.country)} ${countryName(f.country)}`:''}{f.english_level?` · ${f.english_level}`:''}</div>
       </div>
       {actions}
@@ -612,7 +612,7 @@ export default function App(){
               <div><img src="/chatter3_logo.png" alt="Chatter3" className="header-logo-img"/></div>
               {user&&(
                 <div className="user-info">
-                   <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>{t.profile.foundingMember}</span>:null}{user.is_new_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>{t.profile.newMember}</span>:null}</span>
+                    <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>{t.profile.foundingMember}</span>:null}{user.is_new_member&&!user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>{t.profile.newMember}</span>:null}</span>
                   <div className="header-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
                    <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 {t.nav.friends||'Friends'}</button>
                    <div className="help-menu-wrapper">
@@ -1123,7 +1123,7 @@ function PreCallView({session,onStart,onCancel,t}){
             {partner.avatar_url?<img src={partner.avatar_url} alt={name}/>:<span style={{fontFamily:'Sora,sans-serif',fontSize:'2.2rem',fontWeight:800,color:'white'}}>{name.charAt(0).toUpperCase()}</span>}
           </div>
         </div>
-        <h2 className="precall-name">{name}{partner.founding_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>{t.precall.foundingMember}</span>:null}{partner.is_new_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#22c55e',letterSpacing:'.03em'}}>{t.precall.newMember}</span>:null}</h2>
+        <h2 className="precall-name">{name}{partner.founding_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>{t.precall.foundingMember}</span>:null}{partner.is_new_member&&!partner.founding_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#22c55e',letterSpacing:'.03em'}}>{t.precall.newMember}</span>:null}</h2>
         <div className="precall-chips">
           {partner.country&&<span className="chip country">{getFlag(partner.country)} {countryName(partner.country)}</span>}
           {partner.native_language&&<span className="chip lang">🗣️ {partner.native_language}</span>}
@@ -1503,7 +1503,7 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
   };
   return(
     <div className="dashboard-container">
-      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,margin:0}}>{t.profile.editProfile}</h2>{user.founding_member?<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>{t.profile.foundingMember}</span>:null}{user.is_new_member?<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>{t.profile.newMember}</span>:null}</div>
+      <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,margin:0}}>{t.profile.editProfile}</h2>{user.founding_member?<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>{t.profile.foundingMember}</span>:null}{user.is_new_member&&!user.founding_member?<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>{t.profile.newMember}</span>:null}</div>
       <div className="profile-section">
         <div className="profile-avatar">
           {form.avatar_url?<img src={form.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt={t.profile.profileAlt}/>:(form.username||user.username).charAt(0).toUpperCase()}

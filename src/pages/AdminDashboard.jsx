@@ -789,7 +789,7 @@ function UsersTab({user,post,t}){
                         {u.founding_member_override?t.admin.users.fmBadge:t.admin.users.dash}
                       </button>
                     </td>
-                    <td>{u.is_new_member?<span style={{padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.68rem',fontWeight:700}}>{t.admin.users.newBadge}</span>:'—'}</td>
+                    <td>{u.is_new_member&&!u.founding_member_override?<span style={{padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.68rem',fontWeight:700}}>{t.admin.users.newBadge}</span>:'—'}</td>
                     <td style={{textAlign:'center'}}>{(()=>{
                       const s=statuses[u.id]||'offline';
                       const colors={online:'#22c55e',searching:'#3b82f6',in_call:'#f97316',offline:'#d1d5db'};
