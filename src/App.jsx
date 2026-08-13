@@ -3,6 +3,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import SEOHead from './components/SEOHead';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { getTranslations, getLangFromPath, detectLanguage, getLocalizedPath, languages } from './i18n/detect';
+import useInstallPrompt from './hooks/useInstallPrompt';
 import { useTranslation } from './i18n/useTranslation';
 
 const HowItWorksPage = lazy(() => import('./pages/HowItWorksPage'));
@@ -909,6 +910,27 @@ function LeaderboardCard({userId,t}){
 // ─────────────────────────────────────────────────────────────────
 // DASHBOARD VIEW
 // ─────────────────────────────────────────────────────────────────
+function InstallBanner({t}){
+  const{isInstallable,install,dismiss,wasDismissed}=useInstallPrompt();
+  const[visible,setVisible]=useState(false);
+  useEffect(()=>{
+    if(isInstallable&&!wasDismissed()){
+      const timer=setTimeout(()=>setVisible(true),3000);
+      return()=>clearTimeout(timer);
+    }
+  },[isInstallable,wasDismissed]);
+  if(!visible)return null;
+  return(
+    <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:1000,padding:'12px 16px',background:'linear-gradient(135deg,#4f46e5,#6366f1)',color:'white',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,boxShadow:'0 -4px 20px rgba(0,0,0,.2)',fontSize:'.85rem',fontWeight:500}}>
+      <span>📲 {t?.dashboard?.installApp||'Install Chatter3 for faster access'}</span>
+      <div style={{display:'flex',gap:8,flexShrink:0}}>
+        <button onClick={async()=>{await install();setVisible(false);}} style={{background:'white',color:'#4f46e5',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:700,cursor:'pointer',fontSize:'.82rem'}}>{t?.dashboard?.install||'Install'}</button>
+        <button onClick={()=>{dismiss();setVisible(false);}} style={{background:'transparent',color:'white',border:'1px solid rgba(255,255,255,.4)',borderRadius:8,padding:'8px 12px',cursor:'pointer',fontSize:'.82rem'}}>{t?.dashboard?.notNow||'Not now'}</button>
+      </div>
+    </div>
+  );
+}
+
 function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefreshUser,t}){
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
@@ -991,6 +1013,9 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
 
       {/* Leaderboard */}
       <LeaderboardCard userId={user.id} t={t}/>
+
+      {/* PWA Install Banner */}
+      <InstallBanner t={t}/>
     </div>
   );
 }

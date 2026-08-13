@@ -94,7 +94,10 @@
     "streakStat": "🔥 Streak",
     "days": "days",
     "noLevelWarning": "⚠️ No {level}-level users online right now",
-    "profileHistory": "Profile & Conversation History"
+    "profileHistory": "Profile & Conversation History",
+    "installApp": "Install Chatter3 for faster access",
+    "install": "Install",
+    "notNow": "Not now"
   },
   "matching": {
     "looking": "Looking for a partner...",

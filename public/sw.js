@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chatter3-v1';
+const CACHE_NAME = 'chatter3-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -6,6 +6,8 @@ const STATIC_ASSETS = [
   '/fonts/dm-sans-latin.woff2',
   '/chatter3_logo.png',
   '/c3.svg',
+  '/icon-192.png',
+  '/icon-512.png',
   '/manifest.json'
 ];
 
@@ -58,6 +60,43 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       });
+    })
+  );
+});
+
+// Push notifications
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  let data;
+  try {
+    data = event.data.json();
+  } catch {
+    data = { title: 'Chatter3', body: event.data.text() };
+  }
+  const options = {
+    body: data.body || '',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [200, 100, 200],
+    tag: data.tag || 'chatter3-notification',
+    data: data.url || '/',
+    actions: data.actions || []
+  };
+  event.waitUntil(self.registration.showNotification(data.title || 'Chatter3', options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      return clients.openWindow(url);
     })
   );
 });
