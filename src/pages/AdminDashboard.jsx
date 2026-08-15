@@ -199,6 +199,94 @@ function AdminSettingsPanel({user,t}){
   );
 }
 
+function BlogTab({post,t}){
+  const[posts,setPosts]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[editing,setEditing]=useState(null);
+  const[form,setForm]=useState({slug:'',title:'',excerpt:'',content:'',status:'draft',lang:'en'});
+  const[saving,setSaving]=useState(false);
+  const[message,setMessage]=useState('');
+
+  const loadPosts=()=>{setLoading(true);post('/api/admin/blog/list').then(d=>{if(d.success)setPosts(d.posts||[]);setLoading(false);}).catch(()=>setLoading(false));};
+  useEffect(()=>{loadPosts();},[]);
+
+  const slugify=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+
+  const startNew=()=>{setEditing('new');setForm({slug:'',title:'',excerpt:'',content:'',status:'draft',lang:'en'});};
+  const startEdit=p=>{setEditing(p.id);setForm({slug:p.slug,title:p.title,excerpt:p.excerpt||'',content:p.content||'',status:p.status,lang:p.lang||'en'});};
+  const cancel=()=>{setEditing(null);setForm({slug:'',title:'',excerpt:'',content:'',status:'draft',lang:'en'});};
+
+  const save=async()=>{
+    if(!form.slug||!form.title||!form.content){setMessage('Slug, title, and content are required');return;}
+    setSaving(true);
+    try{
+      const endpoint=editing==='new'?'/api/admin/blog/create':'/api/admin/blog/update';
+      const body=editing==='new'?form:{...form,id:editing};
+      const d=await post(endpoint,body);
+      if(d.success){setMessage(t.admin.blog.saved);loadPosts();setTimeout(()=>{cancel();setMessage('');},1000);}
+      else setMessage(d.error||'Error saving');
+    }catch{setMessage('Error saving');}
+    setSaving(false);
+  };
+
+  const del=async(id)=>{
+    if(!confirm(t.admin.blog.confirmDelete))return;
+    const d=await post('/api/admin/blog/delete',{id});
+    if(d.success){setMessage(t.admin.blog.deleted);loadPosts();if(editing===id)cancel();setTimeout(()=>setMessage(''),2000);}
+  };
+
+  if(editing)return(
+    <div className="admin-section">
+      <h3>{editing==='new'?t.admin.blog.newPost:t.admin.blog.editPost}</h3>
+      {message&&<p style={{color:message.includes('required')?'#ef4444':'#22c55e',margin:'.5rem 0'}}>{message}</p>}
+      <div style={{display:'flex',flexDirection:'column',gap:'.75rem'}}>
+        <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.slug}</label><input value={form.slug} onChange={e=>setForm(f=>({...f,slug:e.target.value}))} placeholder={t.admin.blog.slugHelp} style={{width:'100%',padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.9rem',boxSizing:'border-box'}}/></div>
+        <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.postTitle}</label><input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} style={{width:'100%',padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.9rem',boxSizing:'border-box'}}/></div>
+        <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.excerpt}</label><input value={form.excerpt} onChange={e=>setForm(f=>({...f,excerpt:e.target.value}))} placeholder={t.admin.blog.excerptHelp} style={{width:'100%',padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.9rem',boxSizing:'border-box'}}/></div>
+        <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.content} <span style={{fontSize:'.72rem'}}>({t.admin.blog.contentHelp})</span></label><textarea value={form.content} onChange={e=>setForm(f=>({...f,content:e.target.value}))} rows={15} style={{width:'100%',padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.85rem',fontFamily:'monospace',resize:'vertical',boxSizing:'border-box'}}/></div>
+        <div style={{display:'flex',gap:'1rem',flexWrap:'wrap'}}>
+          <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.status}</label><select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))} style={{padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.9rem'}}><option value="draft">{t.admin.blog.draft}</option><option value="published">{t.admin.blog.published}</option></select></div>
+          <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.language}</label><select value={form.lang} onChange={e=>setForm(f=>({...f,lang:e.target.value}))} style={{padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.9rem'}}>{['en','es','ja','zh','bn','fr','ar','ru'].map(l=><option key={l} value={l}>{l.toUpperCase()}</option>)}</select></div>
+        </div>
+        <div style={{display:'flex',gap:'.5rem'}}>
+          <button onClick={save} disabled={saving} style={{padding:'10px 20px',borderRadius:8,border:'none',background:'#6366f1',color:'white',fontWeight:700,cursor:'pointer',fontSize:'.9rem'}}>{saving?'...':t.admin.blog.save}</button>
+          <button onClick={cancel} style={{padding:'10px 20px',borderRadius:8,border:'1px solid #475569',background:'transparent',color:'#9ca3af',cursor:'pointer',fontSize:'.9rem'}}>{t.admin.blog.cancel}</button>
+          {editing!=='new'&&<button onClick={()=>del(editing)} style={{padding:'10px 20px',borderRadius:8,border:'none',background:'#dc2626',color:'white',cursor:'pointer',fontSize:'.9rem',marginLeft:'auto'}}>{t.admin.blog.delete}</button>}
+        </div>
+      </div>
+    </div>
+  );
+
+  return(
+    <div className="admin-section">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+        <h3>{t.admin.blog.title}</h3>
+        <button onClick={startNew} style={{padding:'8px 16px',borderRadius:8,border:'none',background:'#6366f1',color:'white',fontWeight:700,cursor:'pointer',fontSize:'.85rem'}}>{t.admin.blog.newPost}</button>
+      </div>
+      {message&&<p style={{color:'#22c55e',margin:'.5rem 0'}}>{message}</p>}
+      {loading?<p style={{color:'#9ca3af'}}>{t.admin.analytics.loading}</p>:posts.length===0?<p style={{color:'#9ca3af',textAlign:'center'}}>{t.admin.blog.noPosts}</p>:(
+        <div style={{overflowX:'auto'}}>
+          <table className="admin-table">
+            <thead><tr><th>Title</th><th>Slug</th><th>Status</th><th>Lang</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody>
+              {posts.map(p=>(
+                <tr key={p.id}>
+                  <td style={{fontWeight:600,maxWidth:250,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.title}</td>
+                  <td style={{color:'#9ca3af',fontSize:'.82rem'}}>{p.slug}</td>
+                  <td><span style={{padding:'2px 8px',borderRadius:8,fontSize:'.72rem',fontWeight:700,background:p.status==='published'?'#22c55e':'#f59e0b',color:'white'}}>{p.status}</span></td>
+                  <td>{(p.lang||'en').toUpperCase()}</td>
+                  <td style={{fontSize:'.82rem',color:'#9ca3af'}}>{new Date(p.created_at).toLocaleDateString()}</td>
+                  <td><button onClick={()=>startEdit(p)} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.78rem'}}>{t.admin.blog.editPost}</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminDashboard({user,onBack,t}){
   const[tab,setTab]=useState('analytics');
   const[stats,setStats]=useState(null);
@@ -474,12 +562,13 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
         <button className="header-btn btn-logout" onClick={onBack}>{t.admin.back}</button>
       </div>
       <div className="admin-tabs">
-        {['analytics','users','referrals','reports','settings','health'].map(tabName=>(
+        {['analytics','users','blog','referrals','reports','settings','health'].map(tabName=>(
           <button key={tabName} className={`admin-tab ${tab===tabName?'active':''}`} style={{textTransform:'capitalize'}} onClick={()=>setTab(tabName)}>{t.admin.tabs[tabName]}</button>
         ))}
       </div>
       {tab==='analytics' && renderAnalytics(stats, maxSessions)}
 {tab==='users'&&(<UsersTab user={user} post={post} t={t}/>)} 
+      {tab==='blog'&&(<BlogTab post={post} t={t}/>)} 
       {tab==='reports'&&(
         <>
           <div style={{display:'flex',gap:'.5rem',marginBottom:'1rem',flexWrap:'wrap'}}>

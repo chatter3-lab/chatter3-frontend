@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import SEOHead from '../components/SEOHead';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { getTranslations } from '../i18n/detect';
@@ -7,9 +7,18 @@ import BlogPage, { getBlogArticles } from './BlogPage';
 export default function BlogArticlePage({slug,lang='en'}){
   const t=getTranslations(lang);
   const prefix=lang==='en'?'':`/${lang}`;
-  const articles=getBlogArticles(t);
-  const article=articles.find(a=>a.slug===slug);
-  if(!article)return<BlogPage lang={lang}/>;
+  const hardcoded=getBlogArticles(t);
+  const[dynamicPost,setDynamicPost]=useState(null);
+  const[checking,setChecking]=useState(true);
+  useEffect(()=>{
+    fetch(`https://api.chatter3.com/api/blog/post?slug=${slug}`).then(r=>r.json()).then(d=>{
+      if(d.success&&d.post)setDynamicPost({slug:d.post.slug,title:d.post.title,excerpt:d.post.excerpt,content:d.post.content,date:d.post.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((d.post.content||'').split(/\s+/).length/200))+' min'});
+      setChecking(false);
+    }).catch(()=>setChecking(false));
+  },[slug]);
+  const article=dynamicPost||hardcoded.find(a=>a.slug===slug);
+  if(!checking&&!article)return<BlogPage lang={lang}/>;
+  if(checking)return null;
   const canonical=`https://app.chatter3.com${prefix}/blog/${article.slug}`;
   const articleSchema={
     "@context":"https://schema.org",

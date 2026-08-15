@@ -357,6 +357,7 @@
     "tabs": {
       "analytics": "analytics",
       "users": "users",
+      "blog": "blog",
       "referrals": "referrals",
       "reports": "reports",
       "settings": "settings",
@@ -556,6 +557,30 @@
       "maintenanceMessage": "Maintenance Message",
       "maintenanceMessageDesc": "Message shown to non-admin users during maintenance.",
       "maintenancePlaceholder": "We are currently performing maintenance. Please check back later."
+    },
+    "blog": {
+      "title": "Blog Posts",
+      "newPost": "New Post",
+      "editPost": "Edit Post",
+      "slug": "Slug",
+      "slugHelp": "URL-friendly identifier (e.g., how-to-practice-english)",
+      "postTitle": "Title",
+      "excerpt": "Excerpt",
+      "excerptHelp": "Short summary shown in blog listing (150-160 chars)",
+      "content": "Content",
+      "contentHelp": "HTML content of the post",
+      "status": "Status",
+      "draft": "Draft",
+      "published": "Published",
+      "language": "Language",
+      "save": "Save Post",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure you want to delete this post?",
+      "noPosts": "No blog posts yet. Click 'New Post' to create one.",
+      "saved": "Post saved!",
+      "deleted": "Post deleted.",
+      "slugExists": "A post with this slug already exists"
     },
     "health": {
       "infraTitle": "Infrastructure Usage (Cloudflare Free Tier)",

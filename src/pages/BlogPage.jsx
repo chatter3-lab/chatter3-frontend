@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import SEOHead from '../components/SEOHead';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { getTranslations } from '../i18n/detect';
@@ -132,7 +132,16 @@ export default function BlogPage({lang='en'}){
   const t=getTranslations(lang);
   const prefix=lang==='en'?'':`/${lang}`;
   const canonical=`https://app.chatter3.com${prefix}/blog`;
-  const articles=getBlogArticles(t);
+  const hardcoded=getBlogArticles(t);
+  const[dynamic,setDynamic]=useState([]);
+  useEffect(()=>{
+    fetch(`https://api.chatter3.com/api/blog/list?lang=${lang}`).then(r=>r.json()).then(d=>{
+      if(d.success&&d.posts?.length){
+        setDynamic(d.posts.map(p=>({slug:p.slug,title:p.title,excerpt:p.excerpt,content:p.content,date:p.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((p.content||'').split(/\s+/).length/200))+' min'})));
+      }
+    }).catch(()=>{});
+  },[lang]);
+  const articles=[...dynamic,...hardcoded.filter(h=>!dynamic.find(d=>d.slug===h.slug))];
   return(
     <div className="lp">
       <SEOHead title={t.meta.blog.title} description={t.meta.blog.description} canonical={canonical} lang={lang}/>
