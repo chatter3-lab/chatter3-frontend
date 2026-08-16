@@ -267,14 +267,14 @@ function BlogTab({post,t}){
       {loading?<p style={{color:'#9ca3af'}}>{t.admin.analytics.loading}</p>:posts.length===0?<p style={{color:'#9ca3af',textAlign:'center'}}>{t.admin.blog.noPosts}</p>:(
         <div style={{overflowX:'auto'}}>
           <table className="admin-table">
-            <thead><tr><th>Title</th><th>Slug</th><th>Status</th><th>Lang</th><th>Created</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Title</th><th>Slug</th><th>Status</th><th>Translations</th><th>Created</th><th>Actions</th></tr></thead>
             <tbody>
               {posts.map(p=>(
                 <tr key={p.id}>
                   <td style={{fontWeight:600,maxWidth:250,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.title}</td>
                   <td style={{color:'#9ca3af',fontSize:'.82rem'}}>{p.slug}</td>
                   <td><span style={{padding:'2px 8px',borderRadius:8,fontSize:'.72rem',fontWeight:700,background:p.status==='published'?'#22c55e':'#f59e0b',color:'white'}}>{p.status}</span></td>
-                  <td>{(p.lang||'en').toUpperCase()}</td>
+                  <td style={{fontSize:'.82rem'}}>{p.translation_count>0?<span style={{color:'#22c55e'}}>{p.translation_count}/7</span>:<span style={{color:'#9ca3af'}}>0/7</span>}</td>
                   <td style={{fontSize:'.82rem',color:'#9ca3af'}}>{new Date(p.created_at).toLocaleDateString()}</td>
                   <td><button onClick={()=>startEdit(p)} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.78rem'}}>{t.admin.blog.editPost}</button></td>
                 </tr>
