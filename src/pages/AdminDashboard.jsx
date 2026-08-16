@@ -634,7 +634,7 @@ function ReferralsTab({post,t}){
   const[data,setData]=useState(null);
   const[loading,setLoading]=useState(true);
   useEffect(()=>{
-    post('/api/admin/referrals',{}).then(d=>{if(d.success)setData(d);}).catch(()=>{}).finally(()=>setLoading(false));
+    post('/api/admin/referrals',{}).then(d=>{if(d.success)setData(d);}).catch(e=>console.error('[admin-referrals]',e)).finally(()=>setLoading(false));
   },[]);
   if(loading)return<p style={{color:'#9ca3af',padding:'1rem'}}>{t.admin.referrals.loading}</p>;
   if(!data)return<p style={{color:'#9ca3af',padding:'1rem'}}>{t.admin.referrals.failed}</p>;
@@ -927,8 +927,8 @@ function HealthTab({user,post,stats,t}){
   const[health,setHealth]=useState(null);
   const[usage,setUsage]=useState(null);
   useEffect(()=>{
-    post('/api/admin/stats',{}).then(setHealth).catch(()=>{});
-    post('/api/admin/usage',{}).then(setUsage).catch(()=>{});
+    post('/api/admin/stats',{}).then(setHealth).catch(e=>console.error('[admin-health]',e));
+    post('/api/admin/usage',{}).then(setUsage).catch(e=>console.error('[admin-usage]',e));
   },[]);
 
   const LIMITS={workers_req:100000,d1_reads:5000000,d1_writes:100000,do_req:1000000,d1_storage:5000,workers_cpu:10};

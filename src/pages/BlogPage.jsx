@@ -139,7 +139,7 @@ export default function BlogPage({lang='en'}){
       if(d.success&&d.posts?.length){
         setDynamic(d.posts.map(p=>({slug:p.slug,title:p.title,excerpt:p.excerpt,content:p.content,date:p.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((p.content||'').split(/\s+/).length/200))+' min'})));
       }
-    }).catch(()=>{});
+    }).catch(e=>console.error('[blog-fetch]',e));
   },[lang]);
   const articles=[...dynamic,...hardcoded.filter(h=>!dynamic.find(d=>d.slug===h.slug))];
   return(
