@@ -235,6 +235,16 @@ function BlogTab({post,t}){
     if(d.success){setMessage(t.admin.blog.deleted);loadPosts();if(editing===id)cancel();setTimeout(()=>setMessage(''),2000);}
   };
 
+  const retranslate=async(id)=>{
+    setSaving(true);
+    try{
+      const d=await post('/api/admin/blog/retranslate',{id});
+      if(d.success){setMessage('Translation started - refresh in 10s');setTimeout(()=>{loadPosts();setMessage('');},10000);}
+      else setMessage(d.error||'Error');
+    }catch{setMessage('Error');}
+    setSaving(false);
+  };
+
   if(editing)return(
     <div className="admin-section">
       <h3>{editing==='new'?t.admin.blog.newPost:t.admin.blog.editPost}</h3>
@@ -276,7 +286,7 @@ function BlogTab({post,t}){
                   <td><span style={{padding:'2px 8px',borderRadius:8,fontSize:'.72rem',fontWeight:700,background:p.status==='published'?'#22c55e':'#f59e0b',color:'white'}}>{p.status}</span></td>
                   <td style={{fontSize:'.82rem'}}>{p.translation_count>0?<span style={{color:'#22c55e'}}>{p.translation_count}/7</span>:<span style={{color:'#9ca3af'}}>0/7</span>}</td>
                   <td style={{fontSize:'.82rem',color:'#9ca3af'}}>{new Date(p.created_at).toLocaleDateString()}</td>
-                  <td><button onClick={()=>startEdit(p)} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.78rem'}}>{t.admin.blog.editPost}</button></td>
+                  <td><button onClick={()=>startEdit(p)} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.78rem'}}>{t.admin.blog.editPost}</button>{' '}<button onClick={()=>retranslate(p.id)} disabled={saving} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#7c3aed',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving?.5:1}}>Translate</button></td>
                 </tr>
               ))}
             </tbody>
