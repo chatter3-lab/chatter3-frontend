@@ -235,13 +235,55 @@ function BlogTab({post,t}){
     if(d.success){setMessage(t.admin.blog.deleted);loadPosts();if(editing===id)cancel();setTimeout(()=>setMessage(''),2000);}
   };
 
-  const retranslate=async(id)=>{
-    setSaving(true);
+  const translateViaGoogle=async(text,tl)=>{
     try{
-      const d=await post('/api/admin/blog/retranslate',{id});
-      if(d.success){setMessage('Translation started - refresh in 10s');setTimeout(()=>{loadPosts();setMessage('');},10000);}
-      else setMessage(d.error||'Error');
-    }catch{setMessage('Error');}
+      const r=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`);
+      const d=await r.json();
+      return d[0].map(s=>s[0]).join('');
+    }catch{return text;}
+  };
+
+  const translateHTML=async(html,tl)=>{
+    const tokens=html.split(/(<[^>]+>)/);
+    const textNodes=[];
+    for(let i=0;i<tokens.length;i++){
+      if(!tokens[i].startsWith('<')&&tokens[i].trim().length>0)textNodes.push({idx:i,text:tokens[i]});
+    }
+    if(textNodes.length===0)return html;
+    // Translate in batches of 5 to avoid rate limiting
+    const translated=[];
+    for(let i=0;i<textNodes.length;i+=5){
+      const batch=textNodes.slice(i,i+5);
+      const results=await Promise.all(batch.map(n=>translateViaGoogle(n.text,tl)));
+      translated.push(...results);
+      if(i+5<textNodes.length)await new Promise(r=>setTimeout(r,200));
+    }
+    const result=[...tokens];
+    for(let i=0;i<textNodes.length;i++)result[textNodes[i].idx]=translated[i]||textNodes[i].text;
+    return result.join('');
+  };
+
+  const LANG_MAP={es:'es',ja:'ja','zh':'zh-CN',bn:'bn',fr:'fr',ar:'ar',ru:'ru'};
+
+  const retranslate=async(id,slug,title,excerpt,content)=>{
+    setSaving(true);
+    setMessage('Translating to 7 languages...');
+    try{
+      const langs=['es','ja','zh','bn','fr','ar','ru'];
+      const translations=[];
+      for(const lang of langs){
+        setMessage(`Translating to ${lang.toUpperCase()}...`);
+        const [tTitle,tExcerpt,tContent]=await Promise.all([
+          translateViaGoogle(title,LANG_MAP[lang]),
+          translateViaGoogle(excerpt,LANG_MAP[lang]),
+          translateHTML(content,LANG_MAP[lang])
+        ]);
+        translations.push({lang,slug:`${slug}-${lang}`,title:tTitle,excerpt:tExcerpt,content:tContent});
+      }
+      const d=await post('/api/admin/blog/save-translations',{id,translations});
+      if(d.success){setMessage('All 7 translations saved!');loadPosts();setTimeout(()=>setMessage(''),3000);}
+      else setMessage(d.error||'Error saving');
+    }catch(e){console.error('[retranslate]',e);setMessage('Error: '+e.message);}
     setSaving(false);
   };
 
@@ -286,7 +328,7 @@ function BlogTab({post,t}){
                   <td><span style={{padding:'2px 8px',borderRadius:8,fontSize:'.72rem',fontWeight:700,background:p.status==='published'?'#22c55e':'#f59e0b',color:'white'}}>{p.status}</span></td>
                   <td style={{fontSize:'.82rem'}}>{p.translation_count>0?<span style={{color:'#22c55e'}}>{p.translation_count}/7</span>:<span style={{color:'#9ca3af'}}>0/7</span>}</td>
                   <td style={{fontSize:'.82rem',color:'#9ca3af'}}>{new Date(p.created_at).toLocaleDateString()}</td>
-                  <td><button onClick={()=>startEdit(p)} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.78rem'}}>{t.admin.blog.editPost}</button>{' '}<button onClick={()=>retranslate(p.id)} disabled={saving} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#7c3aed',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving?.5:1}}>Translate</button></td>
+                  <td><button onClick={()=>startEdit(p)} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.78rem'}}>{t.admin.blog.editPost}</button>{' '}<button onClick={()=>retranslate(p.id,p.slug,p.title,p.excerpt,p.content)} disabled={saving} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#7c3aed',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving?.5:1}}>Translate</button></td>
                 </tr>
               ))}
             </tbody>
