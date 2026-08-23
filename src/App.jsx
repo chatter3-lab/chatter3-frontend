@@ -11,6 +11,10 @@ const ForBeginnersPage = lazy(() => import('./pages/ForBeginnersPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const BlogArticlePage = lazy(() => import('./pages/BlogArticlePage'));
 const FaqPage = lazy(() => import('./pages/FaqPage'));
+const FreeEnglishPracticePage = lazy(() => import('./pages/FreeEnglishPracticePage'));
+const EnglishConversationAppPage = lazy(() => import('./pages/EnglishConversationAppPage'));
+const Chatter3VsItalkiPage = lazy(() => import('./pages/Chatter3VsItalkiPage'));
+const Chatter3VsCamblyPage = lazy(() => import('./pages/Chatter3VsCamblyPage'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 class ErrorBoundary extends Component {
@@ -468,7 +472,7 @@ export default function App(){
   const path=window.location.pathname;
   
   // Language-prefixed landing pages
-  const langMatch=path.match(/^\/(es|ja|zh|bn|fr|ar|ru)\/(how-it-works|for-beginners|faq|blog(?:\/[a-z0-9-]+)?)$/);
+  const langMatch=path.match(/^\/(es|ja|zh|bn|fr|ar|ru)\/(how-it-works|for-beginners|faq|free-english-practice|english-conversation-app|chatter3-vs-italki|chatter3-vs-cambly|blog(?:\/[a-z0-9-]+)?)$/);
   if(langMatch){
     const lang=langMatch[1];
     const page=langMatch[2];
@@ -476,6 +480,10 @@ export default function App(){
     if(page==='how-it-works')return<Suspense fallback={loading}><HowItWorksPage lang={lang}/></Suspense>;
     if(page==='for-beginners')return<Suspense fallback={loading}><ForBeginnersPage lang={lang}/></Suspense>;
     if(page==='faq')return<Suspense fallback={loading}><FaqPage lang={lang}/></Suspense>;
+    if(page==='free-english-practice')return<Suspense fallback={loading}><FreeEnglishPracticePage lang={lang}/></Suspense>;
+    if(page==='english-conversation-app')return<Suspense fallback={loading}><EnglishConversationAppPage lang={lang}/></Suspense>;
+    if(page==='chatter3-vs-italki')return<Suspense fallback={loading}><Chatter3VsItalkiPage lang={lang}/></Suspense>;
+    if(page==='chatter3-vs-cambly')return<Suspense fallback={loading}><Chatter3VsCamblyPage lang={lang}/></Suspense>;
     if(page==='blog')return<Suspense fallback={loading}><BlogPage lang={lang}/></Suspense>;
     if(page.startsWith('blog/')){const slug=page.replace('blog/','');return<Suspense fallback={loading}><BlogArticlePage slug={slug} lang={lang}/></Suspense>;}
   }
@@ -494,6 +502,10 @@ export default function App(){
     if(path==='/how-it-works')return<Suspense fallback={loading}><HowItWorksPage lang="en"/></Suspense>;
     if(path==='/for-beginners')return<Suspense fallback={loading}><ForBeginnersPage lang="en"/></Suspense>;
     if(path==='/faq')return<Suspense fallback={loading}><FaqPage lang="en"/></Suspense>;
+    if(path==='/free-english-practice')return<Suspense fallback={loading}><FreeEnglishPracticePage lang="en"/></Suspense>;
+    if(path==='/english-conversation-app')return<Suspense fallback={loading}><EnglishConversationAppPage lang="en"/></Suspense>;
+    if(path==='/chatter3-vs-italki')return<Suspense fallback={loading}><Chatter3VsItalkiPage lang="en"/></Suspense>;
+    if(path==='/chatter3-vs-cambly')return<Suspense fallback={loading}><Chatter3VsCamblyPage lang="en"/></Suspense>;
     if(path==='/blog')return<Suspense fallback={loading}><BlogPage lang="en"/></Suspense>;
     if(blogArticleMatch)return<Suspense fallback={loading}><BlogArticlePage slug={blogArticleMatch[1]} lang="en"/></Suspense>;
   }
