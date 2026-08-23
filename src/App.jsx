@@ -633,8 +633,12 @@ export default function App(){
                       <div className="help-dropdown">
                         <a href="/how-it-works" target="_blank">📖 {t.nav.howItWorks}</a>
                         <a href="/for-beginners" target="_blank">🌱 {t.nav.forBeginners}</a>
+                        <a href="/free-english-practice" target="_blank">🗣️ Free Practice</a>
+                        <a href="/english-conversation-app" target="_blank">📱 Conversation App</a>
                         <a href="/blog" target="_blank">📝 {t.nav.blog}</a>
                         <a href="/faq" target="_blank">❓ {t.nav.faq||'FAQ'}</a>
+                        <a href="/chatter3-vs-italki" target="_blank">⚔️ vs italki</a>
+                        <a href="/chatter3-vs-cambly" target="_blank">⚔️ vs Cambly</a>
                       </div>
                    </div>
                   <LanguageSwitcher currentLang={localStorage.getItem('chatter3_lang')||'en'}/>
@@ -859,8 +863,12 @@ function AuthView({onLogin,setView,t,lang}){
         <div className="auth-footer-links">
           <a href="/how-it-works">{t.nav.howItWorks}</a>
           <a href="/for-beginners">{t.nav.forBeginners}</a>
+          <a href="/free-english-practice">Free Practice</a>
+          <a href="/english-conversation-app">Conversation App</a>
           <a href="/blog">{t.nav.blog}</a>
           <a href="/faq">{t.nav.faq||'FAQ'}</a>
+          <a href="/chatter3-vs-italki">vs italki</a>
+          <a href="/chatter3-vs-cambly">vs Cambly</a>
           <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
         </div>
         <p>{t.footer.copyright}</p>
