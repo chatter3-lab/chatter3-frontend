@@ -490,7 +490,7 @@ export default function App(){
   
   // English landing pages — detect browser language and redirect if needed
   const blogArticleMatch=path.match(/^\/blog\/([a-z0-9-]+)$/);
-  if(path==='/how-it-works'||path==='/for-beginners'||path==='/faq'||path==='/blog'||blogArticleMatch){
+  if(path==='/how-it-works'||path==='/for-beginners'||path==='/faq'||path==='/free-english-practice'||path==='/english-conversation-app'||path==='/chatter3-vs-italki'||path==='/chatter3-vs-cambly'||path=='/blog'||blogArticleMatch){
     const saved=localStorage.getItem('chatter3_lang');
     const lang=saved||detectLanguage();
     if(lang&&lang!=='en'){
