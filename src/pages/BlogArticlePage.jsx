@@ -20,6 +20,7 @@ export default function BlogArticlePage({slug,lang='en'}){
   if(!checking&&!article)return<BlogPage lang={lang}/>;
   if(checking)return null;
   const canonical=`https://app.chatter3.com${prefix}/blog/${article.slug}`;
+  const wordCount=(article.content||'').replace(/<[^>]+>/g,'').split(/\s+/).length;
   const articleSchema={
     "@context":"https://schema.org",
     "@type":"Article",
@@ -30,7 +31,9 @@ export default function BlogArticlePage({slug,lang='en'}){
     "author":{"@type":"Organization","name":"Chatter3","url":"https://app.chatter3.com"},
     "publisher":{"@type":"Organization","name":"Chatter3","logo":{"@type":"ImageObject","url":"https://app.chatter3.com/chatter3_logo.png"}},
     "mainEntityOfPage":{"@type":"WebPage","@id":canonical},
-    "image":"https://app.chatter3.com/og-image.png"
+    "image":"https://app.chatter3.com/og-image.png",
+    "wordCount":wordCount,
+    "inLanguage":lang||'en'
   };
   return(
     <div className="lp">
