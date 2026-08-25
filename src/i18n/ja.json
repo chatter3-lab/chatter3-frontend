@@ -13,7 +13,9 @@
     "copyright": "© 2026 Chatter3. 実在の人と英会話を練習しよう。"
   },
   "auth": {
-    "subtitle": "実在の人と英会話をマスターしよう",
+    "subtitle": "実在の人と英語を練習 — 100%無料",
+    "freeBadge": "100%無料 — クレジットカード不要",
+    "freeBanner": "無料で使える — 30秒で登録",
     "username": "ユーザー名",
     "country": "出身国",
     "nativeLanguage": "母国語",

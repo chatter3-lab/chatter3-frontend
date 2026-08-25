@@ -824,9 +824,15 @@ function AuthView({onLogin,setView,t,lang}){
           <img src="/chatter3_logo.png" alt="Chatter3" className="auth-logo"/>
           <h1 style={{position:'absolute',width:1,height:1,padding:0,margin:-1,overflow:'hidden',clip:'rect(0,0,0,0)',whiteSpace:'nowrap',border:0}}>Chatter3 — Free English Conversation Practice with Real People</h1>
           <p className="auth-subtitle">{t.auth.subtitle}</p>
+          <div style={{marginTop:8,display:'inline-flex',alignItems:'center',gap:6,background:'linear-gradient(135deg,#10b981,#059669)',color:'#fff',padding:'5px 14px',borderRadius:20,fontSize:'.8rem',fontWeight:600,letterSpacing:'.02em'}}>
+            <span style={{fontSize:'.95rem'}}>&#10003;</span> {t.auth.freeBadge}
+          </div>
         </div>
         {err&&<div className="error-message">{err}</div>}
         <form onSubmit={submit} className="register-form">
+          <div style={{background:'linear-gradient(135deg,#eef2ff,#e0e7ff)',border:'1px solid #c7d2fe',borderRadius:10,padding:'10px 16px',marginBottom:16,fontSize:'.88rem',fontWeight:500,color:'#4338ca',textAlign:'center'}}>
+            {t.auth.freeBanner}
+          </div>
           {reg&&<>
             <div className="form-group"><label htmlFor="reg-username">{t.auth.username}</label><input id="reg-username" value={form.username} onChange={upd('username')} required/></div>
             <div className="form-group"><label htmlFor="reg-country">{t.auth.country}</label><CountrySelect id="reg-country" value={form.country} onChange={v=>setForm(f=>({...f,country:v}))} required/></div>

@@ -14,7 +14,9 @@
     "copyright": "© 2026 Chatter3. Practice English with real people."
   },
   "auth": {
-    "subtitle": "Master English conversation with real people",
+    "subtitle": "Practice English with real people — 100% free",
+    "freeBadge": "100% Free — No credit card required",
+    "freeBanner": "Free to use — Sign up in 30 seconds",
     "username": "Username",
     "country": "Country of Origin",
     "nativeLanguage": "Native Language",

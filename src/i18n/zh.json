@@ -13,7 +13,9 @@
     "copyright": "© 2026 Chatter3. 与真人练习英语对话。"
   },
   "auth": {
-    "subtitle": "与真人练习英语对话，轻松掌握口语",
+    "subtitle": "与真人练习英语 — 100%免费",
+    "freeBadge": "100%免费 — 无需信用卡",
+    "freeBanner": "免费使用 — 30秒注册",
     "username": "用户名",
     "country": "所在国家",
     "nativeLanguage": "母语",
