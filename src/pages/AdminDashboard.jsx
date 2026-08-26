@@ -235,16 +235,32 @@ function BlogTab({post,t}){
     if(d.success){setMessage(t.admin.blog.deleted);loadPosts();if(editing===id)cancel();setTimeout(()=>setMessage(''),2000);}
   };
 
+  const protectEnglishPhrases=(html)=>{
+    let result=html;
+    result=result.replace(/(["'])([^<>"']{2,}?)\1/g,(match,q,content)=>{
+      if(/[a-zA-Z]/.test(content)&&!/[\u3000-\u9fff\u0600-\u06ff\u0400-\u04ff\u0980-\u09ff]/.test(content)){
+        return `${q}<span class="notranslate">${content}</span>${q}`;
+      }
+      return match;
+    });
+    ['Chatter3','italki','Cambly','Google Translate','WebRTC','Zoom','Skype','Microsoft Teams'].forEach(brand=>{
+      result=result.replace(new RegExp(`(?<![<\\/\\w])\\b(${brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})\\b(?![^<]*>)`,'gi'),'<span class="notranslate">$1</span>');
+    });
+    return result;
+  };
+
   const translateViaGoogle=async(text,tl)=>{
     try{
-      const r=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`);
+      const protectedText=protectEnglishPhrases(text);
+      const r=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${tl}&dt=t&q=${encodeURIComponent(protectedText)}`);
       const d=await r.json();
       return d[0].map(s=>s[0]).join('');
     }catch{return text;}
   };
 
   const translateHTML=async(html,tl)=>{
-    const tokens=html.split(/(<[^>]+>)/);
+    const protectedHtml=protectEnglishPhrases(html);
+    const tokens=protectedHtml.split(/(<[^>]+>)/);
     const textNodes=[];
     for(let i=0;i<tokens.length;i++){
       if(!tokens[i].startsWith('<')&&tokens[i].trim().length>0)textNodes.push({idx:i,text:tokens[i]});
