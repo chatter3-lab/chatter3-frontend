@@ -5,15 +5,6 @@ import { getTranslations } from '../i18n/detect';
 
 export function getBlogArticles(){return[];}
 
-const translateViaGoogle=async(text,tl)=>{
-  if(!text||tl==='en')return text;
-  try{
-    const r=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`);
-    const d=await r.json();
-    return d[0].map(s=>s[0]).join('');
-  }catch{return text;}
-};
-
 export default function BlogPage({lang='en'}){
   const t=getTranslations(lang);
   const prefix=lang==='en'?'':`/${lang}`;
@@ -21,18 +12,9 @@ export default function BlogPage({lang='en'}){
   const[articles,setArticles]=useState([]);
   const[loading,setLoading]=useState(true);
   useEffect(()=>{
-    fetch('https://api.chatter3.com/api/blog/list?lang=en').then(r=>r.json()).then(async d=>{
+    fetch(`https://api.chatter3.com/api/blog/list?lang=${lang}`).then(r=>r.json()).then(d=>{
       if(d.success&&d.posts?.length){
-        const posts=d.posts.map(p=>({slug:p.slug,title:p.title,excerpt:p.excerpt,content:p.content,date:p.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((p.content||'').split(/\s+/).length/200))+' min'}));
-        if(lang!=='en'){
-          const tlMap={es:'es',ja:'ja',zh:'zh-CN',bn:'bn',fr:'fr',ar:'ar',ru:'ru'};
-          const tl=tlMap[lang]||lang;
-          for(const p of posts){
-            const[tt,te]=await Promise.all([translateViaGoogle(p.title,tl),translateViaGoogle(p.excerpt,tl)]);
-            p.title=tt;p.excerpt=te;
-          }
-        }
-        setArticles(posts);
+        setArticles(d.posts.map(p=>({slug:p.slug,title:p.title,excerpt:p.excerpt,content:p.content,date:p.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((p.content||'').split(/\s+/).length/200))+' min'})));
       }
       setLoading(false);
     }).catch(e=>{console.error('[blog-fetch]',e);setLoading(false);});

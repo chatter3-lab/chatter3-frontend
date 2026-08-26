@@ -206,6 +206,8 @@ function BlogTab({post,t}){
   const[form,setForm]=useState({slug:'',title:'',excerpt:'',content:'',status:'draft',lang:'en'});
   const[saving,setSaving]=useState(false);
   const[message,setMessage]=useState('');
+  const[translatingPost,setTranslatingPost]=useState(null);
+  const[transForm,setTransForm]=useState({});
 
   const loadPosts=()=>{setLoading(true);post('/api/admin/blog/list').then(d=>{if(d.success)setPosts(d.posts||[]);setLoading(false);}).catch(()=>setLoading(false));};
   useEffect(()=>{loadPosts();},[]);
@@ -235,71 +237,19 @@ function BlogTab({post,t}){
     if(d.success){setMessage(t.admin.blog.deleted);loadPosts();if(editing===id)cancel();setTimeout(()=>setMessage(''),2000);}
   };
 
-  const protectEnglishPhrases=(html)=>{
-    let result=html;
-    result=result.replace(/(["'])([^<>"']{2,}?)\1/g,(match,q,content)=>{
-      if(/[a-zA-Z]/.test(content)&&!/[\u3000-\u9fff\u0600-\u06ff\u0400-\u04ff\u0980-\u09ff]/.test(content)){
-        return `${q}<span class="notranslate">${content}</span>${q}`;
-      }
-      return match;
-    });
-    ['Chatter3','italki','Cambly','Google Translate','WebRTC','Zoom','Skype','Microsoft Teams'].forEach(brand=>{
-      result=result.replace(new RegExp(`(?<![<\\/\\w])\\b(${brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})\\b(?![^<]*>)`,'gi'),'<span class="notranslate">$1</span>');
-    });
-    return result;
+  const startTranslate=(p)=>{
+    setTranslatingPost(p.id);
+    setTransForm({title:p.title,excerpt:p.excerpt||''});
+    setMessage('');
   };
 
-  const translateViaGoogle=async(text,tl)=>{
-    try{
-      const protectedText=protectEnglishPhrases(text);
-      const r=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${tl}&dt=t&q=${encodeURIComponent(protectedText)}`);
-      const d=await r.json();
-      return d[0].map(s=>s[0]).join('');
-    }catch{return text;}
-  };
-
-  const translateHTML=async(html,tl)=>{
-    const protectedHtml=protectEnglishPhrases(html);
-    const tokens=protectedHtml.split(/(<[^>]+>)/);
-    const textNodes=[];
-    for(let i=0;i<tokens.length;i++){
-      if(!tokens[i].startsWith('<')&&tokens[i].trim().length>0)textNodes.push({idx:i,text:tokens[i]});
-    }
-    if(textNodes.length===0)return html;
-    // Translate in batches of 5 to avoid rate limiting
-    const translated=[];
-    for(let i=0;i<textNodes.length;i+=5){
-      const batch=textNodes.slice(i,i+5);
-      const results=await Promise.all(batch.map(n=>translateViaGoogle(n.text,tl)));
-      translated.push(...results);
-      if(i+5<textNodes.length)await new Promise(r=>setTimeout(r,200));
-    }
-    const result=[...tokens];
-    for(let i=0;i<textNodes.length;i++)result[textNodes[i].idx]=translated[i]||textNodes[i].text;
-    return result.join('');
-  };
-
-  const LANG_MAP={es:'es',ja:'ja','zh':'zh-CN',bn:'bn',fr:'fr',ar:'ar',ru:'ru'};
-
-  const retranslate=async(id,slug,title,excerpt,content)=>{
+  const saveTranslation=async(lang)=>{
     setSaving(true);
-    setMessage('Translating to 7 languages...');
     try{
-      const langs=['es','ja','zh','bn','fr','ar','ru'];
-      const translations=[];
-      for(const lang of langs){
-        setMessage(`Translating to ${lang.toUpperCase()}...`);
-        const [tTitle,tExcerpt,tContent]=await Promise.all([
-          translateViaGoogle(title,LANG_MAP[lang]),
-          translateViaGoogle(excerpt,LANG_MAP[lang]),
-          translateHTML(content,LANG_MAP[lang])
-        ]);
-        translations.push({lang,slug:`${slug}-${lang}`,title:tTitle,excerpt:tExcerpt,content:tContent});
-      }
-      const d=await post('/api/admin/blog/save-translations',{id,translations});
-      if(d.success){setMessage('All 7 translations saved!');loadPosts();setTimeout(()=>setMessage(''),3000);}
+      const d=await post('/api/admin/blog/save-translation',{id:translatingPost,lang,title:transForm.title,excerpt:transForm.excerpt});
+      if(d.success){setMessage(`Saved ${lang.toUpperCase()} translation`);loadPosts();setTimeout(()=>setMessage(''),2000);}
       else setMessage(d.error||'Error saving');
-    }catch(e){console.error('[retranslate]',e);setMessage('Error: '+e.message);}
+    }catch{setMessage('Error saving');}
     setSaving(false);
   };
 
@@ -344,11 +294,28 @@ function BlogTab({post,t}){
                   <td><span style={{padding:'2px 8px',borderRadius:8,fontSize:'.72rem',fontWeight:700,background:p.status==='published'?'#22c55e':'#f59e0b',color:'white'}}>{p.status}</span></td>
                   <td style={{fontSize:'.82rem'}}>{p.translation_count>0?<span style={{color:'#22c55e'}}>{p.translation_count}/7</span>:<span style={{color:'#9ca3af'}}>0/7</span>}</td>
                   <td style={{fontSize:'.82rem',color:'#9ca3af'}}>{new Date(p.created_at).toLocaleDateString()}</td>
-                  <td><button onClick={()=>startEdit(p)} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.78rem'}}>{t.admin.blog.editPost}</button>{' '}<button onClick={()=>retranslate(p.id,p.slug,p.title,p.excerpt,p.content)} disabled={saving} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#7c3aed',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving?.5:1}}>Translate</button></td>
+                  <td><button onClick={()=>startEdit(p)} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.78rem'}}>{t.admin.blog.editPost}</button>{' '}<button onClick={()=>startTranslate(p)} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#7c3aed',color:'white',cursor:'pointer',fontSize:'.78rem'}}>Translate</button></td>
                 </tr>
               ))}
             </tbody>
-          </table>
+           </table>
+        </div>
+      )}
+      {translatingPost&&(
+        <div style={{marginTop:'1rem',padding:'1rem',background:'#1e293b',borderRadius:8,border:'1px solid #334155'}}>
+          <h4 style={{margin:'0 0 .75rem',color:'white',fontSize:'.95rem'}}>Manual Translation</h4>
+          <p style={{margin:'0 0 .75rem',color:'#9ca3af',fontSize:'.82rem'}}>Enter the translated title and excerpt for each language. The blog content stays in English.</p>
+          <div style={{display:'flex',gap:'.75rem',flexWrap:'wrap'}}>
+            {['es','ja','zh','bn','fr','ar','ru'].map(lang=>(
+              <div key={lang} style={{flex:'1 1 280px',padding:'.75rem',background:'#0f172a',borderRadius:6}}>
+                <div style={{fontWeight:700,marginBottom:'.5rem',color:'#6366f1',fontSize:'.85rem'}}>{lang.toUpperCase()}</div>
+                <div style={{marginBottom:'.5rem'}}><input value={transForm.title} onChange={e=>setTransForm(f=>({...f,title:e.target.value}))} placeholder="Translated title" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
+                <div style={{marginBottom:'.5rem'}}><input value={transForm.excerpt} onChange={e=>setTransForm(f=>({...f,excerpt:e.target.value}))} placeholder="Translated excerpt" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
+                <button onClick={()=>saveTranslation(lang)} disabled={saving||!transForm.title} style={{padding:'4px 12px',borderRadius:4,border:'none',background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving||!transForm.title?.5:1}}>Save {lang.toUpperCase()}</button>
+              </div>
+            ))}
+          </div>
+          <button onClick={()=>setTranslatingPost(null)} style={{marginTop:'.75rem',padding:'6px 16px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.82rem'}}>Close</button>
         </div>
       )}
     </div>

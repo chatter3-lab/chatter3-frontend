@@ -4,35 +4,6 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import { getTranslations } from '../i18n/detect';
 import BlogPage from './BlogPage';
 
-const translateViaGoogle=async(text,tl)=>{
-  if(!text||tl==='en')return text;
-  try{
-    const r=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`);
-    const d=await r.json();
-    return d[0].map(s=>s[0]).join('');
-  }catch{return text;}
-};
-
-const translateHTMLViaGoogle=async(html,tl)=>{
-  if(!html||tl==='en')return html;
-  const tokens=html.split(/(<[^>]+>)/);
-  const textNodes=[];
-  for(let i=0;i<tokens.length;i++){
-    if(!tokens[i].startsWith('<')&&tokens[i].trim().length>0)textNodes.push({idx:i,text:tokens[i]});
-  }
-  if(textNodes.length===0)return html;
-  const translated=[];
-  for(let i=0;i<textNodes.length;i+=5){
-    const batch=textNodes.slice(i,i+5);
-    const results=await Promise.all(batch.map(n=>translateViaGoogle(n.text,tl)));
-    translated.push(...results);
-    if(i+5<textNodes.length)await new Promise(r=>setTimeout(r,200));
-  }
-  const result=[...tokens];
-  for(let i=0;i<textNodes.length;i++)result[textNodes[i].idx]=translated[i]||textNodes[i].text;
-  return result.join('');
-};
-
 export default function BlogArticlePage({slug,lang='en'}){
   const t=getTranslations(lang);
   const prefix=lang==='en'?'':`/${lang}`;
@@ -40,20 +11,11 @@ export default function BlogArticlePage({slug,lang='en'}){
   const[checking,setChecking]=useState(true);
   const stripHtml=(s)=>(s||'').replace(/<[^>]+>/g,'');
   useEffect(()=>{
-    const tlMap={es:'es',ja:'ja',zh:'zh-CN',bn:'bn',fr:'fr',ar:'ar',ru:'ru'};
-    const tl=tlMap[lang]||lang;
-    fetch(`https://api.chatter3.com/api/blog/post?slug=${slug}`).then(r=>r.json()).then(async d=>{
-      if(d.success&&d.post){
-        const p={slug:d.post.slug,title:d.post.title,excerpt:d.post.excerpt,content:d.post.content,date:d.post.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((d.post.content||'').split(/\s+/).length/200))+' min'};
-        if(lang!=='en'){
-          const[tt,te,tc]=await Promise.all([translateViaGoogle(p.title,tl),translateViaGoogle(p.excerpt,tl),translateHTMLViaGoogle(p.content,tl)]);
-          p.title=tt;p.excerpt=te;p.content=tc;
-        }
-        setDynamicPost(p);
-      }
+    fetch(`https://api.chatter3.com/api/blog/post?slug=${slug}`).then(r=>r.json()).then(d=>{
+      if(d.success&&d.post)setDynamicPost({slug:d.post.slug,title:d.post.title,excerpt:d.post.excerpt,content:d.post.content,date:d.post.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((d.post.content||'').split(/\s+/).length/200))+' min'});
       setChecking(false);
     }).catch(()=>setChecking(false));
-  },[slug,lang]);
+  },[slug]);
   if(!checking&&!dynamicPost)return<BlogPage lang={lang}/>;
   if(checking)return null;
   const canonical=`https://app.chatter3.com${prefix}/blog/${dynamicPost.slug}`;
