@@ -208,6 +208,7 @@ function BlogTab({post,t}){
   const[message,setMessage]=useState('');
   const[translatingPost,setTranslatingPost]=useState(null);
   const[transForm,setTransForm]=useState({});
+  const get=(path)=>authFetch(`${API_URL}${path}`).then(r=>r.json());
 
   const loadPosts=()=>{setLoading(true);post('/api/admin/blog/list').then(d=>{if(d.success)setPosts(d.posts||[]);setLoading(false);}).catch(()=>setLoading(false));};
   useEffect(()=>{loadPosts();},[]);
