@@ -240,7 +240,7 @@ function BlogTab({post,t}){
   const startTranslate=(p)=>{
     setTranslatingPost(p.id);
     const init={};
-    ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{init[l]={title:p.title,excerpt:p.excerpt||''};});
+    ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{init[l]={title:p.title,excerpt:p.excerpt||'',content:p.content||''};});
     setTransForm(init);
     setMessage('');
   };
@@ -252,7 +252,7 @@ function BlogTab({post,t}){
   const saveTranslation=async(lang)=>{
     setSaving(true);
     try{
-      const d=await post('/api/admin/blog/save-translation',{id:translatingPost,lang,title:transForm[lang].title,excerpt:transForm[lang].excerpt});
+      const d=await post('/api/admin/blog/save-translation',{id:translatingPost,lang,title:transForm[lang].title,excerpt:transForm[lang].excerpt,content:transForm[lang].content});
       if(d.success){setMessage(`Saved ${lang.toUpperCase()} translation`);loadPosts();setTimeout(()=>setMessage(''),2000);}
       else setMessage(d.error||'Error saving');
     }catch{setMessage('Error saving');}
@@ -310,13 +310,14 @@ function BlogTab({post,t}){
       {translatingPost&&(
         <div style={{marginTop:'1rem',padding:'1rem',background:'#1e293b',borderRadius:8,border:'1px solid #334155'}}>
           <h4 style={{margin:'0 0 .75rem',color:'white',fontSize:'.95rem'}}>Manual Translation</h4>
-          <p style={{margin:'0 0 .75rem',color:'#9ca3af',fontSize:'.82rem'}}>Enter the translated title and excerpt for each language. The blog content stays in English.</p>
+          <p style={{margin:'0 0 .75rem',color:'#9ca3af',fontSize:'.82rem'}}>Enter the translated title, excerpt, and content for each language. Paste the full translated HTML content.</p>
           <div style={{display:'flex',gap:'.75rem',flexWrap:'wrap'}}>
             {['es','ja','zh','bn','fr','ar','ru'].map(lang=>(
-              <div key={lang} style={{flex:'1 1 280px',padding:'.75rem',background:'#0f172a',borderRadius:6}}>
+              <div key={lang} style={{flex:'1 1 350px',padding:'.75rem',background:'#0f172a',borderRadius:6}}>
                 <div style={{fontWeight:700,marginBottom:'.5rem',color:'#6366f1',fontSize:'.85rem'}}>{lang.toUpperCase()}</div>
                 <div style={{marginBottom:'.5rem'}}><input value={transForm[lang]?.title||''} onChange={e=>updateTrans(lang,'title',e.target.value)} placeholder="Translated title" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
                 <div style={{marginBottom:'.5rem'}}><input value={transForm[lang]?.excerpt||''} onChange={e=>updateTrans(lang,'excerpt',e.target.value)} placeholder="Translated excerpt" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
+                <div style={{marginBottom:'.5rem'}}><textarea value={transForm[lang]?.content||''} onChange={e=>updateTrans(lang,'content',e.target.value)} placeholder="Translated HTML content" rows={10} style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.78rem',fontFamily:'monospace',resize:'vertical',boxSizing:'border-box'}}/></div>
                 <button onClick={()=>saveTranslation(lang)} disabled={saving||!transForm[lang]?.title} style={{padding:'4px 12px',borderRadius:4,border:'none',background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving||!transForm[lang]?.title?.5:1}}>Save {lang.toUpperCase()}</button>
               </div>
             ))}
