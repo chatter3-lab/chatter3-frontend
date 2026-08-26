@@ -241,7 +241,7 @@ function BlogTab({post,t}){
     setTranslatingPost(p.id);
     setMessage('Loading translations...');
     try{
-      const d=await post(`/api/admin/blog/translations?postId=${p.id}`);
+      const d=await get(`/api/admin/blog/translations?postId=${p.id}`);
       const init={};
       ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{
         const existing=d.translations?.find(t=>t.lang===l);
@@ -349,6 +349,7 @@ export default function AdminDashboard({user,onBack,t}){
   const[loading,setLoading]=useState(false);
 
   const post=(path,body)=>authFetch(`${API_URL}${path}`,{method:'POST',body:JSON.stringify(body||{})}).then(r=>r.json());
+  const get=(path)=>authFetch(`${API_URL}${path}`).then(r=>r.json());
 
   const renderAnalytics = (stats, maxSessions) => {
     if (!stats) return null;
