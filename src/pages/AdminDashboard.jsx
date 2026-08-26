@@ -239,14 +239,20 @@ function BlogTab({post,t}){
 
   const startTranslate=(p)=>{
     setTranslatingPost(p.id);
-    setTransForm({title:p.title,excerpt:p.excerpt||''});
+    const init={};
+    ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{init[l]={title:p.title,excerpt:p.excerpt||''};});
+    setTransForm(init);
     setMessage('');
+  };
+
+  const updateTrans=(lang,field,val)=>{
+    setTransForm(f=>({...f,[lang]:{...f[lang],[field]:val}}));
   };
 
   const saveTranslation=async(lang)=>{
     setSaving(true);
     try{
-      const d=await post('/api/admin/blog/save-translation',{id:translatingPost,lang,title:transForm.title,excerpt:transForm.excerpt});
+      const d=await post('/api/admin/blog/save-translation',{id:translatingPost,lang,title:transForm[lang].title,excerpt:transForm[lang].excerpt});
       if(d.success){setMessage(`Saved ${lang.toUpperCase()} translation`);loadPosts();setTimeout(()=>setMessage(''),2000);}
       else setMessage(d.error||'Error saving');
     }catch{setMessage('Error saving');}
@@ -309,9 +315,9 @@ function BlogTab({post,t}){
             {['es','ja','zh','bn','fr','ar','ru'].map(lang=>(
               <div key={lang} style={{flex:'1 1 280px',padding:'.75rem',background:'#0f172a',borderRadius:6}}>
                 <div style={{fontWeight:700,marginBottom:'.5rem',color:'#6366f1',fontSize:'.85rem'}}>{lang.toUpperCase()}</div>
-                <div style={{marginBottom:'.5rem'}}><input value={transForm.title} onChange={e=>setTransForm(f=>({...f,title:e.target.value}))} placeholder="Translated title" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
-                <div style={{marginBottom:'.5rem'}}><input value={transForm.excerpt} onChange={e=>setTransForm(f=>({...f,excerpt:e.target.value}))} placeholder="Translated excerpt" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
-                <button onClick={()=>saveTranslation(lang)} disabled={saving||!transForm.title} style={{padding:'4px 12px',borderRadius:4,border:'none',background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving||!transForm.title?.5:1}}>Save {lang.toUpperCase()}</button>
+                <div style={{marginBottom:'.5rem'}}><input value={transForm[lang]?.title||''} onChange={e=>updateTrans(lang,'title',e.target.value)} placeholder="Translated title" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
+                <div style={{marginBottom:'.5rem'}}><input value={transForm[lang]?.excerpt||''} onChange={e=>updateTrans(lang,'excerpt',e.target.value)} placeholder="Translated excerpt" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
+                <button onClick={()=>saveTranslation(lang)} disabled={saving||!transForm[lang]?.title} style={{padding:'4px 12px',borderRadius:4,border:'none',background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving||!transForm[lang]?.title?.5:1}}>Save {lang.toUpperCase()}</button>
               </div>
             ))}
           </div>
