@@ -237,12 +237,24 @@ function BlogTab({post,t}){
     if(d.success){setMessage(t.admin.blog.deleted);loadPosts();if(editing===id)cancel();setTimeout(()=>setMessage(''),2000);}
   };
 
-  const startTranslate=(p)=>{
+  const startTranslate=async(p)=>{
     setTranslatingPost(p.id);
-    const init={};
-    ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{init[l]={title:p.title,excerpt:p.excerpt||'',content:p.content||''};});
-    setTransForm(init);
-    setMessage('');
+    setMessage('Loading translations...');
+    try{
+      const d=await post(`/api/admin/blog/translations?postId=${p.id}`);
+      const init={};
+      ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{
+        const existing=d.translations?.find(t=>t.lang===l);
+        init[l]={title:existing?.title||p.title,excerpt:existing?.excerpt||p.excerpt||'',content:existing?.content||p.content||''};
+      });
+      setTransForm(init);
+      setMessage('');
+    }catch{
+      const init={};
+      ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{init[l]={title:p.title,excerpt:p.excerpt||'',content:p.content||''};});
+      setTransForm(init);
+      setMessage('');
+    }
   };
 
   const updateTrans=(lang,field,val)=>{
