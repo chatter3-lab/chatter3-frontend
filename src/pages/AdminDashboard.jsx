@@ -337,7 +337,7 @@ function BlogTab({post,t}){
       {translatingPost&&(
         <div style={{marginTop:'1rem',padding:'1rem',background:'#1e293b',borderRadius:8,border:'1px solid #334155'}}>
           <h4 style={{margin:'0 0 .75rem',color:'white',fontSize:'.95rem'}}>Manual Translation</h4>
-          <p style={{margin:'0 0 .75rem',color:'#9ca3af',fontSize:'.82rem'}}>Enter the translated title, excerpt, and content for each language. Paste the full translated HTML content.</p>
+          <p style={{margin:'0 0 .75rem',color:'#9ca3af',fontSize:'.82rem'}}>Enter the translated title, excerpt, and content for each language. You can paste formatted text directly — links and formatting will be preserved.</p>
           <div style={{display:'flex',gap:'.75rem',flexWrap:'wrap'}}>
             {['es','ja','zh','bn','fr','ar','ru'].map(lang=>(
               <div key={lang} style={{flex:'1 1 350px',padding:'.75rem',background:'#0f172a',borderRadius:6}}>
