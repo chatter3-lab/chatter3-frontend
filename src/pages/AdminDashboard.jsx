@@ -199,6 +199,20 @@ function AdminSettingsPanel({user,t}){
   );
 }
 
+function RichEditor({value,onChange}){
+  const ref=React.useRef(null);
+  useEffect(()=>{if(ref.current&&ref.current.innerHTML!==value){ref.current.innerHTML=value||'';}},[value]);
+  const handlePaste=e=>{
+    const html=e.clipboardData.getData('text/html');
+    if(html){
+      e.preventDefault();
+      const cleaned=html.replace(/<meta[^>]*>/gi,'').replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'').replace(/class="[^"]*"/gi,'').replace(/style="[^"]*"/gi,'').replace(/<div><br><\/div>/gi,'\n').replace(/<br\s*\/?>/gi,'\n');
+      document.execCommand('insertHTML',false,cleaned);
+    }
+  };
+  return <div ref={ref} contentEditable suppressContentEditableWarning onInput={e=>onChange(e.currentTarget.innerHTML)} onPaste={handlePaste} style={{width:'100%',minHeight:200,maxHeight:500,overflowY:'auto',padding:'10px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.88rem',lineHeight:1.7,fontFamily:'system-ui',boxSizing:'border-box'}}/>;
+}
+
 function BlogTab({post,t}){
   const[posts,setPosts]=useState([]);
   const[loading,setLoading]=useState(true);
@@ -280,7 +294,7 @@ function BlogTab({post,t}){
         <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.slug}</label><input value={form.slug} onChange={e=>setForm(f=>({...f,slug:e.target.value}))} placeholder={t.admin.blog.slugHelp} style={{width:'100%',padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.9rem',boxSizing:'border-box'}}/></div>
         <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.postTitle}</label><input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} style={{width:'100%',padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.9rem',boxSizing:'border-box'}}/></div>
         <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.excerpt}</label><input value={form.excerpt} onChange={e=>setForm(f=>({...f,excerpt:e.target.value}))} placeholder={t.admin.blog.excerptHelp} style={{width:'100%',padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.9rem',boxSizing:'border-box'}}/></div>
-        <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.content} <span style={{fontSize:'.72rem'}}>({t.admin.blog.contentHelp})</span></label><textarea value={form.content} onChange={e=>setForm(f=>({...f,content:e.target.value}))} rows={15} style={{width:'100%',padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.85rem',fontFamily:'monospace',resize:'vertical',boxSizing:'border-box'}}/></div>
+        <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.content} <span style={{fontSize:'.72rem'}}>({t.admin.blog.contentHelp})</span></label><RichEditor value={form.content} onChange={val=>setForm(f=>({...f,content:val}))}/></div>
         <div style={{display:'flex',gap:'1rem',flexWrap:'wrap'}}>
           <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.status}</label><select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))} style={{padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.9rem'}}><option value="draft">{t.admin.blog.draft}</option><option value="published">{t.admin.blog.published}</option></select></div>
           <div><label style={{fontSize:'.82rem',color:'#9ca3af'}}>{t.admin.blog.language}</label><select value={form.lang} onChange={e=>setForm(f=>({...f,lang:e.target.value}))} style={{padding:'8px 12px',borderRadius:6,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.9rem'}}>{['en','es','ja','zh','bn','fr','ar','ru'].map(l=><option key={l} value={l}>{l.toUpperCase()}</option>)}</select></div>
@@ -330,7 +344,7 @@ function BlogTab({post,t}){
                 <div style={{fontWeight:700,marginBottom:'.5rem',color:'#6366f1',fontSize:'.85rem'}}>{lang.toUpperCase()}</div>
                 <div style={{marginBottom:'.5rem'}}><input value={transForm[lang]?.title||''} onChange={e=>updateTrans(lang,'title',e.target.value)} placeholder="Translated title" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
                 <div style={{marginBottom:'.5rem'}}><input value={transForm[lang]?.excerpt||''} onChange={e=>updateTrans(lang,'excerpt',e.target.value)} placeholder="Translated excerpt" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
-                <div style={{marginBottom:'.5rem'}}><textarea value={transForm[lang]?.content||''} onChange={e=>updateTrans(lang,'content',e.target.value)} placeholder="Translated HTML content" rows={10} style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.78rem',fontFamily:'monospace',resize:'vertical',boxSizing:'border-box'}}/></div>
+                <div style={{marginBottom:'.5rem'}}><RichEditor value={transForm[lang]?.content||''} onChange={val=>updateTrans(lang,'content',val)}/></div>
                 <button onClick={()=>saveTranslation(lang)} disabled={saving||!transForm[lang]?.title} style={{padding:'4px 12px',borderRadius:4,border:'none',background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving||!transForm[lang]?.title?.5:1}}>Save {lang.toUpperCase()}</button>
               </div>
             ))}
