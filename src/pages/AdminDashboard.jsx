@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const API_URL = 'https://api.chatter3.com';
 
@@ -200,7 +200,7 @@ function AdminSettingsPanel({user,t}){
 }
 
 function RichEditor({value,onChange}){
-  const ref=React.useRef(null);
+  const ref=useRef(null);
   useEffect(()=>{if(ref.current&&ref.current.innerHTML!==value){ref.current.innerHTML=value||'';}},[value]);
   const handlePaste=e=>{
     const html=e.clipboardData.getData('text/html');
