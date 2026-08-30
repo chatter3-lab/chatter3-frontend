@@ -221,6 +221,7 @@ function BlogTab({post,t}){
   const[saving,setSaving]=useState(false);
   const[message,setMessage]=useState('');
   const[translatingPost,setTranslatingPost]=useState(null);
+  const[translatingTitle,setTranslatingTitle]=useState('');
   const[transForm,setTransForm]=useState({});
   const get=(path)=>authFetch(`${API_URL}${path}`).then(r=>r.json());
 
@@ -253,18 +254,23 @@ function BlogTab({post,t}){
   };
 
   const startTranslate=async(p)=>{
+    console.log('startTranslate called with post:', p.id, p.title, 'content preview:', (p.content||'').substring(0,80));
     setTranslatingPost(p.id);
+    setTranslatingTitle(p.title);
     setMessage('Loading translations...');
     try{
       const d=await get(`/api/admin/blog/translations?postId=${p.id}`);
+      console.log('translations response:', d);
       const init={};
       ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{
         const existing=d.translations?.find(t=>t.lang===l);
         init[l]={title:existing?.title||p.title,excerpt:existing?.excerpt||p.excerpt||'',content:existing?.content||p.content||''};
       });
+      console.log('init title es:', init.es?.title, 'content preview:', (init.es?.content||'').substring(0,80));
       setTransForm(init);
       setMessage('');
-    }catch{
+    }catch(e){
+      console.log('translations error:', e);
       const init={};
       ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{init[l]={title:p.title,excerpt:p.excerpt||'',content:p.content||''};});
       setTransForm(init);
@@ -336,7 +342,7 @@ function BlogTab({post,t}){
       )}
       {translatingPost&&(
         <div style={{marginTop:'1rem',padding:'1rem',background:'#1e293b',borderRadius:8,border:'1px solid #334155'}}>
-          <h4 style={{margin:'0 0 .75rem',color:'white',fontSize:'.95rem'}}>Manual Translation</h4>
+          <h4 style={{margin:'0 0 .75rem',color:'white',fontSize:'.95rem'}}>Manual Translation{translatingTitle?` — ${translatingTitle}`:''}</h4>
           <p style={{margin:'0 0 .75rem',color:'#9ca3af',fontSize:'.82rem'}}>Enter the translated title, excerpt, and content for each language. You can paste formatted text directly — links and formatting will be preserved.</p>
           <div style={{display:'flex',gap:'.75rem',flexWrap:'wrap'}}>
             {['es','ja','zh','bn','fr','ar','ru'].map(lang=>(
@@ -349,7 +355,7 @@ function BlogTab({post,t}){
               </div>
             ))}
           </div>
-          <button onClick={()=>setTranslatingPost(null)} style={{marginTop:'.75rem',padding:'6px 16px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.82rem'}}>Close</button>
+          <button onClick={()=>{setTranslatingPost(null);setTranslatingTitle('');setTransForm({});}} style={{marginTop:'.75rem',padding:'6px 16px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.82rem'}}>Close</button>
         </div>
       )}
     </div>
