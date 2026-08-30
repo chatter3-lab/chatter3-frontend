@@ -17,7 +17,7 @@ export default function BlogArticlePage({slug,lang='en'}){
   };
   useEffect(()=>{
     fetch(`https://api.chatter3.com/api/blog/post?slug=${slug}&lang=${lang}`).then(r=>r.json()).then(d=>{
-      if(d.success&&d.post)setDynamicPost({slug:d.post.slug,title:d.post.title,excerpt:d.post.excerpt,content:d.post.content,date:d.post.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((d.post.content||'').split(/\s+/).length/200))+' min'});
+      if(d.success&&d.post)setDynamicPost({slug:d.post.slug,title:d.post.title,excerpt:d.post.excerpt,content:d.post.content,date:d.post.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((d.post.content||'').split(/\s+/).length/200))});
       setChecking(false);
     }).catch(()=>setChecking(false));
   },[slug]);

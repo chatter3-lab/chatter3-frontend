@@ -14,7 +14,7 @@ export default function BlogPage({lang='en'}){
   useEffect(()=>{
     fetch(`https://api.chatter3.com/api/blog/list?lang=${lang}`).then(r=>r.json()).then(d=>{
       if(d.success&&d.posts?.length){
-        setArticles(d.posts.map(p=>({slug:p.slug,title:p.title,excerpt:p.excerpt,content:p.content,date:p.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((p.content||'').split(/\s+/).length/200))+' min'})));
+        setArticles(d.posts.map(p=>({slug:p.slug,title:p.title,excerpt:p.excerpt,content:p.content,date:p.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((p.content||'').split(/\s+/).length/200))})));
       }
       setLoading(false);
     }).catch(e=>{console.error('[blog-fetch]',e);setLoading(false);});
