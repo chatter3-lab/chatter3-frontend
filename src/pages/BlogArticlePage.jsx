@@ -10,6 +10,11 @@ export default function BlogArticlePage({slug,lang='en'}){
   const[dynamicPost,setDynamicPost]=useState(null);
   const[checking,setChecking]=useState(true);
   const stripHtml=(s)=>(s||'').replace(/<[^>]+>/g,'');
+  const processContent=(html)=>{
+    if(!html)return'';
+    if(html.includes('<p>')||html.includes('<br')||html.includes('<h')||html.includes('<ol')||html.includes('<ul'))return html;
+    return html.split(/\n{2,}/).map(p=>'<p>'+p.replace(/\n/g,'<br>')+'</p>').join('');
+  };
   useEffect(()=>{
     fetch(`https://api.chatter3.com/api/blog/post?slug=${slug}&lang=${lang}`).then(r=>r.json()).then(d=>{
       if(d.success&&d.post)setDynamicPost({slug:d.post.slug,title:d.post.title,excerpt:d.post.excerpt,content:d.post.content,date:d.post.created_at?.slice(0,10),readTime:Math.max(1,Math.ceil((d.post.content||'').split(/\s+/).length/200))+' min'});
@@ -45,7 +50,7 @@ export default function BlogArticlePage({slug,lang='en'}){
         <p style={{color:'#6b7280',fontSize:'.9rem',marginBottom:0}}>{dynamicPost.date} · {dynamicPost.readTime} {t.blog.minRead}</p>
       </div>
       <div className="lp-section" style={{maxWidth:720}}>
-        <div dangerouslySetInnerHTML={{__html:dynamicPost.content}} style={{lineHeight:1.8,fontSize:'1.05rem'}}/>
+        <div dangerouslySetInnerHTML={{__html:processContent(dynamicPost.content)}} style={{lineHeight:1.8,fontSize:'1.05rem'}}/>
         <div style={{marginTop:'2rem',padding:'1.5rem',background:'#f0fdf4',borderRadius:12,textAlign:'center'}}>
           <h3 style={{margin:'0 0 .5rem'}}>{t.blog.readyToPractice}</h3>
           <p style={{margin:'0 0 1rem',color:'#6b7280'}}>{t.blog.applyLearning}</p>
