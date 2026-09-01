@@ -1740,7 +1740,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
 // PROFILE VIEW
 // ─────────────────────────────────────────────────────────────────
 function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
-  const[form,setForm]=useState({username:user.username||'',nickname:user.nickname||'',country:user.country||'',native_language:user.native_language||'',english_level:user.english_level||'beginner',bio:user.bio||'',avatar_url:user.avatar_url||''});
+  const[form,setForm]=useState({username:user.username||'',nickname:user.nickname||'',country:user.country||'',native_language:user.native_language||'',english_level:user.english_level||'beginner',bio:user.bio||'',avatar_url:user.avatar_url||'',learning_focus:user.learning_focus||'general',daily_goal_minutes:user.daily_goal_minutes||0});
   const[history,setHistory]=useState([]);
   const[showFeedback,setShowFeedback]=useState(false);
   const[showPwChange,setShowPwChange]=useState(false);
@@ -1785,6 +1785,21 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
           <select value={form.english_level} onChange={upd('english_level')}>
             <option value="beginner">{t.profile.beginner}</option><option value="intermediate">{t.profile.intermediate}</option><option value="advanced">{t.profile.advanced}</option>
           </select>
+        </div>
+        <div className="form-group"><label>Learning Focus</label>
+          <select value={form.learning_focus||user.learning_focus||'general'} onChange={e=>setForm(f=>({...f,learning_focus:e.target.value}))}>
+            <option value="general">General English</option>
+            <option value="business">Business English</option>
+            <option value="travel">Travel English</option>
+            <option value="academic">Academic English</option>
+            <option value="conversation">Conversation Practice</option>
+            <option value="pronunciation">Pronunciation Focus</option>
+          </select>
+          <p style={{fontSize:'.75rem',color:'#64748b',margin:'4px 0 0'}}>Helps us suggest better conversation partners</p>
+        </div>
+        <div className="form-group"><label>Daily Goal (minutes)</label>
+          <input type="number" value={form.daily_goal_minutes||user.daily_goal_minutes||0} onChange={e=>setForm(f=>({...f,daily_goal_minutes:parseInt(e.target.value)||0}))} min={0} max={120} placeholder="0 = no goal"/>
+          <p style={{fontSize:'.75rem',color:'#64748b',margin:'4px 0 0'}}>Set to 15+ minutes for streak tracking</p>
         </div>
         <button className="save-btn" onClick={save}>{t.profile.saveProfile}</button>
         {user.auth_provider!=='google'&&<>
