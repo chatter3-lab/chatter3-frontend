@@ -962,6 +962,7 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
   const[learnerProgress,setLearnerProgress]=useState(null);
+  const[reputation,setReputation]=useState(null);
   const[showGoalModal,setShowGoalModal]=useState(false);
   const[goalMinutes,setGoalMinutes]=useState(user.daily_goal_minutes||15);
   const[learningFocus,setLearningFocus]=useState(user.learning_focus||'general');
@@ -976,6 +977,10 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
     // Fetch learner progress
     fetch(`${API_URL}/api/learner/progress`,{headers:{'Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`}}).then(r=>r.json()).then(d=>{
       if(d.success)setLearnerProgress(d);
+    }).catch(()=>{});
+    // Fetch reputation
+    fetch(`${API_URL}/api/reputation`,{headers:{'Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`}}).then(r=>r.json()).then(d=>{
+      if(d.success)setReputation(d);
     }).catch(()=>{});
   },[user.id]);
 
@@ -1004,6 +1009,12 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
         {user.streak_count>0&&(
           <div style={{background:user.streak_count>=7?'linear-gradient(135deg,#fbbf24,#f59e0b)':user.streak_count>=3?'linear-gradient(135deg,#34d399,#10b981)':'linear-gradient(135deg,#e0e7ff,#c7d2fe)',border:`1px solid ${user.streak_count>=7?'#f59e0b':user.streak_count>=3?'#10b981':'#818cf8'}`,borderRadius:10,padding:'10px 16px',marginBottom:'.75rem',fontSize:'.85rem',color:user.streak_count>=7?'#92400e':user.streak_count>=3?'#065f46':'#3730a3',fontWeight:500}}>
             {t.dashboard.streak.replace('{count}',user.streak_count)}{user.streak_count>=7?t.dashboard.streakGreat:user.streak_count>=3?t.dashboard.streakGood:t.dashboard.streakStart}
+          </div>
+        )}
+        {reputation&&(
+          <div style={{background:'linear-gradient(135deg,#f0f9ff,#e0f2fe)',border:'1px solid #bae6fd',borderRadius:10,padding:'10px 16px',marginBottom:'.75rem',fontSize:'.85rem',color:'#0c4a6e',fontWeight:500,display:'flex',alignItems:'center',gap:'8px'}}>
+            <span style={{fontSize:'1.1rem'}}>{reputation.badge.icon}</span>
+            <span>Reputation: <strong>{reputation.score}/100</strong> · {reputation.badge.tier}</span>
           </div>
         )}
         <button onClick={onFindPartner} className="start-matching-btn" disabled={!canCall}>
@@ -1253,6 +1264,7 @@ function MatchingView({user,settings,onCancel,onMatch,t}){
 function PreCallView({session,onStart,onCancel,t}){
   const FROM=5;
   const[cd,setCd]=useState(FROM);
+  const[partnerReputation,setPartnerReputation]=useState(null);
   const partner=session.partner||{};
   const name=partner.nickname||partner.username||t.precall.yourPartner;
   const starters=getStarters(t);
@@ -1260,6 +1272,14 @@ function PreCallView({session,onStart,onCancel,t}){
   const LEVEL={beginner:t.auth.beginner,intermediate:t.auth.intermediate,advanced:t.auth.advanced};
   useEffect(()=>{playSound('match');},[]);
   useEffect(()=>{if(cd<=0){onStart();return;}const t=setTimeout(()=>setCd(c=>c-1),1000);return()=>clearTimeout(t);},[cd]);
+  // Fetch partner reputation
+  useEffect(()=>{
+    if(partner.id){
+      fetch(`${API_URL}/api/reputation?userId=${partner.id}`,{headers:{'Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`}}).then(r=>r.json()).then(d=>{
+        if(d.success)setPartnerReputation(d);
+      }).catch(()=>{});
+    }
+  },[partner.id]);
   const R=27,C=2*Math.PI*R,offset=C*(1-cd/FROM);
   const stroke=cd>2?'#4f8ef7':cd>1?'#f59e0b':'#ef4444';
   return(
@@ -1278,6 +1298,7 @@ function PreCallView({session,onStart,onCancel,t}){
           {partner.country&&<span className="chip country">{getFlag(partner.country)} {countryName(partner.country)}</span>}
           {partner.native_language&&<span className="chip lang">🗣️ {partner.native_language}</span>}
           {partner.english_level&&<span className="chip level">{LEVEL[partner.english_level]||partner.english_level}</span>}
+          {partnerReputation&&<span className="chip" style={{background:`${partnerReputation.badge.color}20`,color:partnerReputation.badge.color,border:`1px solid ${partnerReputation.badge.color}40`}}>{partnerReputation.badge.icon} {partnerReputation.badge.tier}</span>}
         </div>
         <div className="precall-starter"><strong>💡 {t.precall.starter}</strong>{tip}</div>
         <div className="precall-countdown">
