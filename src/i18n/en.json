@@ -840,6 +840,7 @@
     "categories": {
       "general": "General",
       "practice": "Practice",
+      "learning": "Learning Features",
       "account": "Account",
       "safety": "Safety",
       "technical": "Technical"
@@ -860,6 +861,22 @@
       "whoCan": {
         "q": "Who can use Chatter3?",
         "a": "Anyone who wants to practice English conversation! We welcome all levels — beginner, intermediate, and advanced. You must be 13+ years old."
+      },
+      "dailyGoals": {
+        "q": "How do daily goals work?",
+        "a": "Set a daily practice goal (e.g., 15 minutes) in your profile. Your dashboard tracks progress throughout the day. When you complete your goal, you'll see a celebration message. Consistency builds streaks!"
+      },
+      "vocabularyBank": {
+        "q": "What is the Vocabulary Bank?",
+        "a": "Save words you learn during conversations for later review. Words follow a spaced repetition schedule — they come back at increasing intervals (1 day, 3 days, 7 days, etc.) to help you remember them long-term."
+      },
+      "reputationBadge": {
+        "q": "What are reputation badges?",
+        "a": "Your reputation score (0-100) reflects your activity and quality as a conversation partner. It's based on sessions completed, partner ratings, streak, and account age. Badges range from 'New' to 'Trusted' and help others identify reliable partners."
+      },
+      "learningFocus": {
+        "q": "What is Learning Focus?",
+        "a": "Choose a learning focus in your profile (General, Business, Travel, Academic, Conversation, or Pronunciation). This helps us suggest better conversation partners and tailor your experience."
       },
       "beginner": {
         "q": "What if I'm a complete beginner?",

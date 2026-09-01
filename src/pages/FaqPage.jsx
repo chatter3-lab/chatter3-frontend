@@ -63,10 +63,11 @@ a{color:inherit;text-decoration:none;}
 }
 `;
 
-const faqOrder = ['general','practice','account','safety','technical'];
+const faqOrder = ['general','practice','learning','account','safety','technical'];
 const faqKeys = [
   ['whatIs','isFree','howWork','whoCan'],
   ['beginner','sessionLength','languageDiff','choosePartner'],
+  ['dailyGoals','vocabularyBank','reputationBadge','learningFocus'],
   ['createAccount','rewardPoints','friendPoints','foundingMember'],
   ['isSafe','inappropriate','dataPrivate'],
   ['devices','internet','browsers','noAudio']
