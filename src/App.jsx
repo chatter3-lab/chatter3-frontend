@@ -961,6 +961,10 @@ function InstallBanner({t}){
 function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefreshUser,t}){
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
+  const[learnerProgress,setLearnerProgress]=useState(null);
+  const[showGoalModal,setShowGoalModal]=useState(false);
+  const[goalMinutes,setGoalMinutes]=useState(user.daily_goal_minutes||15);
+  const[learningFocus,setLearningFocus]=useState(user.learning_focus||'general');
   const isFreePeriod=!!user.in_free_period;
   const canCall=balances.fp>=1||isFreePeriod;
 
@@ -968,6 +972,10 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
     fetch(`${API_URL}/api/stats/online`).then(r=>r.json()).then(setOnline).catch(()=>{});
     fetch(`${API_URL}/api/user/balances/${user.id}`).then(r=>r.json()).then(d=>{
       if(d.success){setBalances({fp:d.fp,rp:d.rp});if(d.fp!==user.fp_balance||d.rp!==user.rp_balance)onRefreshUser();}
+    }).catch(()=>{});
+    // Fetch learner progress
+    fetch(`${API_URL}/api/learner/progress`,{headers:{'Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`}}).then(r=>r.json()).then(d=>{
+      if(d.success)setLearnerProgress(d);
     }).catch(()=>{});
   },[user.id]);
 
@@ -1037,6 +1045,96 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
           </button>
         </div>
       </div>
+
+      {/* Learner Progress Section (Data Moat) */}
+      {learnerProgress&&(
+        <div className="stats-card" style={{marginTop:'1rem'}}>
+          <h3 style={{margin:'0 0 .75rem',fontSize:'1rem',fontWeight:700}}>Your Learning Progress</h3>
+          
+          {/* Daily Goal */}
+          <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'12px',marginBottom:'.75rem'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+              <span style={{fontSize:'.85rem',fontWeight:600,color:'#166534'}}>Today's Goal</span>
+              <button onClick={()=>setShowGoalModal(true)} style={{fontSize:'.75rem',color:'#6366f1',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>Edit</button>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+              <div style={{flex:1,height:'8px',background:'#dcfce7',borderRadius:4}}>
+                <div style={{height:'100%',width:`${Math.min(100,((learnerProgress.goals?.[0]?.actual_minutes||0)/(learnerProgress.goals?.[0]?.goal_minutes||15))*100)}%`,background:'#22c55e',borderRadius:4,transition:'width .3s'}}/>
+              </div>
+              <span style={{fontSize:'.8rem',color:'#166534',fontWeight:500}}>{learnerProgress.goals?.[0]?.actual_minutes||0}/{learnerProgress.goals?.[0]?.goal_minutes||15} min</span>
+            </div>
+            {learnerProgress.goals?.[0]?.completed===1&&(
+              <div style={{fontSize:'.75rem',color:'#16a34a',marginTop:'4px',fontWeight:500}}>Goal completed today!</div>
+            )}
+          </div>
+
+          {/* Quick Stats */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'.5rem',marginBottom:'.75rem'}}>
+            <div style={{textAlign:'center',padding:'8px',background:'#f8fafc',borderRadius:6}}>
+              <div style={{fontSize:'1.1rem',fontWeight:700,color:'#1e293b'}}>{learnerProgress.streak||0}</div>
+              <div style={{fontSize:'.7rem',color:'#64748b'}}>Day Streak</div>
+            </div>
+            <div style={{textAlign:'center',padding:'8px',background:'#f8fafc',borderRadius:6}}>
+              <div style={{fontSize:'1.1rem',fontWeight:700,color:'#1e293b'}}>{learnerProgress.total_sessions||0}</div>
+              <div style={{fontSize:'.7rem',color:'#64748b'}}>Sessions</div>
+            </div>
+            <div style={{textAlign:'center',padding:'8px',background:'#f8fafc',borderRadius:6}}>
+              <div style={{fontSize:'1.1rem',fontWeight:700,color:'#1e293b'}}>{learnerProgress.vocabulary_count||0}</div>
+              <div style={{fontSize:'.7rem',color:'#64748b'}}>Words</div>
+            </div>
+          </div>
+
+          {/* Quality Trend */}
+          {learnerProgress.quality_trend?.length>0&&(
+            <div style={{marginBottom:'.75rem'}}>
+              <div style={{fontSize:'.85rem',fontWeight:600,color:'#1e293b',marginBottom:'6px'}}>Conversation Quality</div>
+              <div style={{display:'flex',gap:'4px',alignItems:'flex-end',height:'40px'}}>
+                {learnerProgress.quality_trend.slice(0,10).reverse().map((q,i)=>(
+                  <div key={i} style={{flex:1,background:`${q.quality_score>=70?'#22c55e':q.quality_score>=40?'#f59e0b':'#ef4444'}`,height:`${Math.max(4,q.quality_score*0.4)}px`,borderRadius:2,minWidth:0}} title={`Score: ${q.quality_score}`}/>
+                ))}
+              </div>
+              <div style={{fontSize:'.7rem',color:'#64748b',marginTop:'4px'}}>Last 10 sessions (higher = better)</div>
+            </div>
+          )}
+
+          {/* Partner Rating */}
+          {learnerProgress.ratings?.count>0&&(
+            <div style={{display:'flex',justifyContent:'space-between',padding:'8px',background:'#f8fafc',borderRadius:6,fontSize:'.85rem'}}>
+              <span style={{color:'#64748b'}}>Partner Rating</span>
+              <span style={{fontWeight:600,color:'#1e293b'}}>{learnerProgress.ratings.avg?.toFixed(1)}/5 ({learnerProgress.ratings.count} ratings)</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Goal Setting Modal */}
+      {showGoalModal&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',display:'flex',justifyContent:'center',alignItems:'center',zIndex:1000}}>
+          <div style={{background:'white',borderRadius:12,padding:'24px',maxWidth:'400px',width:'90%'}}>
+            <h3 style={{margin:'0 0 16px',fontSize:'1.1rem',fontWeight:700}}>Set Daily Goal</h3>
+            <div style={{marginBottom:'16px'}}>
+              <label style={{fontSize:'.85rem',fontWeight:500,color:'#374151',display:'block',marginBottom:'6px'}}>Minutes per day</label>
+              <input type='number' value={goalMinutes} onChange={e=>setGoalMinutes(parseInt(e.target.value)||0)} min={5} max={120} style={{width:'100%',padding:'8px 12px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.9rem'}}/>
+            </div>
+            <div style={{marginBottom:'16px'}}>
+              <label style={{fontSize:'.85rem',fontWeight:500,color:'#374151',display:'block',marginBottom:'6px'}}>Learning Focus</label>
+              <select value={learningFocus} onChange={e=>setLearningFocus(e.target.value)} style={{width:'100%',padding:'8px 12px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.9rem'}}>
+                <option value='general'>General English</option>
+                <option value='business'>Business English</option>
+                <option value='travel'>Travel English</option>
+                <option value='academic'>Academic English</option>
+                <option value='conversation'>Conversation Practice</option>
+              </select>
+            </div>
+            <div style={{display:'flex',gap:'8px'}}>
+              <button onClick={()=>setShowGoalModal(false)} style={{flex:1,padding:'10px',border:'1px solid #d1d5db',borderRadius:6,background:'white',cursor:'pointer',fontSize:'.85rem'}}>Cancel</button>
+              <button onClick={()=>{
+                fetch(`${API_URL}/api/learner/goal`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({goal_minutes:goalMinutes,learning_focus:learningFocus})}).then(()=>{setShowGoalModal(false);onRefreshUser();}).catch(()=>{});
+              }} style={{flex:1,padding:'10px',border:'none',borderRadius:6,background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.85rem',fontWeight:600}}>Save Goal</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Leaderboard */}
       <LeaderboardCard userId={user.id} t={t}/>
