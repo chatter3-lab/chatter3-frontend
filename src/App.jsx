@@ -962,9 +962,11 @@ function InstallBanner({t}){
 function VocabularyReview({userId}){
   const[words,setWords]=useState([]);
   const[loading,setLoading]=useState(true);
+  const[expanded,setExpanded]=useState(false);
   const[showAdd,setShowAdd]=useState(false);
   const[newWord,setNewWord]=useState('');
   const[newContext,setNewContext]=useState('');
+  const[adding,setAdding]=useState(false);
 
   useEffect(()=>{
     fetch(`${API_URL}/api/vocabulary/review`,{headers:{'Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`}}).then(r=>r.json()).then(d=>{
@@ -974,61 +976,80 @@ function VocabularyReview({userId}){
   },[userId]);
 
   const addWord=()=>{
-    if(!newWord.trim())return;
+    if(!newWord.trim()||adding)return;
+    setAdding(true);
     fetch(`${API_URL}/api/vocabulary/log`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({word:newWord.trim(),context:newContext.trim()})}).then(r=>r.json()).then(d=>{
-      if(d.success){setNewWord('');setNewContext('');setShowAdd(false);}// Refresh list
-    }).catch(()=>{});
+      if(d.success){setNewWord('');setNewContext('');setShowAdd(false);setWords(prev=>[{id:'new',word:newWord.trim(),context:newContext.trim(),mastery_level:0,review_count:0},...prev]);}
+      setAdding(false);
+    }).catch(()=>setAdding(false));
   };
 
   const masteryColors=['#ef4444','#f59e0b','#eab308','#22c55e','#10b981','#059669'];
   const masteryLabels=['New','Learning','Familiar','Known','Mastered','Fluent'];
 
   if(loading)return null;
-  if(words.length===0&&!showAdd)return(
-    <div style={{marginTop:'.75rem',padding:'12px',background:'#f8fafc',borderRadius:8,border:'1px solid #e2e8f0'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div>
-          <div style={{fontSize:'.85rem',fontWeight:600,color:'#1e293b'}}>Vocabulary Bank</div>
-          <div style={{fontSize:'.75rem',color:'#64748b'}}>Save words from conversations for review</div>
-        </div>
-        <button onClick={()=>setShowAdd(true)} style={{padding:'6px 12px',background:'#6366f1',color:'white',border:'none',borderRadius:6,cursor:'pointer',fontSize:'.8rem',fontWeight:600}}>+ Add Word</button>
-      </div>
-    </div>
-  );
 
   return(
-    <div style={{marginTop:'.75rem',padding:'12px',background:'#f8fafc',borderRadius:8,border:'1px solid #e2e8f0'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:words.length>0?'8px':0}}>
-        <div>
-          <div style={{fontSize:'.85rem',fontWeight:600,color:'#1e293b'}}>Vocabulary Bank</div>
-          <div style={{fontSize:'.75rem',color:'#64748b'}}>{words.length} words to review</div>
+    <div style={{marginTop:'.75rem',borderRadius:10,border:'1px solid #e2e8f0',overflow:'hidden'}}>
+      {/* Collapsible Header */}
+      <button onClick={()=>setExpanded(!expanded)} style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 14px',background:expanded?'#f1f5f9':'#f8fafc',border:'none',cursor:'pointer',transition:'background .15s'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+          <span style={{fontSize:'1.1rem'}}>📚</span>
+          <div style={{textAlign:'left'}}>
+            <div style={{fontSize:'.85rem',fontWeight:600,color:'#1e293b'}}>Vocabulary Bank</div>
+            <div style={{fontSize:'.7rem',color:'#64748b'}}>{words.length} {words.length===1?'word':'words'} saved</div>
+          </div>
         </div>
-        <button onClick={()=>setShowAdd(!showAdd)} style={{padding:'6px 12px',background:showAdd?'#e2e8f0':'#6366f1',color:showAdd?'#374151':'white',border:'none',borderRadius:6,cursor:'pointer',fontSize:'.8rem',fontWeight:600}}>{showAdd?'Cancel':'+ Add Word'}</button>
-      </div>
+        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+          {!expanded&&words.length>0&&<span style={{fontSize:'.7rem',color:'#6366f1',fontWeight:500}}>Tap to expand</span>}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" style={{transform:expanded?'rotate(180deg)':'rotate(0deg)',transition:'transform .2s'}}><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </button>
 
-      {showAdd&&(
-        <div style={{marginBottom:'8px',padding:'8px',background:'white',borderRadius:6,border:'1px solid #e2e8f0'}}>
-          <input value={newWord} onChange={e=>setNewWord(e.target.value)} placeholder="Enter a word or phrase" style={{width:'100%',padding:'6px 10px',border:'1px solid #d1d5db',borderRadius:4,marginBottom:'6px',fontSize:'.85rem'}}/>
-          <input value={newContext} onChange={e=>setNewContext(e.target.value)} placeholder="Context (optional): where you learned it" style={{width:'100%',padding:'6px 10px',border:'1px solid #d1d5db',borderRadius:4,marginBottom:'6px',fontSize:'.85rem'}}/>
-          <button onClick={addWord} disabled={!newWord.trim()} style={{width:'100%',padding:'6px',background:newWord.trim()?'#6366f1':'#e2e8f0',color:newWord.trim()?'white':'#9ca3af',border:'none',borderRadius:4,cursor:newWord.trim()?'pointer':'not-allowed',fontSize:'.85rem',fontWeight:600}}>Save Word</button>
+      {/* Expanded Content */}
+      {expanded&&(
+        <div style={{padding:'0 14px 14px',background:'#f8fafc'}}>
+          {/* Add Word Button */}
+          <div style={{display:'flex',gap:'6px',marginBottom:'10px'}}>
+            <button onClick={()=>setShowAdd(!showAdd)} style={{flex:1,padding:'8px',background:showAdd?'#e2e8f0':'#6366f1',color:showAdd?'#374151':'white',border:'none',borderRadius:6,cursor:'pointer',fontSize:'.8rem',fontWeight:600,transition:'background .15s'}}>{showAdd?'Cancel':'+ Add New Word'}</button>
+          </div>
+
+          {/* Add Word Form */}
+          {showAdd&&(
+            <div style={{marginBottom:'10px',padding:'10px',background:'white',radius:8,border:'1px solid #e2e8f0',borderRadius:8}}>
+              <input value={newWord} onChange={e=>setNewWord(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addWord()} placeholder="e.g., 'procrastinate'" autoFocus style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,marginBottom:'6px',fontSize:'.85rem',boxSizing:'border-box'}}/>
+              <input value={newContext} onChange={e=>setNewContext(e.target.value)} placeholder="Where you learned it (optional)" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,marginBottom:'8px',fontSize:'.85rem',boxSizing:'border-box'}}/>
+              <button onClick={addWord} disabled={!newWord.trim()||adding} style={{width:'100%',padding:'8px',background:newWord.trim()&&!adding?'#22c55e':'#e2e8f0',color:newWord.trim()&&!adding?'white':'#9ca3af',border:'none',borderRadius:6,cursor:newWord.trim()&&!adding?'pointer':'not-allowed',fontSize:'.85rem',fontWeight:600,transition:'background .15s'}}>{adding?'Saving...':'Save Word'}</button>
+            </div>
+          )}
+
+          {/* Words List */}
+          {words.length===0?(
+            <div style={{textAlign:'center',padding:'16px 0',color:'#94a3b8',fontSize:'.85rem'}}>
+              <div style={{fontSize:'1.5rem',marginBottom:'6px'}}>✨</div>
+              No words saved yet. Add words from conversations!
+            </div>
+          ):(
+            <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
+              {words.slice(0,expanded?20:5).map(w=>(
+                <div key={w.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 10px',background:'white',borderRadius:6,fontSize:'.85rem',border:'1px solid #f1f5f9'}}>
+                  <div style={{minWidth:0,flex:1}}>
+                    <span style={{fontWeight:600,color:'#1e293b'}}>{w.word}</span>
+                    {w.context&&<span style={{color:'#94a3b8',marginLeft:6,fontSize:'.75rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',display:'inline-block',maxWidth:'120px'}}>{w.context}</span>}
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0,marginLeft:'8px'}}>
+                    <div style={{width:'36px',height:'4px',background:'#e2e8f0',borderRadius:2}}>
+                      <div style={{width:`${((w.mastery_level||0)/5)*100}%`,height:'100%',background:masteryColors[w.mastery_level]||masteryColors[0],borderRadius:2,transition:'width .3s'}}/>
+                    </div>
+                    <span style={{fontSize:'.65rem',color:masteryColors[w.mastery_level]||masteryColors[0],fontWeight:600,minWidth:'48px',textAlign:'right'}}>{masteryLabels[w.mastery_level]||'New'}</span>
+                  </div>
+                </div>
+              ))}
+              {words.length>20&&<div style={{fontSize:'.75rem',color:'#64748b',textAlign:'center',padding:'6px 0'}}>+{words.length-20} more words</div>}
+            </div>
+          )}
         </div>
       )}
-
-      {words.slice(0,5).map(w=>(
-        <div key={w.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 8px',background:'white',borderRadius:4,marginBottom:'4px',fontSize:'.85rem'}}>
-          <div>
-            <span style={{fontWeight:600,color:'#1e293b'}}>{w.word}</span>
-            {w.context&&<span style={{color:'#64748b',marginLeft:6,fontSize:'.75rem'}}>({w.context})</span>}
-          </div>
-          <div style={{display:'flex',alignItems:'center',gap:'4px'}}>
-            <div style={{width:'40px',height:'4px',background:'#e2e8f0',borderRadius:2}}>
-              <div style={{width:`${(w.mastery_level/5)*100}%`,height:'100%',background:masteryColors[w.mastery_level]||masteryColors[0],borderRadius:2}}/>
-            </div>
-            <span style={{fontSize:'.65rem',color:masteryColors[w.mastery_level]||masteryColors[0],fontWeight:500}}>{masteryLabels[w.mastery_level]||'New'}</span>
-          </div>
-        </div>
-      ))}
-      {words.length>5&&<div style={{fontSize:'.75rem',color:'#64748b',textAlign:'center',marginTop:'4px'}}>+{words.length-5} more words</div>}
     </div>
   );
 }
@@ -1087,9 +1108,22 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
           </div>
         )}
         {reputation&&(
-          <div style={{background:'linear-gradient(135deg,#f0f9ff,#e0f2fe)',border:'1px solid #bae6fd',borderRadius:10,padding:'10px 16px',marginBottom:'.75rem',fontSize:'.85rem',color:'#0c4a6e',fontWeight:500,display:'flex',alignItems:'center',gap:'8px'}}>
-            <span style={{fontSize:'1.1rem'}}>{reputation.badge.icon}</span>
-            <span>Reputation: <strong>{reputation.score}/100</strong> · {reputation.badge.tier}</span>
+          <div style={{background:reputation.badge.tier==='Trusted'?'linear-gradient(135deg,#fef3c7,#fde68a)':reputation.badge.tier==='Experienced'?'linear-gradient(135deg,#dcfce7,#bbf7d0)':reputation.badge.tier==='Active'?'linear-gradient(135deg,#e0e7ff,#c7d2fe)':'linear-gradient(135deg,#f1f5f9,#e2e8f0)',border:`1px solid ${reputation.badge.tier==='Trusted'?'#f59e0b':reputation.badge.tier==='Experienced'?'#22c55e':reputation.badge.tier==='Active'?'#6366f1':'#94a3b8'}`,borderRadius:10,padding:'10px 14px',marginBottom:'.75rem',fontSize:'.85rem',color:reputation.badge.tier==='Trusted'?'#92400e':reputation.badge.tier==='Experienced'?'#065f46':reputation.badge.tier==='Active'?'#3730a3':'#475569',fontWeight:500}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                <span style={{fontSize:'1.2rem'}}>{reputation.badge.icon}</span>
+                <div>
+                  <span style={{fontWeight:700}}>{reputation.badge.tier}</span>
+                  <span style={{opacity:.7,marginLeft:6}}>Reputation</span>
+                </div>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                <div style={{width:'50px',height:'6px',background:'rgba(0,0,0,.1)',borderRadius:3}}>
+                  <div style={{width:`${reputation.score}%`,height:'100%',background:reputation.badge.color,borderRadius:3,transition:'width .3s'}}/>
+                </div>
+                <span style={{fontSize:'.8rem',fontWeight:700}}>{reputation.score}</span>
+              </div>
+            </div>
           </div>
         )}
         <button onClick={onFindPartner} className="start-matching-btn" disabled={!canCall}>
@@ -1138,19 +1172,24 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
           <h3 style={{margin:'0 0 .75rem',fontSize:'1rem',fontWeight:700}}>Your Learning Progress</h3>
           
           {/* Daily Goal */}
-          <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:8,padding:'12px',marginBottom:'.75rem'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
-              <span style={{fontSize:'.85rem',fontWeight:600,color:'#166534'}}>Today's Goal</span>
-              <button onClick={()=>setShowGoalModal(true)} style={{fontSize:'.75rem',color:'#6366f1',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>Edit</button>
-            </div>
-            <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-              <div style={{flex:1,height:'8px',background:'#dcfce7',borderRadius:4}}>
-                <div style={{height:'100%',width:`${Math.min(100,((learnerProgress.goals?.[0]?.actual_minutes||0)/(learnerProgress.goals?.[0]?.goal_minutes||15))*100)}%`,background:'#22c55e',borderRadius:4,transition:'width .3s'}}/>
+          <div style={{background:'linear-gradient(135deg,#f0fdf4,#dcfce7)',border:'1px solid #bbf7d0',borderRadius:10,padding:'14px',marginBottom:'.75rem'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                <span style={{fontSize:'1rem'}}>{(learnerProgress.goals?.[0]?.actual_minutes||0)>=(learnerProgress.goals?.[0]?.goal_minutes||15)?'🎯':'🎯'}</span>
+                <span style={{fontSize:'.85rem',fontWeight:600,color:'#166534'}}>Daily Goal</span>
               </div>
-              <span style={{fontSize:'.8rem',color:'#166534',fontWeight:500}}>{learnerProgress.goals?.[0]?.actual_minutes||0}/{learnerProgress.goals?.[0]?.goal_minutes||15} min</span>
+              <button onClick={()=>setShowGoalModal(true)} style={{fontSize:'.72rem',color:'#6366f1',background:'white',border:'1px solid #e2e8f0',borderRadius:4,padding:'3px 8px',cursor:'pointer',fontWeight:500}}>Edit</button>
             </div>
-            {learnerProgress.goals?.[0]?.completed===1&&(
-              <div style={{fontSize:'.75rem',color:'#16a34a',marginTop:'4px',fontWeight:500}}>Goal completed today!</div>
+            <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}}>
+              <div style={{flex:1,height:'10px',background:'#dcfce7',borderRadius:5,overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${Math.min(100,((learnerProgress.goals?.[0]?.actual_minutes||0)/(learnerProgress.goals?.[0]?.goal_minutes||15))*100)}%`,background:learnerProgress.goals?.[0]?.completed===1?'linear-gradient(90deg,#22c55e,#10b981)':'linear-gradient(90deg,#34d399,#22c55e)',borderRadius:5,transition:'width .5s ease'}}/>
+              </div>
+              <span style={{fontSize:'.85rem',color:'#166534',fontWeight:600,minWidth:'60px',textAlign:'right'}}>{learnerProgress.goals?.[0]?.actual_minutes||0}/{learnerProgress.goals?.[0]?.goal_minutes||15}m</span>
+            </div>
+            {learnerProgress.goals?.[0]?.completed===1?(
+              <div style={{fontSize:'.78rem',color:'#16a34a',fontWeight:600,display:'flex',alignItems:'center',gap:'4px'}}><span>✓</span> Goal completed! Keep it up!</div>
+            ):(
+              <div style={{fontSize:'.72rem',color:'#4ade80'}}>{Math.max(0,(learnerProgress.goals?.[0]?.goal_minutes||15)-(learnerProgress.goals?.[0]?.actual_minutes||0))} minutes to go</div>
             )}
           </div>
 
@@ -1669,16 +1708,24 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
             <p style={{color:'rgba(255,255,255,.38)',fontSize:'.78rem',margin:'.5rem 0 0'}}>{t.video.ratingInstruction}</p>
             
             {/* Quick vocabulary save */}
-            <div style={{margin:'.75rem 0',padding:'10px',background:'rgba(255,255,255,.1)',borderRadius:8}}>
-              <p style={{color:'rgba(255,255,255,.7)',fontSize:'.8rem',margin:'0 0 6px',fontWeight:600}}>Learn any new words? Save them for review:</p>
-              <div style={{display:'flex',gap:'6px'}}>
-                <input id="vocab-input" placeholder="Type a word..." style={{flex:1,padding:'6px 10px',borderRadius:6,border:'1px solid rgba(255,255,255,.2)',background:'rgba(255,255,255,.1)',color:'white',fontSize:'.85rem'}}/>
-                <button onClick={()=>{
+            <div style={{margin:'.75rem 0',padding:'12px',background:'rgba(255,255,255,.08)',borderRadius:10,border:'1px solid rgba(255,255,255,.1)'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'8px'}}>
+                <span style={{fontSize:'.9rem'}}>📚</span>
+                <p style={{color:'rgba(255,255,255,.8)',fontSize:'.8rem',margin:0,fontWeight:600}}>Learn any new words?</p>
+              </div>
+              <p style={{color:'rgba(255,255,255,.5)',fontSize:'.72rem',margin:'0 0 8px'}}>Save words to review later with spaced repetition</p>
+              <div style={{display:'flex',gap:'8px'}}>
+                <input id="vocab-input" placeholder="e.g., 'procrastinate'" onKeyDown={e=>{if(e.key==='Enter'){const input=document.getElementById('vocab-input');if(input&&input.value.trim())document.querySelector('.vocab-save-btn')?.click();}}} style={{flex:1,padding:'10px 12px',borderRadius:8,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.1)',color:'white',fontSize:'.9rem',transition:'border-color .15s'}} onFocus={e=>e.target.style.borderColor='rgba(255,255,255,.3)'} onBlur={e=>e.target.style.borderColor='rgba(255,255,255,.15)'}/>
+                <button className="vocab-save-btn" onClick={()=>{
                   const input=document.getElementById('vocab-input');
                   if(input&&input.value.trim()){
-                    fetch(`${API_URL}/api/vocabulary/log`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({word:input.value.trim(),context:`Session with ${session.partner?.username||'partner'}`,session_id:session.id})}).then(()=>{input.value='';input.placeholder='Saved! ✓';setTimeout(()=>{input.placeholder='Type a word...';},1500);}).catch(()=>{});
+                    const word=input.value.trim();
+                    input.value='';
+                    input.placeholder='Saved! ✓';
+                    setTimeout(()=>{input.placeholder="e.g., 'procrastinate'";},2000);
+                    fetch(`${API_URL}/api/vocabulary/log`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({word,context:`Session with ${session.partner?.username||'partner'}`,session_id:session.id})}).catch(()=>{});
                   }
-                }} style={{padding:'6px 12px',background:'#22c55e',color:'white',border:'none',borderRadius:6,cursor:'pointer',fontSize:'.8rem',fontWeight:600}}>Save</button>
+                }} style={{padding:'10px 16px',background:'#22c55e',color:'white',border:'none',borderRadius:8,cursor:'pointer',fontSize:'.85rem',fontWeight:600,transition:'background .15s',whiteSpace:'nowrap'}} onMouseEnter={e=>e.target.style.background='#16a34a'} onMouseLeave={e=>e.target.style.background='#22c55e'}>Save</button>
               </div>
             </div>
 
