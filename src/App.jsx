@@ -958,6 +958,81 @@ function InstallBanner({t}){
   );
 }
 
+// ── Vocabulary Review Component (Spaced Repetition) ──────────
+function VocabularyReview({userId}){
+  const[words,setWords]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[showAdd,setShowAdd]=useState(false);
+  const[newWord,setNewWord]=useState('');
+  const[newContext,setNewContext]=useState('');
+
+  useEffect(()=>{
+    fetch(`${API_URL}/api/vocabulary/review`,{headers:{'Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`}}).then(r=>r.json()).then(d=>{
+      if(d.success)setWords(d.words||[]);
+      setLoading(false);
+    }).catch(()=>setLoading(false));
+  },[userId]);
+
+  const addWord=()=>{
+    if(!newWord.trim())return;
+    fetch(`${API_URL}/api/vocabulary/log`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({word:newWord.trim(),context:newContext.trim()})}).then(r=>r.json()).then(d=>{
+      if(d.success){setNewWord('');setNewContext('');setShowAdd(false);}// Refresh list
+    }).catch(()=>{});
+  };
+
+  const masteryColors=['#ef4444','#f59e0b','#eab308','#22c55e','#10b981','#059669'];
+  const masteryLabels=['New','Learning','Familiar','Known','Mastered','Fluent'];
+
+  if(loading)return null;
+  if(words.length===0&&!showAdd)return(
+    <div style={{marginTop:'.75rem',padding:'12px',background:'#f8fafc',borderRadius:8,border:'1px solid #e2e8f0'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <div style={{fontSize:'.85rem',fontWeight:600,color:'#1e293b'}}>Vocabulary Bank</div>
+          <div style={{fontSize:'.75rem',color:'#64748b'}}>Save words from conversations for review</div>
+        </div>
+        <button onClick={()=>setShowAdd(true)} style={{padding:'6px 12px',background:'#6366f1',color:'white',border:'none',borderRadius:6,cursor:'pointer',fontSize:'.8rem',fontWeight:600}}>+ Add Word</button>
+      </div>
+    </div>
+  );
+
+  return(
+    <div style={{marginTop:'.75rem',padding:'12px',background:'#f8fafc',borderRadius:8,border:'1px solid #e2e8f0'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:words.length>0?'8px':0}}>
+        <div>
+          <div style={{fontSize:'.85rem',fontWeight:600,color:'#1e293b'}}>Vocabulary Bank</div>
+          <div style={{fontSize:'.75rem',color:'#64748b'}}>{words.length} words to review</div>
+        </div>
+        <button onClick={()=>setShowAdd(!showAdd)} style={{padding:'6px 12px',background:showAdd?'#e2e8f0':'#6366f1',color:showAdd?'#374151':'white',border:'none',borderRadius:6,cursor:'pointer',fontSize:'.8rem',fontWeight:600}}>{showAdd?'Cancel':'+ Add Word'}</button>
+      </div>
+
+      {showAdd&&(
+        <div style={{marginBottom:'8px',padding:'8px',background:'white',borderRadius:6,border:'1px solid #e2e8f0'}}>
+          <input value={newWord} onChange={e=>setNewWord(e.target.value)} placeholder="Enter a word or phrase" style={{width:'100%',padding:'6px 10px',border:'1px solid #d1d5db',borderRadius:4,marginBottom:'6px',fontSize:'.85rem'}}/>
+          <input value={newContext} onChange={e=>setNewContext(e.target.value)} placeholder="Context (optional): where you learned it" style={{width:'100%',padding:'6px 10px',border:'1px solid #d1d5db',borderRadius:4,marginBottom:'6px',fontSize:'.85rem'}}/>
+          <button onClick={addWord} disabled={!newWord.trim()} style={{width:'100%',padding:'6px',background:newWord.trim()?'#6366f1':'#e2e8f0',color:newWord.trim()?'white':'#9ca3af',border:'none',borderRadius:4,cursor:newWord.trim()?'pointer':'not-allowed',fontSize:'.85rem',fontWeight:600}}>Save Word</button>
+        </div>
+      )}
+
+      {words.slice(0,5).map(w=>(
+        <div key={w.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 8px',background:'white',borderRadius:4,marginBottom:'4px',fontSize:'.85rem'}}>
+          <div>
+            <span style={{fontWeight:600,color:'#1e293b'}}>{w.word}</span>
+            {w.context&&<span style={{color:'#64748b',marginLeft:6,fontSize:'.75rem'}}>({w.context})</span>}
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:'4px'}}>
+            <div style={{width:'40px',height:'4px',background:'#e2e8f0',borderRadius:2}}>
+              <div style={{width:`${(w.mastery_level/5)*100}%`,height:'100%',background:masteryColors[w.mastery_level]||masteryColors[0],borderRadius:2}}/>
+            </div>
+            <span style={{fontSize:'.65rem',color:masteryColors[w.mastery_level]||masteryColors[0],fontWeight:500}}>{masteryLabels[w.mastery_level]||'New'}</span>
+          </div>
+        </div>
+      ))}
+      {words.length>5&&<div style={{fontSize:'.75rem',color:'#64748b',textAlign:'center',marginTop:'4px'}}>+{words.length-5} more words</div>}
+    </div>
+  );
+}
+
 function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefreshUser,t}){
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
@@ -1115,6 +1190,9 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
               <span style={{fontWeight:600,color:'#1e293b'}}>{learnerProgress.ratings.avg?.toFixed(1)}/5 ({learnerProgress.ratings.count} ratings)</span>
             </div>
           )}
+
+          {/* Vocabulary Review (Spaced Repetition) */}
+          <VocabularyReview userId={user.id}/>
         </div>
       )}
 
@@ -1589,6 +1667,21 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
             <h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,margin:'0 0 .4rem'}}>{t.video.ratePartner}</h2>
             <p style={{color:'rgba(255,255,255,.6)',margin:0,fontSize:'.88rem'}}>{t.video.howWasConversation.replace('{username}',session.partner?.username)}</p>
             <p style={{color:'rgba(255,255,255,.38)',fontSize:'.78rem',margin:'.5rem 0 0'}}>{t.video.ratingInstruction}</p>
+            
+            {/* Quick vocabulary save */}
+            <div style={{margin:'.75rem 0',padding:'10px',background:'rgba(255,255,255,.1)',borderRadius:8}}>
+              <p style={{color:'rgba(255,255,255,.7)',fontSize:'.8rem',margin:'0 0 6px',fontWeight:600}}>Learn any new words? Save them for review:</p>
+              <div style={{display:'flex',gap:'6px'}}>
+                <input id="vocab-input" placeholder="Type a word..." style={{flex:1,padding:'6px 10px',borderRadius:6,border:'1px solid rgba(255,255,255,.2)',background:'rgba(255,255,255,.1)',color:'white',fontSize:'.85rem'}}/>
+                <button onClick={()=>{
+                  const input=document.getElementById('vocab-input');
+                  if(input&&input.value.trim()){
+                    fetch(`${API_URL}/api/vocabulary/log`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({word:input.value.trim(),context:`Session with ${session.partner?.username||'partner'}`,session_id:session.id})}).then(()=>{input.value='';input.placeholder='Saved! ✓';setTimeout(()=>{input.placeholder='Type a word...';},1500);}).catch(()=>{});
+                  }
+                }} style={{padding:'6px 12px',background:'#22c55e',color:'white',border:'none',borderRadius:6,cursor:'pointer',fontSize:'.8rem',fontWeight:600}}>Save</button>
+              </div>
+            </div>
+
             <div className="rating-buttons">
               <button className="rating-btn good" onClick={()=>rate('good')}>{t.video.good}</button>
               <button className="rating-btn meh" onClick={()=>rate('meh')}>{t.video.meh}</button>
