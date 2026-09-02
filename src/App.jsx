@@ -471,6 +471,38 @@ export default function App(){
 
   const path=window.location.pathname;
   
+  // Redirect common typos
+  const typoRedirects={
+    '/how-it-worksz':'/how-it-works',
+    '/aree-english-practice':'/free-english-practice',
+    '/esee-english-practice':'/free-english-practice',
+    '/bnee-english-practice':'/free-english-practice',
+    '/jnee-english-practice':'/free-english-practice',
+    '/zee-english-practice':'/free-english-practice',
+    '/free-english-practicez':'/free-english-practice',
+    '/for-beginnersz':'/for-beginners',
+    '/faqz':'/faq',
+  };
+  if(typoRedirects[path]){
+    window.location.href=typoRedirects[path];
+    return null;
+  }
+  // Also handle language-prefixed typos
+  const langTypoMatch=path.match(/^\/(es|ja|zh|bn|fr|ar|ru)\/(.+)$/);
+  if(langTypoMatch){
+    const fixedPage=typoRedirects['/'+langTypoMatch[2]];
+    if(fixedPage){
+      window.location.href='/'+langTypoMatch[1]+fixedPage;
+      return null;
+    }
+  }
+  // Language root pages (/ar/, /bn/, etc.) — redirect to homepage
+  const langRootMatch=path.match(/^\/(es|ja|zh|bn|fr|ar|ru)\/?$/);
+  if(langRootMatch){
+    window.location.href='/';
+    return null;
+  }
+  
   // Language-prefixed landing pages
   const langMatch=path.match(/^\/(es|ja|zh|bn|fr|ar|ru)\/(how-it-works|for-beginners|faq|free-english-practice|english-conversation-app|chatter3-vs-italki|chatter3-vs-cambly|blog(?:\/[a-z0-9-]+)?)$/);
   if(langMatch){
