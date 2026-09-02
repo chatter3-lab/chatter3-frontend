@@ -95,7 +95,10 @@
     "streakStat": "🔥 連続日数",
     "days": "日",
     "noLevelWarning": "⚠️ 現在{level}レベルのユーザーがオンラインではありません",
-    "profileHistory": "プロフィール＆会話履歴"
+    "profileHistory": "プロフィール＆会話履歴",
+    "installApp": "Chatter3をインストールしてより速くアクセス",
+    "install": "インストール",
+    "notNow": "今はしない"
   },
   "matching": {
     "looking": "パートナーを探しています...",

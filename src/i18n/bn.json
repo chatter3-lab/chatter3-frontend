@@ -95,7 +95,10 @@
     "streakStat": "🔥 ধারাবাহিকতা",
     "days": "দিন",
     "noLevelWarning": "⚠️ এখন {level} স্তরের কোনো ব্যবহারকারী অনলাইনে নেই",
-    "profileHistory": "প্রোফাইল ও কথোপকথনের ইতিহাস"
+    "profileHistory": "প্রোফাইল ও কথোপকথনের ইতিহাস",
+    "installApp": "আরও দ্রুত অ্যাকসেসের জন্য Chatter3 ইন্সটল করুন",
+    "install": "ইন্সটল",
+    "notNow": "এখন নয়"
   },
   "matching": {
     "looking": "সঙ্গী খুঁজছে...",

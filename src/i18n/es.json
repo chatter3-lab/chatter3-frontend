@@ -95,7 +95,10 @@
     "streakStat": "🔥 Racha",
     "days": "días",
     "noLevelWarning": "⚠️ No hay usuarios de nivel {level} en línea ahora",
-    "profileHistory": "Perfil e Historial de Conversaciones"
+    "profileHistory": "Perfil e Historial de Conversaciones",
+    "installApp": "Instala Chatter3 para acceso más rápido",
+    "install": "Instalar",
+    "notNow": "Ahora no"
   },
   "matching": {
     "looking": "Buscando un compañero...",

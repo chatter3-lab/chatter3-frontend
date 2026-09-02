@@ -95,7 +95,10 @@
     "streakStat": "🔥 التتابع",
     "days": "أيام",
     "noLevelWarning": "⚠️ لا يوجد مستخدمين بمستوى {level} متصلين الآن",
-    "profileHistory": "الملف الشخصي وسجل المحادثات"
+    "profileHistory": "الملف الشخصي وسجل المحادثات",
+    "installApp": "تثبيت Chatter3 للوصول الأسرع",
+    "install": "تثبيت",
+    "notNow": "ليس الآن"
   },
   "matching": {
     "looking": "جارٍ البحث عن شريك...",

@@ -95,7 +95,10 @@
     "streakStat": "🔥 连续打卡",
     "days": "天",
     "noLevelWarning": "⚠️ 当前没有{level}级别的用户在线",
-    "profileHistory": "个人资料和对话历史"
+    "profileHistory": "个人资料和对话历史",
+    "installApp": "安装Chatter3以更快访问",
+    "install": "安装",
+    "notNow": "暂时不用"
   },
   "matching": {
     "looking": "正在寻找伙伴...",

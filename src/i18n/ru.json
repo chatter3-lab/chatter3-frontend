@@ -95,7 +95,10 @@
     "streakStat": "🔥 Серия",
     "days": "дней",
     "noLevelWarning": "⚠️ Нет пользователей уровня {level} онлайн",
-    "profileHistory": "Профиль и история разговоров"
+    "profileHistory": "Профиль и история разговоров",
+    "installApp": "Установите Chatter3 для быстрого доступа",
+    "install": "Установить",
+    "notNow": "Не сейчас"
   },
   "matching": {
     "looking": "Ищем собеседника...",

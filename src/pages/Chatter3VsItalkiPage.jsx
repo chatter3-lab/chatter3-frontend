@@ -109,12 +109,12 @@ export default function Chatter3VsItalkiPage({lang='en'}){
             <a href={`${prefix}/`}>{t.nav.home}</a>
             <a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a>
             <a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a>
-            <a href={`${prefix}/free-english-practice`}>Free Practice</a>
-            <a href={`${prefix}/english-conversation-app`}>Conversation App</a>
+            <a href={`${prefix}/free-english-practice`}>{t?.footer?.freePractice||'Free Practice'}</a>
+            <a href={`${prefix}/english-conversation-app`}>{t?.footer?.conversationApp||'Conversation App'}</a>
             <a href={`${prefix}/blog`}>{t.nav.blog}</a>
             <a href={`${prefix}/faq`}>{t.nav.faq||'FAQ'}</a>
-            <a href={`${prefix}/chatter3-vs-italki`}>vs italki</a>
-            <a href={`${prefix}/chatter3-vs-cambly`}>vs Cambly</a>
+            <a href={`${prefix}/chatter3-vs-italki`}>{t?.footer?.vsItalki||'vs italki'}</a>
+            <a href={`${prefix}/chatter3-vs-cambly`}>{t?.footer?.vsCambly||'vs Cambly'}</a>
             <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
           </div>
           <p>{t.footer.copyright}</p>

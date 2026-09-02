@@ -1017,7 +1017,7 @@ function VocabularyReview({userId}){
   };
 
   const masteryColors=['#ef4444','#f59e0b','#eab308','#22c55e','#10b981','#059669'];
-  const masteryLabels=['New','Learning','Familiar','Known','Mastered','Fluent'];
+  const masteryLabels=[t?.dashboard?.masteryNew||'New',t?.dashboard?.masteryLearning||'Learning',t?.dashboard?.masteryFamiliar||'Familiar',t?.dashboard?.masteryKnown||'Known',t?.dashboard?.masteryMastered||'Mastered',t?.dashboard?.masteryFluent||'Fluent'];
 
   if(loading)return null;
 
@@ -1028,12 +1028,12 @@ function VocabularyReview({userId}){
         <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
           <span style={{fontSize:'1.1rem'}}>📚</span>
           <div style={{textAlign:'left'}}>
-            <div style={{fontSize:'.85rem',fontWeight:600,color:'#1e293b'}}>Vocabulary Bank</div>
-            <div style={{fontSize:'.7rem',color:'#64748b'}}>{words.length} {words.length===1?'word':'words'} saved</div>
+            <div style={{fontSize:'.85rem',fontWeight:600,color:'#1e293b'}}>{t?.dashboard?.vocabularyBank||'Vocabulary Bank'}</div>
+            <div style={{fontSize:'.7rem',color:'#64748b'}}>{words.length===1?(t?.dashboard?.wordSaved||'{count} word saved').replace('{count}',words.length):(t?.dashboard?.wordsSaved||'{count} words saved').replace('{count}',words.length)}</div>
           </div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-          {!expanded&&words.length>0&&<span style={{fontSize:'.7rem',color:'#6366f1',fontWeight:500}}>Tap to expand</span>}
+          {!expanded&&words.length>0&&<span style={{fontSize:'.7rem',color:'#6366f1',fontWeight:500}}>{t?.dashboard?.tapToExpand||'Tap to expand'}</span>}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" style={{transform:expanded?'rotate(180deg)':'rotate(0deg)',transition:'transform .2s'}}><polyline points="6 9 12 15 18 9"/></svg>
         </div>
       </button>
@@ -1043,15 +1043,15 @@ function VocabularyReview({userId}){
         <div style={{padding:'0 14px 14px',background:'#f8fafc'}}>
           {/* Add Word Button */}
           <div style={{display:'flex',gap:'6px',marginBottom:'10px'}}>
-            <button onClick={()=>setShowAdd(!showAdd)} style={{flex:1,padding:'8px',background:showAdd?'#e2e8f0':'#6366f1',color:showAdd?'#374151':'white',border:'none',borderRadius:6,cursor:'pointer',fontSize:'.8rem',fontWeight:600,transition:'background .15s'}}>{showAdd?'Cancel':'+ Add New Word'}</button>
+            <button onClick={()=>setShowAdd(!showAdd)} style={{flex:1,padding:'8px',background:showAdd?'#e2e8f0':'#6366f1',color:showAdd?'#374151':'white',border:'none',borderRadius:6,cursor:'pointer',fontSize:'.8rem',fontWeight:600,transition:'background .15s'}}>{showAdd?(t?.dashboard?.cancel||'Cancel'):(t?.dashboard?.addNewWord||'+ Add New Word')}</button>
           </div>
 
           {/* Add Word Form */}
           {showAdd&&(
             <div style={{marginBottom:'10px',padding:'10px',background:'white',radius:8,border:'1px solid #e2e8f0',borderRadius:8}}>
-              <input value={newWord} onChange={e=>setNewWord(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addWord()} placeholder="e.g., 'procrastinate'" autoFocus style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,marginBottom:'6px',fontSize:'.85rem',boxSizing:'border-box'}}/>
-              <input value={newContext} onChange={e=>setNewContext(e.target.value)} placeholder="Where you learned it (optional)" style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,marginBottom:'8px',fontSize:'.85rem',boxSizing:'border-box'}}/>
-              <button onClick={addWord} disabled={!newWord.trim()||adding} style={{width:'100%',padding:'8px',background:newWord.trim()&&!adding?'#22c55e':'#e2e8f0',color:newWord.trim()&&!adding?'white':'#9ca3af',border:'none',borderRadius:6,cursor:newWord.trim()&&!adding?'pointer':'not-allowed',fontSize:'.85rem',fontWeight:600,transition:'background .15s'}}>{adding?'Saving...':'Save Word'}</button>
+              <input value={newWord} onChange={e=>setNewWord(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addWord()} placeholder={t?.dashboard?.wordPlaceholder||"e.g., 'procrastinate'"} autoFocus style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,marginBottom:'6px',fontSize:'.85rem',boxSizing:'border-box'}}/>
+              <input value={newContext} onChange={e=>setNewContext(e.target.value)} placeholder={t?.dashboard?.contextPlaceholder||'Where you learned it (optional)'} style={{width:'100%',padding:'8px 10px',border:'1px solid #d1d5db',borderRadius:6,marginBottom:'8px',fontSize:'.85rem',boxSizing:'border-box'}}/>
+              <button onClick={addWord} disabled={!newWord.trim()||adding} style={{width:'100%',padding:'8px',background:newWord.trim()&&!adding?'#22c55e':'#e2e8f0',color:newWord.trim()&&!adding?'white':'#9ca3af',border:'none',borderRadius:6,cursor:newWord.trim()&&!adding?'pointer':'not-allowed',fontSize:'.85rem',fontWeight:600,transition:'background .15s'}}>{adding?(t?.dashboard?.saving||'Saving...'):(t?.dashboard?.saveWord||'Save Word')}</button>
             </div>
           )}
 
@@ -1059,7 +1059,7 @@ function VocabularyReview({userId}){
           {words.length===0?(
             <div style={{textAlign:'center',padding:'16px 0',color:'#94a3b8',fontSize:'.85rem'}}>
               <div style={{fontSize:'1.5rem',marginBottom:'6px'}}>✨</div>
-              No words saved yet. Add words from conversations!
+              {t?.dashboard?.noWordsSaved||'No words saved yet. Add words from conversations!'}
             </div>
           ):(
             <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
@@ -1201,14 +1201,14 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
       {/* Learner Progress Section (Data Moat) */}
       {learnerProgress&&(
         <div className="stats-card" style={{marginTop:'1rem'}}>
-          <h3 style={{margin:'0 0 .75rem',fontSize:'1rem',fontWeight:700}}>Your Learning Progress</h3>
+          <h3 style={{margin:'0 0 .75rem',fontSize:'1rem',fontWeight:700}}>{t?.dashboard?.learningProgress||'Your Learning Progress'}</h3>
           
           {/* Daily Goal */}
           <div style={{background:'linear-gradient(135deg,#f0fdf4,#dcfce7)',border:'1px solid #bbf7d0',borderRadius:10,padding:'14px',marginBottom:'.75rem'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
               <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
                 <span style={{fontSize:'1rem'}}>{(learnerProgress.goals?.[0]?.actual_minutes||0)>=(learnerProgress.goals?.[0]?.goal_minutes||15)?'🎯':'🎯'}</span>
-                <span style={{fontSize:'.85rem',fontWeight:600,color:'#166534'}}>Daily Goal</span>
+                <span style={{fontSize:'.85rem',fontWeight:600,color:'#166534'}}>{t?.dashboard?.dailyGoal||'Daily Goal'}</span>
               </div>
               <button onClick={()=>setShowGoalModal(true)} style={{fontSize:'.72rem',color:'#6366f1',background:'white',border:'1px solid #e2e8f0',borderRadius:4,padding:'3px 8px',cursor:'pointer',fontWeight:500}}>Edit</button>
             </div>
@@ -1219,9 +1219,9 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
               <span style={{fontSize:'.85rem',color:'#166534',fontWeight:600,minWidth:'60px',textAlign:'right'}}>{learnerProgress.goals?.[0]?.actual_minutes||0}/{learnerProgress.goals?.[0]?.goal_minutes||15}m</span>
             </div>
             {learnerProgress.goals?.[0]?.completed===1?(
-              <div style={{fontSize:'.78rem',color:'#16a34a',fontWeight:600,display:'flex',alignItems:'center',gap:'4px'}}><span>✓</span> Goal completed! Keep it up!</div>
+              <div style={{fontSize:'.78rem',color:'#16a34a',fontWeight:600,display:'flex',alignItems:'center',gap:'4px'}}><span>✓</span> {t?.dashboard?.goalCompleted||'Goal completed! Keep it up!'}</div>
             ):(
-              <div style={{fontSize:'.72rem',color:'#4ade80'}}>{Math.max(0,(learnerProgress.goals?.[0]?.goal_minutes||15)-(learnerProgress.goals?.[0]?.actual_minutes||0))} minutes to go</div>
+              <div style={{fontSize:'.72rem',color:'#4ade80'}}>{(t?.dashboard?.minutesToGo||'{minutes} minutes to go').replace('{minutes}',Math.max(0,(learnerProgress.goals?.[0]?.goal_minutes||15)-(learnerProgress.goals?.[0]?.actual_minutes||0)))}</div>
             )}
           </div>
 
@@ -1229,35 +1229,35 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'.5rem',marginBottom:'.75rem'}}>
             <div style={{textAlign:'center',padding:'8px',background:'#f8fafc',borderRadius:6}}>
               <div style={{fontSize:'1.1rem',fontWeight:700,color:'#1e293b'}}>{learnerProgress.streak||0}</div>
-              <div style={{fontSize:'.7rem',color:'#64748b'}}>Day Streak</div>
+              <div style={{fontSize:'.7rem',color:'#64748b'}}>{t?.dashboard?.dayStreak||'Day Streak'}</div>
             </div>
             <div style={{textAlign:'center',padding:'8px',background:'#f8fafc',borderRadius:6}}>
               <div style={{fontSize:'1.1rem',fontWeight:700,color:'#1e293b'}}>{learnerProgress.total_sessions||0}</div>
-              <div style={{fontSize:'.7rem',color:'#64748b'}}>Sessions</div>
+              <div style={{fontSize:'.7rem',color:'#64748b'}}>{t?.dashboard?.sessions||'Sessions'}</div>
             </div>
             <div style={{textAlign:'center',padding:'8px',background:'#f8fafc',borderRadius:6}}>
               <div style={{fontSize:'1.1rem',fontWeight:700,color:'#1e293b'}}>{learnerProgress.vocabulary_count||0}</div>
-              <div style={{fontSize:'.7rem',color:'#64748b'}}>Words</div>
+              <div style={{fontSize:'.7rem',color:'#64748b'}}>{t?.dashboard?.words||'Words'}</div>
             </div>
           </div>
 
           {/* Quality Trend */}
           {learnerProgress.quality_trend?.length>0&&(
             <div style={{marginBottom:'.75rem'}}>
-              <div style={{fontSize:'.85rem',fontWeight:600,color:'#1e293b',marginBottom:'6px'}}>Conversation Quality</div>
+              <div style={{fontSize:'.85rem',fontWeight:600,color:'#1e293b',marginBottom:'6px'}}>{t?.dashboard?.conversationQuality||'Conversation Quality'}</div>
               <div style={{display:'flex',gap:'4px',alignItems:'flex-end',height:'40px'}}>
                 {learnerProgress.quality_trend.slice(0,10).reverse().map((q,i)=>(
                   <div key={i} style={{flex:1,background:`${q.quality_score>=70?'#22c55e':q.quality_score>=40?'#f59e0b':'#ef4444'}`,height:`${Math.max(4,q.quality_score*0.4)}px`,borderRadius:2,minWidth:0}} title={`Score: ${q.quality_score}`}/>
                 ))}
               </div>
-              <div style={{fontSize:'.7rem',color:'#64748b',marginTop:'4px'}}>Last 10 sessions (higher = better)</div>
+              <div style={{fontSize:'.7rem',color:'#64748b',marginTop:'4px'}}>{t?.dashboard?.lastSessions||'Last 10 sessions (higher = better)'}</div>
             </div>
           )}
 
           {/* Partner Rating */}
           {learnerProgress.ratings?.count>0&&(
             <div style={{display:'flex',justifyContent:'space-between',padding:'8px',background:'#f8fafc',borderRadius:6,fontSize:'.85rem'}}>
-              <span style={{color:'#64748b'}}>Partner Rating</span>
+              <span style={{color:'#64748b'}}>{t?.dashboard?.partnerRating||'Partner Rating'}</span>
               <span style={{fontWeight:600,color:'#1e293b'}}>{learnerProgress.ratings.avg?.toFixed(1)}/5 ({learnerProgress.ratings.count} ratings)</span>
             </div>
           )}
@@ -1271,26 +1271,26 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
       {showGoalModal&&(
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',display:'flex',justifyContent:'center',alignItems:'center',zIndex:1000}}>
           <div style={{background:'white',borderRadius:12,padding:'24px',maxWidth:'400px',width:'90%'}}>
-            <h3 style={{margin:'0 0 16px',fontSize:'1.1rem',fontWeight:700}}>Set Daily Goal</h3>
+            <h3 style={{margin:'0 0 16px',fontSize:'1.1rem',fontWeight:700}}>{t?.dashboard?.setDailyGoal||'Set Daily Goal'}</h3>
             <div style={{marginBottom:'16px'}}>
-              <label style={{fontSize:'.85rem',fontWeight:500,color:'#374151',display:'block',marginBottom:'6px'}}>Minutes per day</label>
+              <label style={{fontSize:'.85rem',fontWeight:500,color:'#374151',display:'block',marginBottom:'6px'}}>{t?.dashboard?.minutesPerDay||'Minutes per day'}</label>
               <input type='number' value={goalMinutes} onChange={e=>setGoalMinutes(parseInt(e.target.value)||0)} min={5} max={120} style={{width:'100%',padding:'8px 12px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.9rem'}}/>
             </div>
             <div style={{marginBottom:'16px'}}>
-              <label style={{fontSize:'.85rem',fontWeight:500,color:'#374151',display:'block',marginBottom:'6px'}}>Learning Focus</label>
+              <label style={{fontSize:'.85rem',fontWeight:500,color:'#374151',display:'block',marginBottom:'6px'}}>{t?.dashboard?.learningFocus||'Learning Focus'}</label>
               <select value={learningFocus} onChange={e=>setLearningFocus(e.target.value)} style={{width:'100%',padding:'8px 12px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.9rem'}}>
-                <option value='general'>General English</option>
-                <option value='business'>Business English</option>
-                <option value='travel'>Travel English</option>
-                <option value='academic'>Academic English</option>
-                <option value='conversation'>Conversation Practice</option>
+                <option value='general'>{t?.dashboard?.generalEnglish||'General English'}</option>
+                <option value='business'>{t?.dashboard?.businessEnglish||'Business English'}</option>
+                <option value='travel'>{t?.dashboard?.travelEnglish||'Travel English'}</option>
+                <option value='academic'>{t?.dashboard?.academicEnglish||'Academic English'}</option>
+                <option value='conversation'>{t?.dashboard?.conversationPractice||'Conversation Practice'}</option>
               </select>
             </div>
             <div style={{display:'flex',gap:'8px'}}>
-              <button onClick={()=>setShowGoalModal(false)} style={{flex:1,padding:'10px',border:'1px solid #d1d5db',borderRadius:6,background:'white',cursor:'pointer',fontSize:'.85rem'}}>Cancel</button>
+              <button onClick={()=>setShowGoalModal(false)} style={{flex:1,padding:'10px',border:'1px solid #d1d5db',borderRadius:6,background:'white',cursor:'pointer',fontSize:'.85rem'}}>{t?.dashboard?.cancel||'Cancel'}</button>
               <button onClick={()=>{
                 fetch(`${API_URL}/api/learner/goal`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({goal_minutes:goalMinutes,learning_focus:learningFocus})}).then(()=>{setShowGoalModal(false);onRefreshUser();}).catch(()=>{});
-              }} style={{flex:1,padding:'10px',border:'none',borderRadius:6,background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.85rem',fontWeight:600}}>Save Goal</button>
+              }} style={{flex:1,padding:'10px',border:'none',borderRadius:6,background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.85rem',fontWeight:600}}>{t?.dashboard?.saveGoal||'Save Goal'}</button>
             </div>
           </div>
         </div>
@@ -1865,20 +1865,20 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
             <option value="beginner">{t.profile.beginner}</option><option value="intermediate">{t.profile.intermediate}</option><option value="advanced">{t.profile.advanced}</option>
           </select>
         </div>
-        <div className="form-group"><label>Learning Focus</label>
+        <div className="form-group"><label>{t?.dashboard?.learningFocus||'Learning Focus'}</label>
           <select value={form.learning_focus||user.learning_focus||'general'} onChange={e=>setForm(f=>({...f,learning_focus:e.target.value}))}>
-            <option value="general">General English</option>
-            <option value="business">Business English</option>
-            <option value="travel">Travel English</option>
-            <option value="academic">Academic English</option>
-            <option value="conversation">Conversation Practice</option>
-            <option value="pronunciation">Pronunciation Focus</option>
+            <option value="general">{t?.dashboard?.generalEnglish||'General English'}</option>
+            <option value="business">{t?.dashboard?.businessEnglish||'Business English'}</option>
+            <option value="travel">{t?.dashboard?.travelEnglish||'Travel English'}</option>
+            <option value="academic">{t?.dashboard?.academicEnglish||'Academic English'}</option>
+            <option value="conversation">{t?.dashboard?.conversationPractice||'Conversation Practice'}</option>
+            <option value="pronunciation">{t?.dashboard?.pronunciationFocus||'Pronunciation Focus'}</option>
           </select>
-          <p style={{fontSize:'.75rem',color:'#64748b',margin:'4px 0 0'}}>Helps us suggest better conversation partners</p>
+          <p style={{fontSize:'.75rem',color:'#64748b',margin:'4px 0 0'}}>{t?.profile?.learningFocusHelp||'Helps us suggest better conversation partners'}</p>
         </div>
-        <div className="form-group"><label>Daily Goal (minutes)</label>
-          <input type="number" value={form.daily_goal_minutes||user.daily_goal_minutes||0} onChange={e=>setForm(f=>({...f,daily_goal_minutes:parseInt(e.target.value)||0}))} min={0} max={120} placeholder="0 = no goal"/>
-          <p style={{fontSize:'.75rem',color:'#64748b',margin:'4px 0 0'}}>Set to 15+ minutes for streak tracking</p>
+        <div className="form-group"><label>{t?.dashboard?.dailyGoal||'Daily Goal'} (minutes)</label>
+          <input type="number" value={form.daily_goal_minutes||user.daily_goal_minutes||0} onChange={e=>setForm(f=>({...f,daily_goal_minutes:parseInt(e.target.value)||0}))} min={0} max={120} placeholder={t?.profile?.dailyGoalPlaceholder||'0 = no goal'}/>
+          <p style={{fontSize:'.75rem',color:'#64748b',margin:'4px 0 0'}}>{t?.profile?.dailyGoalHelp||'Set to 15+ minutes for streak tracking'}</p>
         </div>
         <button className="save-btn" onClick={save}>{t.profile.saveProfile}</button>
         {user.auth_provider!=='google'&&<>

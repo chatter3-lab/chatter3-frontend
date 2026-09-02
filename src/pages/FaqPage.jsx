@@ -132,12 +132,12 @@ export default function FaqPage({lang='en'}){
             <a href={`${prefix}/`}>Home</a>
             <a href={`${prefix}/how-it-works`}>How It Works</a>
             <a href={`${prefix}/for-beginners`}>For Beginners</a>
-            <a href={`${prefix}/free-english-practice`}>Free Practice</a>
-            <a href={`${prefix}/english-conversation-app`}>Conversation App</a>
+            <a href={`${prefix}/free-english-practice`}>{t?.footer?.freePractice||'Free Practice'}</a>
+            <a href={`${prefix}/english-conversation-app`}>{t?.footer?.conversationApp||'Conversation App'}</a>
             <a href={`${prefix}/blog`}>Blog</a>
             <a href={`${prefix}/faq`}>FAQ</a>
-            <a href={`${prefix}/chatter3-vs-italki`}>vs italki</a>
-            <a href={`${prefix}/chatter3-vs-cambly`}>vs Cambly</a>
+            <a href={`${prefix}/chatter3-vs-italki`}>{t?.footer?.vsItalki||'vs italki'}</a>
+            <a href={`${prefix}/chatter3-vs-cambly`}>{t?.footer?.vsCambly||'vs Cambly'}</a>
             <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
           </div>
           <p>&copy; 2026 Chatter3. All rights reserved.</p>

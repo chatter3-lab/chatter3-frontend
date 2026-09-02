@@ -70,8 +70,8 @@ export default function ForBeginnersPage({lang='en'}){
             <a href={`${prefix}/`}>{t.nav.home}</a>
             <a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a>
             <a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a>
-            <a href={`${prefix}/free-english-practice`}>Free Practice</a>
-            <a href={`${prefix}/english-conversation-app`}>Conversation App</a>
+            <a href={`${prefix}/free-english-practice`}>{t?.footer?.freePractice||'Free Practice'}</a>
+            <a href={`${prefix}/english-conversation-app`}>{t?.footer?.conversationApp||'Conversation App'}</a>
             <a href={`${prefix}/blog`}>{t.nav.blog}</a>
             <a href={`${prefix}/faq`}>{t.nav.faq||'FAQ'}</a>
             <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
