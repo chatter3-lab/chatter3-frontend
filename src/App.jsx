@@ -949,7 +949,7 @@ function LeaderboardCard({userId,t}){
       ):(
         <div>
           {leaderboard.map((entry,i)=>{
-            const isMe=entry.username===userId;
+            const isMe=entry.id===userId;
             return(
               <div key={i} className={`lb-row${isMe?' me':''}`}>
                 <span className="lb-rank">{i<3?medals[i]:entry.rank}</span>

@@ -811,6 +811,7 @@
     "categories": {
       "general": "Général",
       "practice": "Pratique",
+      "learning": "Fonctionnalités d'apprentissage",
       "account": "Compte",
       "safety": "Sécurité",
       "technical": "Technique"
@@ -847,6 +848,22 @@
       "choosePartner": {
         "q": "Puis-je choisir avec qui je pratique ?",
         "a": "L'algorithme de correspondance considère votre niveau, langue maternelle et pays. Vous ne pouvez pas choisir une personne spécifique, mais vous pouvez passer au suivant si nécessaire."
+      },
+      "dailyGoals": {
+        "q": "Y a-t-il une fonctionnalité d'objectifs quotidiens ?",
+        "a": "Oui ! Vous pouvez définir des objectifs de pratique quotidiens pour rester motivé. Vous gagnez des points bonus en atteignant vos objectifs."
+      },
+      "vocabularyBank": {
+        "q": "Qu'est-ce que le catalogue de vocabulaire ?",
+        "a": "Le catalogue de vocabulaire est un outil d'apprentissage qui vous permet de sauvegarder de nouveaux mots et expressions pendant les conversations pour les réviser plus tard."
+      },
+      "reputationBadge": {
+        "q": "Qu'est-ce que le badge de réputation ?",
+        "a": "Le badge de réputation récompense une excellente attitude d'apprentissage ou une pratique régulière. Plus vous recevez de bonnes notes, plus votre badge est amélioré."
+      },
+      "learningFocus": {
+        "q": "Y a-t-il un moyen de se concentrer sur l'apprentissage ?",
+        "a": "Vous pouvez sélectionner la langue d'apprentissage et les sujets dans les paramètres pour vous entraîner sur des domaines spécifiques."
       },
       "createAccount": {
         "q": "Comment créer un compte ?",

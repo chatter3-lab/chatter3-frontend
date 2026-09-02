@@ -811,6 +811,7 @@
     "categories": {
       "general": "General",
       "practice": "Práctica",
+      "learning": "Funciones de Aprendizaje",
       "account": "Cuenta",
       "safety": "Seguridad",
       "technical": "Técnico"
@@ -847,6 +848,22 @@
       "choosePartner": {
         "q": "¿Puedo elegir con quién practico?",
         "a": "El algoritmo de emparejamiento considera tu nivel, idioma nativo y país. No puedes elegir una persona específica, pero puedes saltar al siguiente emparejamiento si es necesario."
+      },
+      "dailyGoals": {
+        "q": "¿Cómo funcionan las metas diarias?",
+        "a": "Establece una meta diaria de práctica (por ejemplo, 15 minutos) en tu perfil. Tu panel de control rastrea el progreso durante el día. Cuando completas tu meta, verás un mensaje de celebración. ¡La consistencia crea rachas!"
+      },
+      "vocabularyBank": {
+        "q": "¿Qué es el Banco de Vocabulario?",
+        "a": "Guarda palabras que aprendes durante las conversaciones para revisarlas después. Las palabras siguen un calendario de repetición espaciada — aparecen en intervalos crecientes (1 día, 3 días, 7 días, etc.) para ayudarte a recordarlas a largo plazo."
+      },
+      "reputationBadge": {
+        "q": "¿Qué son las insignias de reputación?",
+        "a": "Tu puntuación de reputación (0-100) refleja tu actividad y calidad como compañero de conversación. Se basa en sesiones completadas, calificaciones de compañeros, racha y antigüedad de la cuenta. Las insignias van desde 'Nuevo' hasta 'Confiable' y ayudan a otros a identificar socios confiables."
+      },
+      "learningFocus": {
+        "q": "¿Qué es el Enfoque de Aprendizaje?",
+        "a": "Elige un enfoque de aprendizaje en tu perfil (General, Negocios, Viajes, Académico, Conversación o Pronunciación). Esto nos ayuda a sugerir mejores compañeros de conversación y adaptar tu experiencia."
       },
       "createAccount": {
         "q": "¿Cómo creo una cuenta?",

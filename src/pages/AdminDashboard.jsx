@@ -351,7 +351,7 @@ function BlogTab({post,t}){
                 <div style={{marginBottom:'.5rem'}}><input value={transForm[lang]?.title||''} onChange={e=>updateTrans(lang,'title',e.target.value)} placeholder="Translated title" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
                 <div style={{marginBottom:'.5rem'}}><input value={transForm[lang]?.excerpt||''} onChange={e=>updateTrans(lang,'excerpt',e.target.value)} placeholder="Translated excerpt" style={{width:'100%',padding:'6px 10px',borderRadius:4,border:'1px solid #334155',background:'#1e293b',color:'white',fontSize:'.82rem',boxSizing:'border-box'}}/></div>
                 <div style={{marginBottom:'.5rem'}}><RichEditor key={`${translatingPost}-${lang}`} value={transForm[lang]?.content||''} onChange={val=>updateTrans(lang,'content',val)}/></div>
-                <button onClick={()=>saveTranslation(lang)} disabled={saving||!transForm[lang]?.title} style={{padding:'4px 12px',borderRadius:4,border:'none',background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving||!transForm[lang]?.title?.5:1}}>Save {lang.toUpperCase()}</button>
+                <button onClick={()=>saveTranslation(lang)} disabled={saving||!transForm[lang]?.title} style={{padding:'4px 12px',borderRadius:4,border:'none',background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.78rem',opacity:saving||!transForm[lang]?.title?0.5:1}}>Save {lang.toUpperCase()}</button>
               </div>
             ))}
           </div>
