@@ -70,6 +70,7 @@ export default function BlogArticlePage({slug,lang='en'}){
             <a href={`${prefix}/chatter3-vs-italki`}>{t?.footer?.vsItalki||'vs italki'}</a>
             <a href={`${prefix}/chatter3-vs-cambly`}>{t?.footer?.vsCambly||'vs Cambly'}</a>
             <a href="https://chatter3.com" target="_blank">Chatter3.com</a>
+            <a href="/api/blog/rss.xml" target="_blank">RSS</a>
           </div>
           <p>{t.footer.copyright}</p>
         </div>

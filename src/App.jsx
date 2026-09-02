@@ -1086,6 +1086,32 @@ function VocabularyReview({userId}){
   );
 }
 
+function AchievementsSection({t}){
+  const[achievements,setAchievements]=useState([]);
+  const[newUnlocked,setNewUnlocked]=useState([]);
+  useEffect(()=>{
+    authFetch(`${API_URL}/api/achievements`).then(r=>r.json()).then(d=>{if(d.success){setAchievements(d.achievements||[]);setNewUnlocked(d.newly_unlocked||[]);}}).catch(()=>{});
+  },[]);
+  const unlocked=achievements.filter(a=>a.unlocked);
+  if(achievements.length===0)return null;
+  return(
+    <div style={{background:'white',borderRadius:12,padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e7eb'}}>
+      <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',margin:'0 0 .75rem',display:'flex',alignItems:'center',gap:6}}>🏆 {t?.dashboard?.achievements||'Achievements'}</h3>
+      {newUnlocked.length>0&&<div style={{background:'#fef3c7',border:'1px solid #fcd34d',borderRadius:8,padding:'.6rem .8rem',marginBottom:'.75rem',fontSize:'.82rem'}}>
+        {newUnlocked.map(a=><div key={a.type} style={{marginBottom:2}}>🎉 <b>{a.name}</b> — {a.desc}</div>)}
+      </div>}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:'.5rem'}}>
+        {achievements.map(a=>(
+          <div key={a.type} style={{padding:'.6rem',borderRadius:8,border:a.unlocked?'2px solid #f59e0b':'1px solid #e5e7eb',background:a.unlocked?'#fffbeb':'#f9fafb',textAlign:'center',opacity:a.unlocked?1:.5}}>
+            <div style={{fontSize:'1.5rem'}}>{a.icon}</div>
+            <div style={{fontSize:'.72rem',fontWeight:600,color:a.unlocked?'#92400e':'#9ca3af',marginTop:2}}>{a.name}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefreshUser,t}){
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
@@ -1267,6 +1293,9 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
         </div>
       )}
 
+      {/* Achievements */}
+      <AchievementsSection t={t}/>
+
       {/* Goal Setting Modal */}
       {showGoalModal&&(
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',display:'flex',justifyContent:'center',alignItems:'center',zIndex:1000}}>
@@ -1314,6 +1343,7 @@ function MatchingView({user,settings,onCancel,onMatch,t}){
   const[online,setOnline]=useState({searching:0,in_call:0,by_level:{}});
   const[elapsed,setElapsed]=useState(0);
   const[timedOut,setTimedOut]=useState(false);
+  const[friendOnly,setFriendOnly]=useState(false);
   const stopRingRef=useRef(null);
   const t0=useRef(Date.now());
   const starters=getStarters(t);
@@ -1339,7 +1369,7 @@ function MatchingView({user,settings,onCancel,onMatch,t}){
     const search=async()=>{
       try{
         if(!matched){
-          const r=await authFetch(`${API_URL}/api/matching/join`,{method:'POST',body:JSON.stringify({english_level:user.english_level,country:user.country,native_language:(user.native_language||'').trim().toLowerCase()})});
+          const r=await authFetch(`${API_URL}/api/matching/join`,{method:'POST',body:JSON.stringify({english_level:user.english_level,country:user.country,native_language:(user.native_language||'').trim().toLowerCase(),friend_only:friendOnly})});
           const d=await r.json();
           if(d.error==='insufficient_fp'){
             // Check if partner already matched us before bailing
@@ -1402,6 +1432,10 @@ function MatchingView({user,settings,onCancel,onMatch,t}){
         <p style={{fontSize:'.75rem',fontWeight:600,color:'#4f8ef7',margin:'0 0 .35rem'}}>{t.matching.whileYouWait}</p>
         <p style={{fontSize:'.72rem',color:'#94a3b8',margin:0}}>{matchTip}</p>
       </div>
+      <label style={{display:'flex',alignItems:'center',gap:8,fontSize:'.82rem',color:'#6b7280',cursor:'pointer',marginBottom:'.75rem'}}>
+  <input type="checkbox" checked={friendOnly} onChange={e=>setFriendOnly(e.target.checked)} style={{accentColor:'#4f46e5'}}/>
+  {t?.matching?.friendOnly||'Friends only'}
+</label>
       <button onClick={cancel} className="cancel-btn">{t.matching.cancelSearch}</button>
     </div>
   );
@@ -1895,6 +1929,18 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
           </div>
         )}
         </>}
+        <div style={{borderTop:'1px solid #e5e7eb',marginTop:'1rem',paddingTop:'1rem'}}>
+  <h4 style={{fontSize:'.85rem',fontWeight:700,color:'#374151',margin:'0 0 .75rem'}}>Your Data</h4>
+  <button onClick={async()=>{
+    if(!confirm('Download all your data as JSON?'))return;
+    try{const r=await authFetch(`${API_URL}/api/user/data-export`);const d=await r.json();if(d.success){const blob=new Blob([JSON.stringify(d.exports,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='chatter3-data-export.json';a.click();URL.revokeObjectURL(url);}}catch{alert('Export failed');}
+  }} className="btn-accent-outline" style={{width:'100%',marginBottom:8}}>📥 Export My Data</button>
+  <button onClick={async()=>{
+    if(!confirm('Are you sure you want to delete your account? This cannot be undone. All your data will be permanently anonymized.'))return;
+    if(!confirm('This is your final warning. Type DELETE in your mind and click OK to proceed.'))return;
+    try{const r=await authFetch(`${API_URL}/api/user/delete-account`,{method:'POST'});const d=await r.json();if(d.success){localStorage.clear();window.location.href='/';}else{alert(d.error||'Delete failed');}}catch{alert('Delete failed');}
+  }} className="btn-accent-outline" style={{width:'100%',color:'#ef4444',borderColor:'#ef4444'}}>🗑️ Delete My Account</button>
+</div>
         <button onClick={()=>setShowFeedback(true)} className="btn-accent-outline">{t.profile.sendFeedback}</button>
         <button onClick={onShowOnboarding} className="btn-accent-outline">{t.profile.viewIntro}</button>
         <button onClick={onBack} className="btn-subtle">{t.profile.back}</button>

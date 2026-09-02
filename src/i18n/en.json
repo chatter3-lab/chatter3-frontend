@@ -139,7 +139,8 @@
     "masteryFamiliar": "Familiar",
     "masteryKnown": "Known",
     "masteryMastered": "Mastered",
-    "masteryFluent": "Fluent"
+    "masteryFluent": "Fluent",
+    "achievements": "Achievements"
   },
   "matching": {
     "looking": "Looking for a partner...",
@@ -166,7 +167,8 @@
     "starter2": "Ask {partner} what music or shows are trending where they live!",
     "starter3": "Ask {partner} what they enjoy doing on weekends!",
     "starter4": "Ask {partner} what made them want to practice English conversation!",
-    "starter5": "Ask {partner} to describe something unique about their hometown!"
+    "starter5": "Ask {partner} to describe something unique about their hometown!",
+    "friendOnly": "Friends only"
   },
   "precall": {
     "matched": "You've been matched",
@@ -270,7 +272,10 @@
     "passwordsMismatch": "Passwords do not match",
     "passwordUpdated": "Password updated!",
     "passwordFailed": "Failed to change password",
-    "networkError": "Network error"
+    "networkError": "Network error",
+    "exportData": "Export My Data",
+    "deleteAccount": "Delete My Account",
+    "deleteWarning": "This cannot be undone. Your data will be permanently anonymized."
   },
   "leaderboard": {
     "title": "🏆 Leaderboard",
