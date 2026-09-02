@@ -5,6 +5,12 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 import { getTranslations, getLangFromPath, detectLanguage, getLocalizedPath, languages } from './i18n/detect';
 import useInstallPrompt from './hooks/useInstallPrompt';
 import { useTranslation } from './i18n/useTranslation';
+import { ToastProvider, useToast } from './components/Toast';
+import ConfirmDialog from './components/ConfirmDialog';
+import Avatar from './components/Avatar';
+import { SkeletonDashboard } from './components/Skeleton';
+import OfflineBanner from './components/OfflineBanner';
+import NotificationCenter from './components/NotificationCenter';
 
 const HowItWorksPage = lazy(() => import('./pages/HowItWorksPage'));
 const ForBeginnersPage = lazy(() => import('./pages/ForBeginnersPage'));
@@ -216,6 +222,11 @@ function ExchangeModal({t,user,onClose,onDone}){
   const[err,setErr]=useState('');
   const cost=qty*RP_TO_FP;
   const canAfford=(user.rp_balance||0)>=cost;
+  useEffect(()=>{
+    const h=(e)=>{if(e.key==='Escape')onClose();};
+    window.addEventListener('keydown',h);
+    return()=>window.removeEventListener('keydown',h);
+  },[onClose]);
   const exchange=async()=>{
     setLoading(true);setErr('');
     try{
@@ -226,7 +237,7 @@ function ExchangeModal({t,user,onClose,onDone}){
     }catch{setErr(t?.modals?.exchangeNetwork||'Network error.');}finally{setLoading(false);}
   };
   return(
-    <div className="overlay" onClick={onClose}>
+    <div className="overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Exchange RP for FP">
       <div className="modal-card" onClick={e=>e.stopPropagation()}>
         <div className="modal-icon">🔄</div>
         <h2>{t?.modals?.exchangeTitle||'Exchange RP for FP'}</h2>
@@ -259,6 +270,12 @@ function ReportModal({targetUser,sessionId,onClose,t}){
   const[reason,setReason]=useState('');
   const[submitting,setSubmitting]=useState(false);
   const[done,setDone]=useState(null);
+  const toast=useToast();
+  useEffect(()=>{
+    const h=(e)=>{if(e.key==='Escape')onClose();};
+    window.addEventListener('keydown',h);
+    return()=>window.removeEventListener('keydown',h);
+  },[onClose]);
   const submit=async(action)=>{
     if(action!=='block'&&!reason)return;
     setSubmitting(true);
@@ -266,12 +283,12 @@ function ReportModal({targetUser,sessionId,onClose,t}){
       if(action==='report'||action==='both')await authFetch(`${API_URL}/api/report`,{method:'POST',body:JSON.stringify({reported_id:targetUser.id,session_id:sessionId,reason})});
       if(action==='block'||action==='both')await authFetch(`${API_URL}/api/block`,{method:'POST',body:JSON.stringify({blocked_id:targetUser.id})});
       setDone(action);
-    }catch{setDone(action);}finally{setSubmitting(false);}
+    }catch{setDone(action);toast.error('Report failed — please try again');}finally{setSubmitting(false);}
   };
   const name=targetUser?.nickname||targetUser?.username||t.modals.reportUnknown;
   const reasonKeys=[t.modals.reportReason1,t.modals.reportReason2,t.modals.reportReason3,t.modals.reportReason4,t.modals.reportReason5,t.modals.reportReason6];
   if(done)return(
-    <div className="report-overlay" onClick={onClose}>
+    <div className="report-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Report">
       <div className="report-card" onClick={e=>e.stopPropagation()}>
         <div className="report-success"><div className="report-success-icon">✅</div>
           <h3 style={{fontFamily:'Sora,sans-serif'}}>{done==='block'?t.modals.reportBlocked.replace('{name}',name):done==='both'?t.modals.reportBlockedReport.replace('{name}',name):t.modals.reportSubmitted}</h3>
@@ -282,7 +299,7 @@ function ReportModal({targetUser,sessionId,onClose,t}){
     </div>
   );
   return(
-    <div className="report-overlay" onClick={onClose}>
+    <div className="report-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Report">
       <div className="report-card" onClick={e=>e.stopPropagation()}>
         <h3>{t.modals.reportTitle}</h3>
         <p>{t.modals.reportDesc.replace('{name}',name)}</p>
@@ -308,8 +325,15 @@ function FriendsModal({t,user,onClose}){
   const[copied,setCopied]=useState(false);
   const[inviteStats,setInviteStats]=useState({total:0,used:0});
   const[loading,setLoading]=useState(false);
+  const toast=useToast();
 
   const post=(p,b)=>authFetch(`${API_URL}${p}`,{method:'POST',body:JSON.stringify(b||{})}).then(r=>r.json());
+
+  useEffect(()=>{
+    const h=(e)=>{if(e.key==='Escape')onClose();};
+    window.addEventListener('keydown',h);
+    return()=>window.removeEventListener('keydown',h);
+  },[onClose]);
 
   useEffect(()=>{
     post('/api/friends/list',{}).then(d=>{if(d.success){setFriends(d.friends||[]);setPending(d.pending_requests||[]);}});
@@ -327,7 +351,7 @@ function FriendsModal({t,user,onClose}){
   const sendRequest=async(rid)=>{
     await authFetch(`${API_URL}/api/friends/request`,{method:'POST',body:JSON.stringify({receiver_id:rid})});
     setSearchRes(sr=>sr.filter(u=>u.id!==rid));
-    alert(t?.modals?.friendRequestSent||'Friend request sent!');
+    toast.success(t?.modals?.friendRequestSent||'Friend request sent!');
   };
 
   const respond=async(reqId,action)=>{
@@ -337,7 +361,7 @@ function FriendsModal({t,user,onClose}){
   };
 
   const removeFriend=async(fid)=>{
-    await post('/api/friends/remove',{friend_id:fid});
+    await post('/api/friends/remove',{friend_id:fid}).catch(()=>toast.error('Failed to remove friend'));
     setFriends(f=>f.filter(fr=>fr.id!==fid));
   };
 
@@ -368,7 +392,7 @@ function FriendsModal({t,user,onClose}){
   const FriendRow=({f,actions})=>(
     <div className="friend-item">
       <div className="friend-avatar">
-        {f.avatar_url?<img src={f.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt=""/>:(f.nickname||f.username||'?').charAt(0).toUpperCase()}
+        {f.avatar_url?<Avatar src={f.avatar_url} name={f.nickname||f.username} size={40} style={{width:'100%',height:'100%'}}/>:(f.nickname||f.username||'?').charAt(0).toUpperCase()}
       </div>
       <div className="friend-info">
         <div className="friend-name">{f.nickname||f.username}{f.founding_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>{t?.modals?.fmBadge||'🏆 FM'}</span>:null}{f.is_new_member&&!f.founding_member?<span style={{marginLeft:5,padding:'1px 6px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,verticalAlign:'middle'}}>{t?.modals?.newBadge||'🆕 NEW'}</span>:null}</div>
@@ -379,11 +403,11 @@ function FriendsModal({t,user,onClose}){
   );
 
   return(
-    <div className="overlay" onClick={onClose}>
+    <div className="overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Friends">
       <div className="modal-card" style={{maxWidth:440}} onClick={e=>e.stopPropagation()}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
           <h2 style={{margin:0,textAlign:'left'}}>👥 {t?.modals?.friendsTitle||'Friends & Invite'}</h2>
-          <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:'1.1rem'}}>✕</button>
+          <button onClick={onClose} aria-label="Close" style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:'1.1rem'}}>✕</button>
         </div>
         <div className="modal-tab-row">
           {['friends','search','invite'].map(tabName=><button key={tabName} className={`modal-tab ${tab===tabName?'active':''}`} onClick={()=>setTab(tabName)}>{tabName==='friends'?(t?.modals?.friendsTab||'Friends')+(pending.length>0?` (${pending.length})`:''):tabName==='search'?(t?.modals?.searchTab||'Search'):(t?.modals?.inviteTab||'Invite')}</button>)}
@@ -465,7 +489,7 @@ function FriendsModal({t,user,onClose}){
 // ─────────────────────────────────────────────────────────────────
 // MAIN APP
 // ─────────────────────────────────────────────────────────────────
-export default function App(){
+function App(){
   // Detect browser language on first visit (before useTranslation reads localStorage)
   if(!localStorage.getItem('chatter3_lang')) detectLanguage();
 
@@ -508,7 +532,7 @@ export default function App(){
   if(langMatch){
     const lang=langMatch[1];
     const page=langMatch[2];
-    const loading=<div style={{display:'flex',justifyContent:'center',alignItems:'center',minHeight:'60vh',color:'#94a3b8'}}>Loading...</div>;
+    const loading=<div className="loading-page"><SkeletonDashboard/></div>;
     if(page==='how-it-works')return<Suspense fallback={loading}><HowItWorksPage lang={lang}/></Suspense>;
     if(page==='for-beginners')return<Suspense fallback={loading}><ForBeginnersPage lang={lang}/></Suspense>;
     if(page==='faq')return<Suspense fallback={loading}><FaqPage lang={lang}/></Suspense>;
@@ -530,7 +554,7 @@ export default function App(){
       window.location.href=getLocalizedPath(cleanPath,lang);
       return null;
     }
-    const loading=<div style={{display:'flex',justifyContent:'center',alignItems:'center',minHeight:'60vh',color:'#94a3b8'}}>Loading...</div>;
+    const loading=<div className="loading-page"><SkeletonDashboard/></div>;
     if(path==='/how-it-works')return<Suspense fallback={loading}><HowItWorksPage lang="en"/></Suspense>;
     if(path==='/for-beginners')return<Suspense fallback={loading}><ForBeginnersPage lang="en"/></Suspense>;
     if(path==='/faq')return<Suspense fallback={loading}><FaqPage lang="en"/></Suspense>;
@@ -555,6 +579,7 @@ export default function App(){
   const[appSettings,setAppSettings]=useState({matching_by_level:'false'});
   const[resetToken,setResetToken]=useState(null);
   const{t,lang}=useTranslation();
+  const toast=useToast();
 
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
@@ -626,6 +651,8 @@ export default function App(){
   };
 
   return(
+    <>
+    <OfflineBanner />
     <ErrorBoundary>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="app-container">
@@ -659,9 +686,10 @@ export default function App(){
                 <div className="user-info">
                     <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>{t.profile.foundingMember}</span>:null}{user.is_new_member&&!user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>{t.profile.newMember}</span>:null}</span>
                   <div className="header-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
-                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)}>👥 {t.nav.friends||'Friends'}</button>
+                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)} aria-label={t.nav.friends||'Friends'}>👥 {t.nav.friends||'Friends'}</button>
+                   <NotificationCenter user={user} API_URL={API_URL} authFetch={authFetch}/>
                    <div className="help-menu-wrapper">
-                     <button className="header-btn btn-help" style={{position:'relative'}}>❓ {t.nav.help||'Help'}</button>
+                     <button className="header-btn btn-help" style={{position:'relative'}} aria-label={t.nav.help||'Help'} aria-haspopup="true">❓ {t.nav.help||'Help'}</button>
                       <div className="help-dropdown">
                         <a href="/how-it-works" target="_blank">📖 {t.nav.howItWorks}</a>
                         <a href="/for-beginners" target="_blank">🌱 {t.nav.forBeginners}</a>
@@ -674,8 +702,8 @@ export default function App(){
                       </div>
                    </div>
                   <LanguageSwitcher currentLang={localStorage.getItem('chatter3_lang')||'en'}/>
-                  {user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')}>⚙ {t.admin.badge}</button>:null}
-                  <button className="header-btn btn-logout" onClick={handleLogout}>{t.nav.logout||'Logout'}</button>
+                  {user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')} aria-label={t.admin.badge}>⚙ {t.admin.badge}</button>:null}
+                  <button className="header-btn btn-logout" onClick={handleLogout} aria-label={t.nav.logout||'Logout'}>{t.nav.logout||'Logout'}</button>
                 </div>
               )}
             </div>
@@ -705,6 +733,7 @@ export default function App(){
       </div>
     </GoogleOAuthProvider>
     </ErrorBoundary>
+    </>
   );
 }
 
@@ -999,6 +1028,7 @@ function VocabularyReview({userId}){
   const[newWord,setNewWord]=useState('');
   const[newContext,setNewContext]=useState('');
   const[adding,setAdding]=useState(false);
+  const toast=useToast();
 
   useEffect(()=>{
     fetch(`${API_URL}/api/vocabulary/review`,{headers:{'Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`}}).then(r=>r.json()).then(d=>{
@@ -1013,7 +1043,7 @@ function VocabularyReview({userId}){
     fetch(`${API_URL}/api/vocabulary/log`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({word:newWord.trim(),context:newContext.trim()})}).then(r=>r.json()).then(d=>{
       if(d.success){setNewWord('');setNewContext('');setShowAdd(false);setWords(prev=>[{id:'new',word:newWord.trim(),context:newContext.trim(),mastery_level:0,review_count:0},...prev]);}
       setAdding(false);
-    }).catch(()=>setAdding(false));
+    }).catch(()=>{setAdding(false);toast.error('Failed to save word');});
   };
 
   const masteryColors=['#ef4444','#f59e0b','#eab308','#22c55e','#10b981','#059669'];
@@ -1298,7 +1328,7 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
 
       {/* Goal Setting Modal */}
       {showGoalModal&&(
-        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',display:'flex',justifyContent:'center',alignItems:'center',zIndex:1000}}>
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',display:'flex',justifyContent:'center',alignItems:'center',zIndex:1000}} role="dialog" aria-modal="true" aria-label="Set Daily Goal" onKeyDown={e=>{if(e.key==='Escape')setShowGoalModal(false);}}>
           <div style={{background:'white',borderRadius:12,padding:'24px',maxWidth:'400px',width:'90%'}}>
             <h3 style={{margin:'0 0 16px',fontSize:'1.1rem',fontWeight:700}}>{t?.dashboard?.setDailyGoal||'Set Daily Goal'}</h3>
             <div style={{marginBottom:'16px'}}>
@@ -1318,7 +1348,7 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
             <div style={{display:'flex',gap:'8px'}}>
               <button onClick={()=>setShowGoalModal(false)} style={{flex:1,padding:'10px',border:'1px solid #d1d5db',borderRadius:6,background:'white',cursor:'pointer',fontSize:'.85rem'}}>{t?.dashboard?.cancel||'Cancel'}</button>
               <button onClick={()=>{
-                fetch(`${API_URL}/api/learner/goal`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({goal_minutes:goalMinutes,learning_focus:learningFocus})}).then(()=>{setShowGoalModal(false);onRefreshUser();}).catch(()=>{});
+                fetch(`${API_URL}/api/learner/goal`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({goal_minutes:goalMinutes,learning_focus:learningFocus})}).then(()=>{setShowGoalModal(false);onRefreshUser();}).catch(()=>toast.error('Failed to save goal'));
               }} style={{flex:1,padding:'10px',border:'none',borderRadius:6,background:'#6366f1',color:'white',cursor:'pointer',fontSize:'.85rem',fontWeight:600}}>{t?.dashboard?.saveGoal||'Save Goal'}</button>
             </div>
           </div>
@@ -1473,7 +1503,7 @@ function PreCallView({session,onStart,onCancel,t}){
         <div className="precall-avatar-wrap">
           <div className="precall-avatar-ring"/>
           <div className="precall-avatar-inner">
-            {partner.avatar_url?<img src={partner.avatar_url} alt={name}/>:<span style={{fontFamily:'Sora,sans-serif',fontSize:'2.2rem',fontWeight:800,color:'white'}}>{name.charAt(0).toUpperCase()}</span>}
+            {partner.avatar_url?<Avatar src={partner.avatar_url} name={name} size={80}/>:<span style={{fontFamily:'Sora,sans-serif',fontSize:'2.2rem',fontWeight:800,color:'white'}}>{name.charAt(0).toUpperCase()}</span>}
           </div>
         </div>
         <h2 className="precall-name">{name}{partner.founding_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#fbbf24',letterSpacing:'.03em'}}>{t.precall.foundingMember}</span>:null}{partner.is_new_member&&!partner.founding_member?<span style={{display:'block',marginTop:4,fontSize:'.7rem',fontWeight:600,color:'#22c55e',letterSpacing:'.03em'}}>{t.precall.newMember}</span>:null}</h2>
@@ -1512,6 +1542,11 @@ function FeedbackModal({t,userId,onClose}){
   const[sending,setSending]=useState(false);
   const[done,setDone]=useState(false);
   const[rpAwarded,setRpAwarded]=useState(0);
+  useEffect(()=>{
+    const h=(e)=>{if(e.key==='Escape')onClose();};
+    window.addEventListener('keydown',h);
+    return()=>window.removeEventListener('keydown',h);
+  },[onClose]);
   const submit=async()=>{
     if(!message.trim()||sending)return;
     setSending(true);
@@ -1523,7 +1558,7 @@ function FeedbackModal({t,userId,onClose}){
     setSending(false);
   };
   return(
-    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:16}}>
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:16}} role="dialog" aria-modal="true" aria-label="Send Feedback">
       <div className="modal-panel">
         <button onClick={onClose} style={{position:'absolute',top:12,right:12,background:'none',border:'none',fontSize:'1.3rem',cursor:'pointer',color:'#9ca3af'}}>✕</button>
         {done?(
@@ -1577,6 +1612,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
   const[partnerEndedScreen,setPartnerEndedScreen]=useState(false);
   const[partnerReconnecting,setPartnerReconnecting]=useState(false);
   const[err,setErr]=useState('');
+  const toast=useToast();
   const lv=useRef(null),rv=useRef(null),pc=useRef(null),ws=useRef(null);
   const remStream=useRef(null),lcQ=useRef([]),rcQ=useRef([]),negRef=useRef(false),streamRef=useRef(null);
   const discTimer=useRef(null),autoTimer=useRef(null);
@@ -1618,7 +1654,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
           }
           if((s==='failed')&&!hasConnected.current){
             logConn('failed',{never_connected:true});
-            authFetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',body:JSON.stringify({session_id:session.id})}).catch(()=>{});
+            authFetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',body:JSON.stringify({session_id:session.id})}).catch(()=>toast.error('Refund failed — contact support'));
           }
           if((s==='disconnected'||s==='failed') && !intentionalHangup.current && !partnerHungUp.current){
             discTimer.current=setTimeout(()=>setShowDisc(true),3000);
@@ -1642,7 +1678,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
         // Connection timeout: if not connected within 30s, refund FP and end session
         connTimeout.current=setTimeout(()=>{
           if(!hasConnected.current){
-            authFetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',body:JSON.stringify({session_id:session.id})}).catch(()=>{});
+            authFetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',body:JSON.stringify({session_id:session.id})}).catch(()=>toast.error('Refund failed — contact support'));
             cleanup();playSound('end');setShowRating(true);
           }
         },30000);
@@ -1665,7 +1701,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
             } else {
               // Never connected — just end
               clearTimeout(connTimeout.current);
-              authFetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',body:JSON.stringify({session_id:session.id})}).catch(()=>{});
+              authFetch(`${API_URL}/api/matching/refund-fp`,{method:'POST',body:JSON.stringify({session_id:session.id})}).catch(()=>toast.error('Refund failed — contact support'));
               cleanup();playSound('end');setEndReason('partner');setShowRating(true);
             }
           }
@@ -1789,7 +1825,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
                     input.value='';
                     input.placeholder='Saved! ✓';
                     setTimeout(()=>{input.placeholder="e.g., 'procrastinate'";},2000);
-                    fetch(`${API_URL}/api/vocabulary/log`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({word,context:`Session with ${session.partner?.username||'partner'}`,session_id:session.id})}).catch(()=>{});
+                    fetch(`${API_URL}/api/vocabulary/log`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('chatter3_token')}`},body:JSON.stringify({word,context:`Session with ${session.partner?.username||'partner'}`,session_id:session.id})}).catch(()=>toast.error('Failed to save word'));
                   }
                 }} style={{padding:'10px 16px',background:'#22c55e',color:'white',border:'none',borderRadius:8,cursor:'pointer',fontSize:'.85rem',fontWeight:600,transition:'background .15s',whiteSpace:'nowrap'}} onMouseEnter={e=>e.target.style.background='#16a34a'} onMouseLeave={e=>e.target.style.background='#22c55e'}>Save</button>
               </div>
@@ -1826,8 +1862,8 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
               </div>
               <p style={{color:'rgba(255,255,255,.5)',fontSize:'.75rem',margin:'0 0 .75rem'}}>{t.video.shareText}</p>
               <div style={{display:'flex',gap:'.5rem',justifyContent:'center',flexWrap:'wrap'}}>
-                <button onClick={()=>{const streakTxt=shareData.streak>1?(t.video.shareMessageStreak||' 🔥{streak} day streak!').replace('{streak}',shareData.streak):'';const msg=(t.video.shareMessage||'🎉 I just practiced English for {duration} min on Chatter3!{streak} Join me: https://app.chatter3.com').replace('{duration}',Math.floor(shareData.duration/60)).replace('{streak}',streakTxt);navigator.share?navigator.share({title:'Chatter3',text:msg,url:'https://app.chatter3.com'}):navigator.clipboard.writeText(msg).then(()=>alert(t.video.copied));}} style={{background:'white',color:'#6366f1',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:700,fontSize:'.8rem',cursor:'pointer'}}>{t.video.share}</button>
-                <button onClick={()=>{const streakTxt=shareData.streak>1?(t.video.shareMessageStreak||' 🔥{streak} day streak!').replace('{streak}',shareData.streak):'';const msg=(t.video.shareMessage||'🎉 I just practiced English for {duration} min on Chatter3!{streak} Join me: https://app.chatter3.com').replace('{duration}',Math.floor(shareData.duration/60)).replace('{streak}',streakTxt);navigator.clipboard.writeText(msg).then(()=>alert(t.video.copied));}} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',borderRadius:8,padding:'8px 16px',fontWeight:600,fontSize:'.8rem',cursor:'pointer'}}>{t.video.copy}</button>
+                <button onClick={()=>{const streakTxt=shareData.streak>1?(t.video.shareMessageStreak||' 🔥{streak} day streak!').replace('{streak}',shareData.streak):'';const msg=(t.video.shareMessage||'🎉 I just practiced English for {duration} min on Chatter3!{streak} Join me: https://app.chatter3.com').replace('{duration}',Math.floor(shareData.duration/60)).replace('{streak}',streakTxt);navigator.share?navigator.share({title:'Chatter3',text:msg,url:'https://app.chatter3.com'}):navigator.clipboard.writeText(msg).then(()=>toast.success(t.video.copied));}} aria-label={t.video.share} style={{background:'white',color:'#6366f1',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:700,fontSize:'.8rem',cursor:'pointer'}}>{t.video.share}</button>
+                <button onClick={()=>{const streakTxt=shareData.streak>1?(t.video.shareMessageStreak||' 🔥{streak} day streak!').replace('{streak}',shareData.streak):'';const msg=(t.video.shareMessage||'🎉 I just practiced English for {duration} min on Chatter3!{streak} Join me: https://app.chatter3.com').replace('{duration}',Math.floor(shareData.duration/60)).replace('{streak}',streakTxt);navigator.clipboard.writeText(msg).then(()=>toast.success(t.video.copied));}} aria-label={t.video.copy} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',borderRadius:8,padding:'8px 16px',fontWeight:600,fontSize:'.8rem',cursor:'pointer'}}>{t.video.copy}</button>
               </div>
               <button onClick={()=>{setShowShareCard(false);onEnd();}} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',marginTop:'.75rem',cursor:'pointer',fontSize:'.8rem'}}>{t.video.skip}</button>
             </div>
@@ -1860,13 +1896,14 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
   const[pwForm,setPwForm]=useState({current_password:'',new_password:'',confirm_password:''});
   const[pwErr,setPwErr]=useState('');
   const[pwMsg,setPwMsg]=useState('');
+  const[showDeleteConfirm,setShowDeleteConfirm]=useState(false);
   const fileRef=useRef(null);
   useEffect(()=>{
     authFetch(`${API_URL}/api/user/history`,{method:'POST',body:JSON.stringify({})}).then(r=>r.json()).then(d=>{if(d.success)setHistory(d.history);});
   },[]);
   const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
   const onFile=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();const rd=new FileReader();rd.onload=ev=>{img.onload=()=>{const M=800;let{width:w,height:h}=img;if(w>M||h>M){const r=Math.min(M/w,M/h);w=Math.round(w*r);h=Math.round(h*r);}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);setForm(p=>({...p,avatar_url:c.toDataURL('image/jpeg',.75)}));};img.src=ev.target.result;};rd.readAsDataURL(f);};
-  const save=async()=>{const r=await authFetch(`${API_URL}/api/user/update`,{method:'POST',body:JSON.stringify({...form})});const d=await r.json();if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));onUpdate(u);alert(t.profile.profileSaved);}};
+  const save=async()=>{const r=await authFetch(`${API_URL}/api/user/update`,{method:'POST',body:JSON.stringify({...form})});const d=await r.json();if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));onUpdate(u);toast.success(t.profile.profileSaved);}};
   const changePassword=async()=>{
     setPwErr('');setPwMsg('');
     if(!pwForm.new_password){setPwErr(t.profile.passwordRequired);return;}
@@ -1883,7 +1920,7 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
       <div style={{textAlign:'center',marginBottom:'1.25rem'}}><h2 style={{fontFamily:'Sora,sans-serif',fontSize:'1.3rem',fontWeight:800,margin:0}}>{t.profile.editProfile}</h2>{user.founding_member?<span style={{display:'inline-block',marginTop:6,padding:'3px 10px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>{t.profile.foundingMember}</span>:null}{user.is_new_member&&!user.founding_member?<span style={{display:'inline-block',marginTop:6,marginLeft:6,padding:'3px 10px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.72rem',fontWeight:700,letterSpacing:'.03em'}}>{t.profile.newMember}</span>:null}</div>
       <div className="profile-section">
         <div className="profile-avatar">
-          {form.avatar_url?<img src={form.avatar_url} style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}} alt={t.profile.profileAlt}/>:(form.username||user.username).charAt(0).toUpperCase()}
+          {form.avatar_url?<Avatar src={form.avatar_url} name={form.nickname||user.username} size={100} style={{width:'100%',height:'100%'}}/>:(form.username||user.username).charAt(0).toUpperCase()}
         </div>
         <div style={{textAlign:'center',marginBottom:'1.1rem'}}>
           <input type="file" accept="image/*" onChange={onFile} style={{display:'none'}} ref={fileRef}/>
@@ -1932,14 +1969,9 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
         <div style={{borderTop:'1px solid #e5e7eb',marginTop:'1rem',paddingTop:'1rem'}}>
   <h4 style={{fontSize:'.85rem',fontWeight:700,color:'#374151',margin:'0 0 .75rem'}}>Your Data</h4>
   <button onClick={async()=>{
-    if(!confirm('Download all your data as JSON?'))return;
-    try{const r=await authFetch(`${API_URL}/api/user/data-export`);const d=await r.json();if(d.success){const blob=new Blob([JSON.stringify(d.exports,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='chatter3-data-export.json';a.click();URL.revokeObjectURL(url);}}catch{alert('Export failed');}
+    try{const r=await authFetch(`${API_URL}/api/user/data-export`);const d=await r.json();if(d.success){const blob=new Blob([JSON.stringify(d.exports,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='chatter3-data-export.json';a.click();URL.revokeObjectURL(url);toast.success('Data exported successfully!');}else{toast.error('Export failed');}}catch{toast.error('Export failed');}
   }} className="btn-accent-outline" style={{width:'100%',marginBottom:8}}>📥 Export My Data</button>
-  <button onClick={async()=>{
-    if(!confirm('Are you sure you want to delete your account? This cannot be undone. All your data will be permanently anonymized.'))return;
-    if(!confirm('This is your final warning. Type DELETE in your mind and click OK to proceed.'))return;
-    try{const r=await authFetch(`${API_URL}/api/user/delete-account`,{method:'POST'});const d=await r.json();if(d.success){localStorage.clear();window.location.href='/';}else{alert(d.error||'Delete failed');}}catch{alert('Delete failed');}
-  }} className="btn-accent-outline" style={{width:'100%',color:'#ef4444',borderColor:'#ef4444'}}>🗑️ Delete My Account</button>
+  <button onClick={()=>setShowDeleteConfirm(true)} className="btn-accent-outline" style={{width:'100%',color:'#ef4444',borderColor:'#ef4444'}}>🗑️ Delete My Account</button>
 </div>
         <button onClick={()=>setShowFeedback(true)} className="btn-accent-outline">{t.profile.sendFeedback}</button>
         <button onClick={onShowOnboarding} className="btn-accent-outline">{t.profile.viewIntro}</button>
@@ -1960,13 +1992,14 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
         </div>
       </div>
       {showFeedback&&<FeedbackModal t={t} userId={user.id} onClose={()=>setShowFeedback(false)}/>}
+      {showDeleteConfirm&&<ConfirmDialog title="Delete Account" message="This will permanently anonymize all your data. Your learning progress, achievements, and conversation history will be lost. This action cannot be undone." confirmLabel="Delete Everything" variant="danger" requireInput="DELETE" onConfirm={async()=>{try{const r=await authFetch(`${API_URL}/api/user/delete-account`,{method:'POST'});const d=await r.json();if(d.success){localStorage.clear();window.location.href='/';}else{toast.error(d.error||'Delete failed');}}catch{toast.error('Delete failed');}setShowDeleteConfirm(false);}} onCancel={()=>setShowDeleteConfirm(false)}/>}
       <div className="history-list">
         <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',margin:'0 0 .875rem'}}>{t.profile.recentConversations}</h3>
         {history.length===0&&<p style={{color:'#9ca3af',fontSize:'.88rem'}}>{t.profile.noCalls}</p>}
         {history.map(h=>(
           <div key={h.id} className="history-item">
             <div className="history-avatar">
-              {h.partner_avatar?<img src={h.partner_avatar} style={{width:'100%',height:'100%',borderRadius:'50%'}} alt=""/>:(h.partner_name||'?').charAt(0).toUpperCase()}
+              {h.partner_avatar?<Avatar src={h.partner_avatar} name={h.partner_name} size={40} style={{width:'100%',height:'100%'}}/>:(h.partner_name||'?').charAt(0).toUpperCase()}
             </div>
             <div style={{flex:1}}>
               <strong style={{fontSize:'.9rem'}}>{h.partner_name||t.profile.unknown}</strong>
@@ -1982,3 +2015,12 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
     </div>
   );
 }
+
+function AppWithProviders(){
+  return (
+    <ToastProvider>
+      <App />
+    </ToastProvider>
+  );
+}
+export default AppWithProviders;

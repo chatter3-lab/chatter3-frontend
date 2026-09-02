@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { ToastProvider, useToast } from '../components/Toast';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const API_URL = 'https://api.chatter3.com';
 
@@ -223,6 +225,8 @@ function BlogTab({post,t}){
   const[translatingPost,setTranslatingPost]=useState(null);
   const[translatingTitle,setTranslatingTitle]=useState('');
   const[transForm,setTransForm]=useState({});
+  const[showDeleteConfirm,setShowDeleteConfirm]=useState(null);
+  const toast=useToast();
   const get=(path)=>authFetch(`${API_URL}${path}`).then(r=>r.json());
 
   const loadPosts=()=>{setLoading(true);post('/api/admin/blog/list').then(d=>{if(d.success)setPosts(d.posts||[]);setLoading(false);}).catch(()=>setLoading(false));};
@@ -248,29 +252,29 @@ function BlogTab({post,t}){
   };
 
   const del=async(id)=>{
-    if(!confirm(t.admin.blog.confirmDelete))return;
+    setShowDeleteConfirm(id);
+  };
+
+  const confirmDelete=async(id)=>{
+    setShowDeleteConfirm(null);
     const d=await post('/api/admin/blog/delete',{id});
     if(d.success){setMessage(t.admin.blog.deleted);loadPosts();if(editing===id)cancel();setTimeout(()=>setMessage(''),2000);}
   };
 
   const startTranslate=async(p)=>{
-    console.log('startTranslate called with post:', p.id, p.title, 'content preview:', (p.content||'').substring(0,80));
     setTranslatingPost(p.id);
     setTranslatingTitle(p.title);
     setMessage('Loading translations...');
     try{
       const d=await get(`/api/admin/blog/translations?postId=${p.id}`);
-      console.log('translations response:', d);
       const init={};
       ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{
         const existing=d.translations?.find(t=>t.lang===l);
         init[l]={title:existing?.title||p.title,excerpt:existing?.excerpt||p.excerpt||'',content:existing?.content||p.content||''};
       });
-      console.log('init title es:', init.es?.title, 'content preview:', (init.es?.content||'').substring(0,80));
       setTransForm(init);
       setMessage('');
     }catch(e){
-      console.log('translations error:', e);
       const init={};
       ['es','ja','zh','bn','fr','ar','ru'].forEach(l=>{init[l]={title:p.title,excerpt:p.excerpt||'',content:p.content||''};});
       setTransForm(init);
@@ -358,6 +362,7 @@ function BlogTab({post,t}){
           <button onClick={()=>{setTranslatingPost(null);setTranslatingTitle('');setTransForm({});}} style={{marginTop:'.75rem',padding:'6px 16px',borderRadius:6,border:'none',background:'#334155',color:'white',cursor:'pointer',fontSize:'.82rem'}}>Close</button>
         </div>
       )}
+      {showDeleteConfirm&&<ConfirmDialog title="Delete Post" message={t.admin.blog.confirmDelete} confirmLabel="Delete" variant="danger" onConfirm={()=>confirmDelete(showDeleteConfirm)} onCancel={()=>setShowDeleteConfirm(null)}/>}
     </div>
   );
 }
@@ -368,6 +373,7 @@ export default function AdminDashboard({user,onBack,t}){
   const[reports,setReports]=useState([]);
   const[reportFilter,setReportFilter]=useState('pending');
   const[loading,setLoading]=useState(false);
+  const toast=useToast();
 
   const post=(path,body)=>authFetch(`${API_URL}${path}`,{method:'POST',body:JSON.stringify(body||{})}).then(r=>r.json());
   const get=(path)=>authFetch(`${API_URL}${path}`).then(r=>r.json());
@@ -602,9 +608,10 @@ export default function AdminDashboard({user,onBack,t}){
             ))}
           </div>
         </div>
-        )}
-      </div>
-    );
+      )}
+      {confirmDeleteUser&&<ConfirmDialog title="Delete User" message={t.admin.users.deleteConfirm.replace('{username}',confirmDeleteUser.username)} confirmLabel="Delete" variant="danger" onConfirm={()=>executeDeleteUser(confirmDeleteUser)} onCancel={()=>setConfirmDeleteUser(null)}/>}
+    </div>
+  );
     } catch(e) { console.error('renderAnalytics error:', e); return <div style={{padding:'1rem',color:'#ef4444'}}>{t.admin.analytics.errorLoading}</div>; }
   };
 
@@ -631,6 +638,7 @@ export default function AdminDashboard({user,onBack,t}){
 const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_day.map(r=>r.c),1):1;
 
   return (
+    <ToastProvider>
     <div className="admin-container">
       <div className="admin-header">
         <h1>{t.admin.title}</h1>
@@ -693,6 +701,7 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
         <HealthTab stats={stats} user={user} post={post} t={t}/>
       )}
     </div>
+    </ToastProvider>
   );
 }
 
@@ -749,6 +758,7 @@ function UsersTab({user,post,t}){
   const[adjustRP,setAdjustRP]=useState('');
   const[banReason,setBanReason]=useState('');
   const[statuses,setStatuses]=useState({});
+  const toast=useToast();
   const PAGE=50;
 
   const load=async(p=0)=>{
@@ -812,13 +822,19 @@ function UsersTab({user,post,t}){
     setFormSaving(false);
   };
 
+  const[confirmDeleteUser,setConfirmDeleteUser]=useState(null);
+
   const deleteUser=async(u)=>{
-    if(!confirm(t.admin.users.deleteConfirm.replace('{username}',u.username)))return;
+    setConfirmDeleteUser(u);
+  };
+
+  const executeDeleteUser=async(u)=>{
+    setConfirmDeleteUser(null);
     try{
       const d=await post('/api/admin/user/'+u.id+'/delete');
-      if(d.error){alert(d.error);return;}
+      if(d.error){toast.error(d.error);return;}
       if(d.success){setUsers(prev=>prev.filter(x=>x.id!==u.id));setTotal(t=>t-1);}
-    }catch(e){alert(t.admin.users.deleteFailed+e.message);}
+    }catch(e){toast.error(t.admin.users.deleteFailed+e.message);}
   };
 
   const loadUserDetail=async(uid)=>{
@@ -828,18 +844,18 @@ function UsersTab({user,post,t}){
 
   const doAdjust=async(uid)=>{
     await post('/api/admin/user/'+uid+'/adjust',{fp_delta:parseFloat(adjustFP)||0,rp_delta:parseFloat(adjustRP)||0});
-    alert(t.admin.users.balancesUpdated);loadUserDetail(uid);setAdjustFP('');setAdjustRP('');
+    toast.success(t.admin.users.balancesUpdated);loadUserDetail(uid);setAdjustFP('');setAdjustRP('');
   };
 
   const doBan=async(uid)=>{
-    if(!banReason.trim()){alert(t.admin.users.enterReason);return;}
+    if(!banReason.trim()){toast.error(t.admin.users.enterReason);return;}
     await post('/api/admin/user/'+uid+'/ban',{reason:banReason});
-    alert(t.admin.users.userBanned);setBanReason('');loadUserDetail(uid);
+    toast.success(t.admin.users.userBanned);setBanReason('');loadUserDetail(uid);
   };
 
   const doUnban=async(uid)=>{
     await post('/api/admin/user/'+uid+'/unban',{});
-    alert(t.admin.users.userUnbanned);loadUserDetail(uid);
+    toast.success(t.admin.users.userUnbanned);loadUserDetail(uid);
   };
 
   const upd=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
