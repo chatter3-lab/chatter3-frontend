@@ -609,7 +609,6 @@ export default function AdminDashboard({user,onBack,t}){
           </div>
         </div>
       )}
-      {confirmDeleteUser&&<ConfirmDialog title="Delete User" message={t.admin.users.deleteConfirm.replace('{username}',confirmDeleteUser.username)} confirmLabel="Delete" variant="danger" onConfirm={()=>executeDeleteUser(confirmDeleteUser)} onCancel={()=>setConfirmDeleteUser(null)}/>}
     </div>
   );
     } catch(e) { console.error('renderAnalytics error:', e); return <div style={{padding:'1rem',color:'#ef4444'}}>{t.admin.analytics.errorLoading}</div>; }
