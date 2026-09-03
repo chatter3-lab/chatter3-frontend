@@ -59,8 +59,9 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .auth-header{display:flex;flex-direction:column;align-items:center;margin-bottom:1.5rem;}
 .auth-logo{width:100%;max-width:320px;height:auto;object-fit:contain;margin-bottom:.75rem;aspect-ratio:320/80;}
 .auth-subtitle{color:#666;margin-bottom:.5rem;font-size:1.05rem;}
-.auth-divider{margin:1.25rem 0;color:#6b7280;position:relative;}
-.auth-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:#eee;}
+.auth-divider{margin:1.25rem 0;color:#6b7280;position:relative;text-align:center;}
+.auth-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:#e5e7eb;}
+.auth-divider span{position:relative;background:white;padding:0 12px;z-index:1;}
 .google-button-container{display:flex;justify-content:center;margin:.75rem 0;width:100%;}
 .auth-link{color:#3b5fc0;background:none;border:none;cursor:pointer;margin-top:1rem;display:block;width:100%;font-size:.9rem;}
 .error-message{background:#ffebee;color:#c62828;padding:10px;border-radius:4px;margin-bottom:1rem;border-left:4px solid #c62828;text-align:left;font-size:.88rem;}
@@ -406,7 +407,7 @@ video{overscroll-behavior:none;}
   .app-header .user-info span{color:#e2e8f0;}
   .auth-box{background:#1a1d2e;box-shadow:0 10px 30px rgba(0,0,0,.5);}
   .auth-subtitle{color:#94a3b8;}
-  .auth-divider{color:#94a3b8;}
+  .auth-divider span{position:relative;background:#1a1d2e;padding:0 12px;z-index:1;}
   .auth-divider::before{background:#334155;}
   .form-group label{color:#cbd5e1;}
   .form-group input,.form-group select{background:#0f1117;border-color:#334155;color:#e2e8f0;}

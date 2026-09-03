@@ -941,7 +941,7 @@ function AuthView({onLogin,setView,t,lang}){
             {loading?t.auth.loading:reg?t.auth.createAccount:t.auth.signIn}
           </button>
         </form>
-        <div className="auth-divider">{t.auth.or}</div>
+        <div className="auth-divider"><span>{t.auth.or}</span></div>
         <div className="google-button-container">
           <GoogleLogin onSuccess={googleSuccess} onError={()=>setErr(t.auth.googleError)}/>
         </div>
