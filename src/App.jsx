@@ -632,8 +632,9 @@ function App(){
 
   const handleLogout=async()=>{
     if(user)try{await authFetch(`${API_URL}/api/matching/leave`,{method:'POST',body:JSON.stringify({})});}catch{}
-    googleLogout();
-    localStorage.removeItem('chatter3_user');localStorage.removeItem('chatter3_token');setUser(null);setView('auth');
+    try{googleLogout();}catch{}
+    localStorage.removeItem('chatter3_user');localStorage.removeItem('chatter3_token');
+    window.location.href='/?logout=1';
   };
 
   const handleFindPartner=async()=>{
