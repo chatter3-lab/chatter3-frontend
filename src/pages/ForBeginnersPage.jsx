@@ -16,9 +16,18 @@ export default function ForBeginnersPage({lang='en'}){
       {"@type":"Question","name":t.forBeginners.faq3Question,"acceptedAnswer":{"@type":"Answer","text":t.forBeginners.faq3Answer}}
     ]
   };
+  const breadcrumbSchema={
+    "@context":"https://schema.org",
+    "@type":"BreadcrumbList",
+    "itemListElement":[
+      {"@type":"ListItem","position":1,"name":"Home","item":"https://app.chatter3.com"},
+      {"@type":"ListItem","position":2,"name":"For Beginners","item":"https://app.chatter3.com/for-beginners"}
+    ]
+  };
   return(
     <div className="lp">
       <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(faqSchema)}}/>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(breadcrumbSchema)}}/>
       <SEOHead title={t.meta.forBeginners.title} description={t.meta.forBeginners.description} canonical={canonical} lang={lang}/>
       <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`} className="active">{t.nav.forBeginners}</a><a href={`${prefix}/blog`}>{t.nav.blog}</a><a href={`${prefix}/faq`}>{t.nav.faq||'FAQ'}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
       <div className="lp-hero">

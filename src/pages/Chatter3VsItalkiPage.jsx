@@ -7,8 +7,28 @@ export default function Chatter3VsItalkiPage({lang='en'}){
   const t=getTranslations(lang);
   const prefix=lang==='en'?'':`/${lang}`;
   const canonical=`https://app.chatter3.com${prefix}/chatter3-vs-italki`;
+  const faqSchema={
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {"@type":"Question","name":t.chatter3VsItalki.faq1Question,"acceptedAnswer":{"@type":"Answer","text":t.chatter3VsItalki.faq1Answer}},
+      {"@type":"Question","name":t.chatter3VsItalki.faq2Question,"acceptedAnswer":{"@type":"Answer","text":t.chatter3VsItalki.faq2Answer}},
+      {"@type":"Question","name":t.chatter3VsItalki.faq3Question,"acceptedAnswer":{"@type":"Answer","text":t.chatter3VsItalki.faq3Answer}},
+      {"@type":"Question","name":t.chatter3VsItalki.faq4Question,"acceptedAnswer":{"@type":"Answer","text":t.chatter3VsItalki.faq4Answer}}
+    ]
+  };
+  const breadcrumbSchema={
+    "@context":"https://schema.org",
+    "@type":"BreadcrumbList",
+    "itemListElement":[
+      {"@type":"ListItem","position":1,"name":"Home","item":"https://app.chatter3.com"},
+      {"@type":"ListItem","position":2,"name":"Chatter3 vs italki","item":"https://app.chatter3.com/chatter3-vs-italki"}
+    ]
+  };
   return(
     <div className="lp">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(faqSchema)}}/>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(breadcrumbSchema)}}/>
       <SEOHead title={t.meta.chatter3VsItalki.title} description={t.meta.chatter3VsItalki.description} canonical={canonical} lang={lang}/>
       <nav className="lp-nav"><div className="lp-nav-inner"><a href={`${prefix}/`} className="lp-nav-logo"><img src="/chatter3_logo.png" alt="Chatter3"/></a><div className="lp-nav-links"><a href={`${prefix}/`}>{t.nav.home}</a><a href={`${prefix}/how-it-works`}>{t.nav.howItWorks}</a><a href={`${prefix}/for-beginners`}>{t.nav.forBeginners}</a><a href={`${prefix}/blog`}>{t.nav.blog}</a><a href={`${prefix}/faq`}>{t.nav.faq||'FAQ'}</a></div><LanguageSwitcher currentLang={lang} isLandingPage/><a href="/" className="lp-cta">{t.nav.getStarted}</a></div></nav>
       <div className="lp-hero">
