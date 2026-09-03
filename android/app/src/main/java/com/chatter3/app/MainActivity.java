@@ -12,8 +12,8 @@ public class MainActivity extends BridgeActivity {
         WebView webView = getBridge().getWebView();
         WebSettings settings = webView.getSettings();
         settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setAllowFileAccess(true);
-        settings.setAllowContentAccess(true);
+        settings.setAllowFileAccess(false);
+        settings.setAllowContentAccess(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
     }
 }

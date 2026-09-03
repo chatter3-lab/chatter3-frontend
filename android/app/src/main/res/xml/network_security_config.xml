@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">chatter3.com</domain>
+        <domain includeSubdomains="true">chatter3-frontend.pages.dev</domain>
+        <pin-set expiration="2027-09-03">
+            <pin digest="SHA-256">DiZn...base64...=</pin>
+            <pin digest="SHA-256">base64...=</pin>
+        </pin-set>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+</network-security-config>

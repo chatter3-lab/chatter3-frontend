@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Signing keystores
+*.jks
+*.keystore
+*.p12
+android/app/chatter3-release.jks

@@ -12,5 +12,16 @@
 -dontwarn okio.**
 -keep class okhttp3.** { *; }
 
-# Keep Google OAuth
--keep class com.google.android.gms.** { *; }
+# Google Auth (reflection-based)
+-keep class com.google.android.gms.auth.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+
+# WebRTC
+-keep class org.webrtc.** { *; }
+
+# Capacitor Cordova
+-keep class org.apache.cordova.** { *; }
+
+# HMS (if added later)
+-keep class com.huawei.hms.** { *; }
+-keep class com.huawei.agconnect.** { *; }

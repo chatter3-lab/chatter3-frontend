@@ -22,6 +22,9 @@ const EnglishConversationAppPage = lazy(() => import('./pages/EnglishConversatio
 const Chatter3VsItalkiPage = lazy(() => import('./pages/Chatter3VsItalkiPage'));
 const Chatter3VsCamblyPage = lazy(() => import('./pages/Chatter3VsCamblyPage'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
+const RefundPolicyPage = lazy(() => import('./pages/RefundPolicyPage'));
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -521,7 +524,7 @@ function App(){
   }
   
   // Language-prefixed landing pages
-  const langMatch=path.match(/^\/(es|ja|zh|bn|fr|ar|ru)\/(how-it-works|for-beginners|faq|free-english-practice|english-conversation-app|chatter3-vs-italki|chatter3-vs-cambly|blog(?:\/[a-z0-9-]+)?)$/);
+  const langMatch=path.match(/^\/(es|ja|zh|bn|fr|ar|ru)\/(how-it-works|for-beginners|faq|free-english-practice|english-conversation-app|chatter3-vs-italki|chatter3-vs-cambly|privacy|terms|refund|blog(?:\/[a-z0-9-]+)?)$/);
   if(langMatch){
     const lang=langMatch[1];
     const page=langMatch[2];
@@ -533,13 +536,16 @@ function App(){
     if(page==='english-conversation-app')return<Suspense fallback={loading}><EnglishConversationAppPage lang={lang}/></Suspense>;
     if(page==='chatter3-vs-italki')return<Suspense fallback={loading}><Chatter3VsItalkiPage lang={lang}/></Suspense>;
     if(page==='chatter3-vs-cambly')return<Suspense fallback={loading}><Chatter3VsCamblyPage lang={lang}/></Suspense>;
+    if(page==='privacy')return<Suspense fallback={loading}><PrivacyPolicyPage lang={lang}/></Suspense>;
+    if(page==='terms')return<Suspense fallback={loading}><TermsOfServicePage lang={lang}/></Suspense>;
+    if(page==='refund')return<Suspense fallback={loading}><RefundPolicyPage lang={lang}/></Suspense>;
     if(page==='blog')return<Suspense fallback={loading}><BlogPage lang={lang}/></Suspense>;
     if(page.startsWith('blog/')){const slug=page.replace('blog/','');return<Suspense fallback={loading}><BlogArticlePage slug={slug} lang={lang}/></Suspense>;}
   }
   
   // English landing pages — detect browser language and redirect if needed
   const blogArticleMatch=path.match(/^\/blog\/([a-z0-9-]+)$/);
-  if(path==='/how-it-works'||path==='/for-beginners'||path==='/faq'||path==='/free-english-practice'||path==='/english-conversation-app'||path==='/chatter3-vs-italki'||path==='/chatter3-vs-cambly'||path=='/blog'||blogArticleMatch){
+  if(path==='/how-it-works'||path==='/for-beginners'||path==='/faq'||path==='/free-english-practice'||path==='/english-conversation-app'||path==='/chatter3-vs-italki'||path==='/chatter3-vs-cambly'||path=='/blog'||path==='/privacy'||path==='/terms'||path=='/refund'||blogArticleMatch){
     const saved=localStorage.getItem('chatter3_lang');
     const lang=saved||detectLanguage();
     if(lang&&lang!=='en'){
@@ -555,6 +561,9 @@ function App(){
     if(path==='/english-conversation-app')return<Suspense fallback={loading}><EnglishConversationAppPage lang="en"/></Suspense>;
     if(path==='/chatter3-vs-italki')return<Suspense fallback={loading}><Chatter3VsItalkiPage lang="en"/></Suspense>;
     if(path==='/chatter3-vs-cambly')return<Suspense fallback={loading}><Chatter3VsCamblyPage lang="en"/></Suspense>;
+    if(path==='/privacy')return<Suspense fallback={loading}><PrivacyPolicyPage lang="en"/></Suspense>;
+    if(path==='/terms')return<Suspense fallback={loading}><TermsOfServicePage lang="en"/></Suspense>;
+    if(path==='/refund')return<Suspense fallback={loading}><RefundPolicyPage lang="en"/></Suspense>;
     if(path==='/blog')return<Suspense fallback={loading}><BlogPage lang="en"/></Suspense>;
     if(blogArticleMatch)return<Suspense fallback={loading}><BlogArticlePage slug={blogArticleMatch[1]} lang="en"/></Suspense>;
   }
@@ -848,6 +857,7 @@ function AuthView({onLogin,setView,t,lang}){
   const[reg,setReg]=useState(false);
   const[loading,setLoading]=useState(false);
   const[terms,setTerms]=useState(false);
+  const[ageConfirm,setAgeConfirm]=useState(false);
   const[form,setForm]=useState({email:'',password:'',username:'',english_level:'beginner',country:'',native_language:''});
   const[err,setErr]=useState('');
   const[turnstileToken,setTurnstileToken]=useState('');
@@ -857,6 +867,7 @@ function AuthView({onLogin,setView,t,lang}){
   const submit=async(e)=>{
     e.preventDefault();
     if(reg&&!terms){setErr(t.auth.termsError);return;}
+    if(reg&&!ageConfirm){setErr(t.auth?.ageRequired||'You must confirm you are at least 13 years old');return;}
     if(!turnstileToken){setErr(t.auth.captchaError);return;}
     setLoading(true);setErr('');
     try{
@@ -914,13 +925,28 @@ function AuthView({onLogin,setView,t,lang}){
           <div className="form-group"><label htmlFor="auth-password">{t.auth.password}</label><input id="auth-password" type="password" value={form.password} onChange={upd('password')} required minLength={6}/></div>
           {!reg&&<div style={{textAlign:'right',marginTop:'-8px',marginBottom:'8px'}}><button type="button" className="auth-link" onClick={()=>setView('forgot')} style={{background:'none',border:'none',color:'#4f46e5',fontSize:'.82rem',cursor:'pointer',padding:0}}>{t.auth.forgotPassword}</button></div>}
           {reg&&(
+            <>
             <div className="terms-row">
               <input type="checkbox" id="terms" checked={terms} onChange={e=>setTerms(e.target.checked)}/>
-              <label htmlFor="terms">{t.auth.terms}</label>
+              <label htmlFor="terms" style={{fontSize:'.82rem',color:'#6b7280',lineHeight:1.4}}>
+                {t.auth?.termsPrefix||'I agree to the '}
+                <a href="/terms" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.termsOfService||'Terms of Service'}</a>
+                {t.auth?.termsMiddle||', '}
+                <a href="/privacy" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.privacyPolicy||'Privacy Policy'}</a>
+                {t.auth?.termsMiddle2||', and '}
+                <a href="/refund" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.refundPolicy||'Refund Policy'}</a>.
+              </label>
             </div>
+            <div className="terms-row" style={{marginTop:8}}>
+              <input type="checkbox" id="age-confirm" checked={ageConfirm} onChange={e=>setAgeConfirm(e.target.checked)}/>
+              <label htmlFor="age-confirm" style={{fontSize:'.82rem',color:'#6b7280',lineHeight:1.4}}>
+                {t.auth?.ageConfirm||'I confirm I am at least 13 years old'}
+              </label>
+            </div>
+            </>
           )}
           <TurnstileWidget onVerify={setTurnstileToken} onExpire={()=>setTurnstileToken('')}/>
-          <button type="submit" disabled={loading||(reg&&!terms)} style={{opacity:reg&&!terms?0.55:1,cursor:reg&&!terms?'not-allowed':'pointer'}}>
+          <button type="submit" disabled={loading||(reg&&(!terms||!ageConfirm))} style={{opacity:reg&&(!terms||!ageConfirm)?0.55:1,cursor:reg&&(!terms||!ageConfirm)?'not-allowed':'pointer'}}>
             {loading?t.auth.loading:reg?t.auth.createAccount:t.auth.signIn}
           </button>
         </form>
@@ -929,7 +955,7 @@ function AuthView({onLogin,setView,t,lang}){
           <GoogleLogin onSuccess={googleSuccess} onError={()=>setErr(t.auth.googleError)}/>
         </div>
         <p style={{fontSize:'.72rem',color:'#9ca3af',marginTop:6,textAlign:'center'}}>{t.auth?.googleUnavailable||'Google login unavailable? Use email above.'}</p>
-        <button className="auth-link" onClick={()=>{setReg(v=>!v);setErr('');setTerms(false);}}>
+        <button className="auth-link" onClick={()=>{setReg(v=>!v);setErr('');setTerms(false);setAgeConfirm(false);}}>
           {reg?t.auth.hasAccount:t.auth.noAccount}
         </button>
       </div>
