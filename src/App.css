@@ -56,7 +56,7 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .auth-footer-links a{color:rgba(255,255,255,.85);text-decoration:none;font-weight:500;}
 .auth-footer-links a:hover{text-decoration:underline;color:white;}
 .auth-box{background:white;padding:2rem;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.2);text-align:center;width:100%;max-width:500px;}
-.auth-header{display:flex;flex-direction:column;align-items:center;margin-bottom:1.5rem;}
+.auth-header{display:flex;flex-direction:column;align-items:center;margin-bottom:1.5rem;padding-top:2.5rem;}
 .auth-logo{width:100%;max-width:320px;height:auto;object-fit:contain;margin-bottom:.75rem;aspect-ratio:320/80;}
 .auth-subtitle{color:#666;margin-bottom:.5rem;font-size:1.05rem;}
 .auth-divider{margin:1.25rem 0;color:#6b7280;position:relative;text-align:center;}
