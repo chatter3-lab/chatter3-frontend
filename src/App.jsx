@@ -683,23 +683,25 @@ function App(){
         {view!=='auth'&&view!=='video'&&view!=='precall'&&(
           <header className="app-header">
             <div className="app-header-content">
-              <div style={{display:'flex',alignItems:'center',gap:8,minWidth:0}}>
-                <img src="/chatter3_logo.png" alt="Chatter3" className="header-logo-img"/>
-                {user&&<span style={{fontWeight:600,fontSize:'.85rem',color:'white',whiteSpace:'nowrap'}}>{user.nickname||user.username}</span>}
-                {user&&user.founding_member?<span style={{padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>{t.profile.foundingMember}</span>:null}
+              <div className="header-top-row">
+                <div style={{display:'flex',alignItems:'center',gap:8,minWidth:0}}>
+                  <img src="/chatter3_logo.png" alt="Chatter3" className="header-logo-img"/>
+                  {user?<span style={{fontWeight:600,fontSize:'.85rem',color:'white',whiteSpace:'nowrap'}}>{user.nickname||user.username}</span>:null}
+                  {user&&user.founding_member?<span style={{padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>{t.profile.foundingMember}</span>:null}
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+                  {user&&user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',fontSize:'.82rem',padding:'4px 12px'}}>Admin</button>:null}
+                  <button className="header-btn btn-logout" onClick={handleLogout} style={{background:'rgba(255,255,255,.15)',color:'#fca5a5',border:'1px solid rgba(255,255,255,.15)',fontSize:'.82rem',padding:'4px 12px'}}>{t.nav.logout||'Logout'}</button>
+                </div>
               </div>
-              <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
-                {user&&user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',fontSize:'.82rem',padding:'4px 12px'}}>Admin</button>}
-                <button className="header-btn btn-logout" onClick={handleLogout} style={{background:'rgba(255,255,255,.15)',color:'#fca5a5',border:'1px solid rgba(255,255,255,.15)',fontSize:'.82rem',padding:'4px 12px'}}>{t.nav.logout||'Logout'}</button>
-              </div>
-              {user&&(
-                <div className="user-info" style={{width:'100%',justifyContent:'center',gap:6}}>
-                  <div className="header-pts">🎫 {user.fp_balance??0} FP · ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
+              {user?(
+                <div className="user-info" style={{gap:6}}>
+                  <div className="header-pts">🎫 {user.fp_balance||0} FP · ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)} style={{background:'rgba(255,255,255,.12)',color:'white',border:'1px solid rgba(255,255,255,.15)'}}>👥</button>
                   <NotificationCenter user={user} API_URL={API_URL} authFetch={authFetch}/>
                   <div className="help-menu-wrapper" style={{position:'relative'}}>
                     <button onClick={(e)=>{e.stopPropagation();setShowHelp(!showHelp)}} className="header-btn btn-help" style={{background:'rgba(255,255,255,.12)',color:'white',border:'1px solid rgba(255,255,255,.15)'}}>❓</button>
-                    {showHelp&&<div className="help-dropdown" style={{position:'absolute',top:'100%',right:0,background:'white',borderRadius:8,boxShadow:'0 4px 12px rgba(0,0,0,.15)',padding:8,minWidth:160,zIndex:100}}>
+                    {showHelp?<div className="help-dropdown" style={{position:'absolute',top:'100%',right:0,background:'white',borderRadius:8,boxShadow:'0 4px 12px rgba(0,0,0,.15)',padding:8,minWidth:160,zIndex:100}}>
                       <a href="/how-it-works" target="_blank">📖 {t.nav.howItWorks}</a>
                       <a href="/for-beginners" target="_blank">🌱 {t.nav.forBeginners}</a>
                       <a href="/free-english-practice" target="_blank">🗣️ Free Practice</a>
@@ -708,11 +710,11 @@ function App(){
                       <a href="/faq" target="_blank">❓ {t.nav.faq||'FAQ'}</a>
                       <a href="/chatter3-vs-italki" target="_blank">⚔️ vs italki</a>
                       <a href="/chatter3-vs-cambly" target="_blank">⚔️ vs Cambly</a>
-                    </div>}
+                    </div>:null}
                   </div>
                   <LanguageSwitcher currentLang={localStorage.getItem('chatter3_lang')||'en'}/>
                 </div>
-              )}
+              ):null}
             </div>
           </header>
         )}
