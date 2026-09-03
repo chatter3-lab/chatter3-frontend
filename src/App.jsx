@@ -22,9 +22,6 @@ const EnglishConversationAppPage = lazy(() => import('./pages/EnglishConversatio
 const Chatter3VsItalkiPage = lazy(() => import('./pages/Chatter3VsItalkiPage'));
 const Chatter3VsCamblyPage = lazy(() => import('./pages/Chatter3VsCamblyPage'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
-const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
-const RefundPolicyPage = lazy(() => import('./pages/RefundPolicyPage'));
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -536,9 +533,6 @@ function App(){
     if(page==='english-conversation-app')return<Suspense fallback={loading}><EnglishConversationAppPage lang={lang}/></Suspense>;
     if(page==='chatter3-vs-italki')return<Suspense fallback={loading}><Chatter3VsItalkiPage lang={lang}/></Suspense>;
     if(page==='chatter3-vs-cambly')return<Suspense fallback={loading}><Chatter3VsCamblyPage lang={lang}/></Suspense>;
-    if(page==='privacy')return<Suspense fallback={loading}><PrivacyPolicyPage lang={lang}/></Suspense>;
-    if(page==='terms')return<Suspense fallback={loading}><TermsOfServicePage lang={lang}/></Suspense>;
-    if(page==='refund')return<Suspense fallback={loading}><RefundPolicyPage lang={lang}/></Suspense>;
     if(page==='blog')return<Suspense fallback={loading}><BlogPage lang={lang}/></Suspense>;
     if(page.startsWith('blog/')){const slug=page.replace('blog/','');return<Suspense fallback={loading}><BlogArticlePage slug={slug} lang={lang}/></Suspense>;}
   }
@@ -561,9 +555,6 @@ function App(){
     if(path==='/english-conversation-app')return<Suspense fallback={loading}><EnglishConversationAppPage lang="en"/></Suspense>;
     if(path==='/chatter3-vs-italki')return<Suspense fallback={loading}><Chatter3VsItalkiPage lang="en"/></Suspense>;
     if(path==='/chatter3-vs-cambly')return<Suspense fallback={loading}><Chatter3VsCamblyPage lang="en"/></Suspense>;
-    if(path==='/privacy')return<Suspense fallback={loading}><PrivacyPolicyPage lang="en"/></Suspense>;
-    if(path==='/terms')return<Suspense fallback={loading}><TermsOfServicePage lang="en"/></Suspense>;
-    if(path==='/refund')return<Suspense fallback={loading}><RefundPolicyPage lang="en"/></Suspense>;
     if(path==='/blog')return<Suspense fallback={loading}><BlogPage lang="en"/></Suspense>;
     if(blogArticleMatch)return<Suspense fallback={loading}><BlogArticlePage slug={blogArticleMatch[1]} lang="en"/></Suspense>;
   }
@@ -930,11 +921,11 @@ function AuthView({onLogin,setView,t,lang}){
               <input type="checkbox" id="terms" checked={terms} onChange={e=>setTerms(e.target.checked)}/>
               <label htmlFor="terms" style={{fontSize:'.82rem',color:'#6b7280',lineHeight:1.4}}>
                 {t.auth?.termsPrefix||'I agree to the '}
-                <a href="/terms" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.termsOfService||'Terms of Service'}</a>
+                <a href="https://chatter3.com/terms" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.termsOfService||'Terms of Service'}</a>
                 {t.auth?.termsMiddle||', '}
-                <a href="/privacy" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.privacyPolicy||'Privacy Policy'}</a>
+                <a href="https://chatter3.com/privacy" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.privacyPolicy||'Privacy Policy'}</a>
                 {t.auth?.termsMiddle2||', and '}
-                <a href="/refund" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.refundPolicy||'Refund Policy'}</a>.
+                <a href="https://chatter3.com/refund" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.refundPolicy||'Refund Policy'}</a>.
               </label>
             </div>
             <div className="terms-row" style={{marginTop:8}}>
