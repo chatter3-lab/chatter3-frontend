@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef, useCallback, Component, lazy, Suspense } from 'react';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { GoogleOAuthProvider, GoogleLogin, googleLogout } from '@react-oauth/google';
 import SEOHead from './components/SEOHead';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { getTranslations, getLangFromPath, detectLanguage, getLocalizedPath, languages } from './i18n/detect';
@@ -632,6 +632,7 @@ function App(){
 
   const handleLogout=async()=>{
     if(user)try{await authFetch(`${API_URL}/api/matching/leave`,{method:'POST',body:JSON.stringify({})});}catch{}
+    googleLogout();
     localStorage.removeItem('chatter3_user');localStorage.removeItem('chatter3_token');setUser(null);setView('auth');
   };
 
@@ -943,7 +944,7 @@ function AuthView({onLogin,setView,t,lang}){
         </form>
         <div className="auth-divider"><span>{t.auth.or}</span></div>
         <div className="google-button-container">
-          <GoogleLogin onSuccess={googleSuccess} onError={()=>setErr(t.auth.googleError)}/>
+          <GoogleLogin onSuccess={googleSuccess} onError={()=>setErr(t.auth.googleError)} useOneTap={false} cancel_on_tap_outside={true}/>
         </div>
         <p style={{fontSize:'.72rem',color:'#9ca3af',marginTop:6,textAlign:'center'}}>{t.auth?.googleUnavailable||'Google login unavailable? Use email above.'}</p>
         <button className="auth-link" onClick={()=>{setReg(v=>!v);setErr('');setTerms(false);setAgeConfirm(false);}}>
