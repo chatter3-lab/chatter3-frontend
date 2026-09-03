@@ -759,10 +759,10 @@ function ForgotPasswordView({onBack,t,lang}){
 
   return(
     <div className="auth-container">
-      <div style={{position:'absolute',top:16,right:16,zIndex:10}}>
-        <LanguageSwitcher currentLang={lang}/>
-      </div>
-      <div className="auth-box">
+      <div className="auth-box" style={{position:'relative'}}>
+        <div style={{position:'absolute',top:12,right:12,zIndex:10}}>
+          <LanguageSwitcher currentLang={lang}/>
+        </div>
         <div className="auth-header">
           <img src="/chatter3_logo.png" alt="Chatter3" className="auth-logo"/>
           <p className="auth-subtitle">{t.forgotPassword.title}</p>
@@ -812,10 +812,10 @@ function ResetPasswordView({token,onBack,t,lang}){
 
   return(
     <div className="auth-container">
-      <div style={{position:'absolute',top:16,right:16,zIndex:10}}>
-        <LanguageSwitcher currentLang={lang}/>
-      </div>
-      <div className="auth-box">
+      <div className="auth-box" style={{position:'relative'}}>
+        <div style={{position:'absolute',top:12,right:12,zIndex:10}}>
+          <LanguageSwitcher currentLang={lang}/>
+        </div>
         <div className="auth-header">
           <img src="/chatter3_logo.png" alt="Chatter3" className="auth-logo"/>
           <p className="auth-subtitle">{t.resetPassword.title}</p>
@@ -885,10 +885,10 @@ function AuthView({onLogin,setView,t,lang}){
 
   return(
     <div className="auth-container">
-      <div style={{position:'absolute',top:16,right:16,zIndex:10}}>
-        <LanguageSwitcher currentLang={lang}/>
-      </div>
-      <div className="auth-box">
+      <div className="auth-box" style={{position:'relative'}}>
+        <div style={{position:'absolute',top:12,right:12,zIndex:10}}>
+          <LanguageSwitcher currentLang={lang}/>
+        </div>
         <div className="auth-header">
           <img src="/chatter3_logo.png" alt="Chatter3" className="auth-logo"/>
           <h1 style={{position:'absolute',width:1,height:1,padding:0,margin:-1,overflow:'hidden',clip:'rect(0,0,0,0)',whiteSpace:'nowrap',border:0}}>Chatter3 — Free English Conversation Practice with Real People</h1>
