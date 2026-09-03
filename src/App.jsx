@@ -921,11 +921,11 @@ function AuthView({onLogin,setView,t,lang}){
               <input type="checkbox" id="terms" checked={terms} onChange={e=>setTerms(e.target.checked)}/>
               <label htmlFor="terms" style={{fontSize:'.82rem',color:'#6b7280',lineHeight:1.4}}>
                 {t.auth?.termsPrefix||'I agree to the '}
-                <a href="https://chatter3.com/terms" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.termsOfService||'Terms of Service'}</a>
+                <a href="https://chatter3.com/terms-of-service" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.termsOfService||'Terms of Service'}</a>
                 {t.auth?.termsMiddle||', '}
-                <a href="https://chatter3.com/privacy" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.privacyPolicy||'Privacy Policy'}</a>
+                <a href="https://chatter3.com/privacy-policy" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.privacyPolicy||'Privacy Policy'}</a>
                 {t.auth?.termsMiddle2||', and '}
-                <a href="https://chatter3.com/refund" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.refundPolicy||'Refund Policy'}</a>.
+                <a href="https://chatter3.com/refund-policy" target="_blank" style={{color:'#4f46e5',textDecoration:'underline'}}>{t.auth?.refundPolicy||'Refund Policy'}</a>.
               </label>
             </div>
             <div className="terms-row" style={{marginTop:8}}>
