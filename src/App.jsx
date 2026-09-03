@@ -685,11 +685,12 @@ function App(){
             <div className="app-header-content">
               <div style={{display:'flex',alignItems:'center',gap:8,minWidth:0}}>
                 <img src="/chatter3_logo.png" alt="Chatter3" className="header-logo-img"/>
-                {user&&<span style={{fontWeight:600,fontSize:'.85rem',color:'white',whiteSpace:'nowrap'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:4,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,whiteSpace:'nowrap'}}>{t.profile.foundingMember}</span>:null}</span>}
+                {user&&<span style={{fontWeight:600,fontSize:'.85rem',color:'white',whiteSpace:'nowrap'}}>{user.nickname||user.username}</span>}
+                {user&&user.founding_member?<span style={{padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>{t.profile.foundingMember}</span>:null}
               </div>
-              <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
-                {user&&user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',fontSize:'.85rem'}}>Admin</button>}
-                <button className="header-btn btn-logout" onClick={handleLogout} style={{background:'rgba(255,255,255,.15)',color:'#fca5a5',border:'1px solid rgba(255,255,255,.15)',fontSize:'.82rem'}}>{t.nav.logout||'Logout'}</button>
+              <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+                {user&&user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',fontSize:'.82rem',padding:'4px 12px'}}>Admin</button>}
+                <button className="header-btn btn-logout" onClick={handleLogout} style={{background:'rgba(255,255,255,.15)',color:'#fca5a5',border:'1px solid rgba(255,255,255,.15)',fontSize:'.82rem',padding:'4px 12px'}}>{t.nav.logout||'Logout'}</button>
               </div>
               {user&&(
                 <div className="user-info" style={{width:'100%',justifyContent:'center',gap:6}}>
