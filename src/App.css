@@ -359,8 +359,11 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 
 /* Mobile */
 @media(max-width:768px){
-  .app-header-content{flex-direction:column;gap:.75rem;}
-  .user-info{flex-direction:column;}
+  .app-header-content{flex-wrap:wrap;gap:.5rem;padding:.5rem .75rem;}
+  .user-info{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;width:100%;}
+  .user-info span{font-size:.82rem;}
+  .header-pts{font-size:.75rem;padding:3px 10px;}
+  .header-btn{padding:4px 10px;font-size:.78rem;}
   .auth-box{margin:.75rem;width:auto;}
   .profile-section{padding:1.25rem;width:auto;margin:.75rem;}
   .video-el.local{width:80px!important;height:120px!important;bottom:8px!important;right:8px!important;}

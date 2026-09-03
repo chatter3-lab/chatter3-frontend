@@ -633,7 +633,7 @@ function App(){
   const handleLogout=async()=>{
     if(user)try{await authFetch(`${API_URL}/api/matching/leave`,{method:'POST',body:JSON.stringify({})});}catch{}
     localStorage.removeItem('chatter3_user');localStorage.removeItem('chatter3_token');
-    window.location.href='https://accounts.google.com/Logout?continue='+encodeURIComponent(window.location.origin);
+    window.location.href='/';
   };
 
   const handleFindPartner=async()=>{
@@ -683,29 +683,33 @@ function App(){
         {view!=='auth'&&view!=='video'&&view!=='precall'&&(
           <header className="app-header">
             <div className="app-header-content">
-              <div><img src="/chatter3_logo.png" alt="Chatter3" className="header-logo-img"/></div>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <img src="/chatter3_logo.png" alt="Chatter3" className="header-logo-img"/>
+                {user&&<span style={{fontWeight:600,fontSize:'.88rem',color:'white'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:4,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.62rem',fontWeight:700}}>{t.profile.foundingMember}</span>:null}</span>}
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:6}}>
+                {user&&user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)'}}>⚙</button>}
+                <button className="header-btn btn-logout" onClick={handleLogout} style={{background:'rgba(255,255,255,.15)',color:'#fca5a5',border:'1px solid rgba(255,255,255,.15)'}}>{t.nav.logout||'Logout'}</button>
+              </div>
               {user&&(
-                <div className="user-info">
-                    <span style={{fontSize:'.88rem'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>{t.profile.foundingMember}</span>:null}{user.is_new_member&&!user.founding_member?<span style={{marginLeft:6,padding:'2px 8px',background:'linear-gradient(135deg,#22c55e,#10b981)',color:'white',borderRadius:10,fontSize:'.68rem',fontWeight:700,letterSpacing:'.03em',verticalAlign:'middle'}}>{t.profile.newMember}</span>:null}</span>
-                  <div className="header-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
-                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)} aria-label={t.nav.friends||'Friends'}>👥 {t.nav.friends||'Friends'}</button>
-                   <NotificationCenter user={user} API_URL={API_URL} authFetch={authFetch}/>
-                   <div className="help-menu-wrapper" style={{position:'relative'}}>
-                     <button onClick={(e)=>{e.stopPropagation();setShowHelp(!showHelp)}} className="header-btn btn-help" aria-label={t.nav.help||'Help'} aria-haspopup="true">❓ {t.nav.help||'Help'}</button>
-                      {showHelp&&<div className="help-dropdown" style={{position:'absolute',top:'100%',right:0,background:'white',borderRadius:8,boxShadow:'0 4px 12px rgba(0,0,0,.15)',padding:8,minWidth:160,zIndex:100}}>
-                        <a href="/how-it-works" target="_blank">📖 {t.nav.howItWorks}</a>
-                        <a href="/for-beginners" target="_blank">🌱 {t.nav.forBeginners}</a>
-                        <a href="/free-english-practice" target="_blank">🗣️ Free Practice</a>
-                        <a href="/english-conversation-app" target="_blank">📱 Conversation App</a>
-                        <a href="/blog" target="_blank">📝 {t.nav.blog}</a>
-                        <a href="/faq" target="_blank">❓ {t.nav.faq||'FAQ'}</a>
-                        <a href="/chatter3-vs-italki" target="_blank">⚔️ vs italki</a>
-                        <a href="/chatter3-vs-cambly" target="_blank">⚔️ vs Cambly</a>
-                      </div>}
-                   </div>
+                <div className="user-info" style={{width:'100%',justifyContent:'center',gap:6}}>
+                  <div className="header-pts">🎫 {user.fp_balance??0} FP · ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
+                  <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)} style={{background:'rgba(255,255,255,.12)',color:'white',border:'1px solid rgba(255,255,255,.15)'}}>👥</button>
+                  <NotificationCenter user={user} API_URL={API_URL} authFetch={authFetch}/>
+                  <div className="help-menu-wrapper" style={{position:'relative'}}>
+                    <button onClick={(e)=>{e.stopPropagation();setShowHelp(!showHelp)}} className="header-btn btn-help" style={{background:'rgba(255,255,255,.12)',color:'white',border:'1px solid rgba(255,255,255,.15)'}}>❓</button>
+                    {showHelp&&<div className="help-dropdown" style={{position:'absolute',top:'100%',right:0,background:'white',borderRadius:8,boxShadow:'0 4px 12px rgba(0,0,0,.15)',padding:8,minWidth:160,zIndex:100}}>
+                      <a href="/how-it-works" target="_blank">📖 {t.nav.howItWorks}</a>
+                      <a href="/for-beginners" target="_blank">🌱 {t.nav.forBeginners}</a>
+                      <a href="/free-english-practice" target="_blank">🗣️ Free Practice</a>
+                      <a href="/english-conversation-app" target="_blank">📱 Conversation App</a>
+                      <a href="/blog" target="_blank">📝 {t.nav.blog}</a>
+                      <a href="/faq" target="_blank">❓ {t.nav.faq||'FAQ'}</a>
+                      <a href="/chatter3-vs-italki" target="_blank">⚔️ vs italki</a>
+                      <a href="/chatter3-vs-cambly" target="_blank">⚔️ vs Cambly</a>
+                    </div>}
+                  </div>
                   <LanguageSwitcher currentLang={localStorage.getItem('chatter3_lang')||'en'}/>
-                  {user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')} aria-label={t.admin.badge}>⚙ {t.admin.badge}</button>:null}
-                  <button className="header-btn btn-logout" onClick={handleLogout} aria-label={t.nav.logout||'Logout'}>{t.nav.logout||'Logout'}</button>
                 </div>
               )}
             </div>
