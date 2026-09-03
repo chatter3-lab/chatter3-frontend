@@ -572,6 +572,8 @@ function App(){
   const[appSettings,setAppSettings]=useState({matching_by_level:'false'});
   const[resetToken,setResetToken]=useState(null);
   const[showHelp,setShowHelp]=useState(false);
+  const helpBtnRef=useRef(null);
+  const[helpStyle,setHelpStyle]=useState({});
   const{t,lang}=useTranslation();
   const toast=useToast();
 
@@ -690,7 +692,7 @@ function App(){
                   {user&&user.founding_member?<span style={{padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>{t.profile.foundingMember}</span>:null}
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
-                  {user&&user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',fontSize:'.82rem',padding:'4px 12px'}}>Admin</button>:null}
+                  {user&&user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')} style={{background:'rgba(79,70,229,.1)',color:'#4f46e5',border:'1px solid rgba(79,70,229,.25)',fontSize:'.82rem',padding:'4px 12px'}}>Admin</button>:null}
                   <button className="header-btn btn-logout" onClick={handleLogout} style={{background:'rgba(255,255,255,.15)',color:'#fca5a5',border:'1px solid rgba(255,255,255,.15)',fontSize:'.82rem',padding:'4px 12px'}}>{t.nav.logout||'Logout'}</button>
                 </div>
               </div>
@@ -700,8 +702,8 @@ function App(){
                   <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)} style={{background:'rgba(255,255,255,.12)',color:'white',border:'1px solid rgba(255,255,255,.15)'}}>👥</button>
                   <NotificationCenter user={user} API_URL={API_URL} authFetch={authFetch}/>
                   <div className="help-menu-wrapper" style={{position:'relative'}}>
-                    <button onClick={(e)=>{e.stopPropagation();setShowHelp(!showHelp)}} className="header-btn btn-help" style={{background:'rgba(255,255,255,.12)',color:'white',border:'1px solid rgba(255,255,255,.15)'}}>❓</button>
-                    {showHelp?<div className="help-dropdown" style={{position:'absolute',top:'100%',right:0,background:'white',borderRadius:8,boxShadow:'0 4px 12px rgba(0,0,0,.15)',padding:8,minWidth:160,zIndex:100}}>
+                    <button ref={helpBtnRef} onClick={(e)=>{e.stopPropagation();if(!showHelp&&helpBtnRef.current){const r=helpBtnRef.current.getBoundingClientRect();const vw=window.innerWidth;const dw=Math.min(180,vw-16);let left=r.right-dw;if(left<8)left=8;setHelpStyle({position:'fixed',top:r.bottom+4,left,width:dw});}setShowHelp(!showHelp)}} className="header-btn btn-help" style={{background:'rgba(255,255,255,.12)',color:'white',border:'1px solid rgba(255,255,255,.15)'}}>❓</button>
+                    {showHelp?<div className="help-dropdown" style={{...helpStyle,background:'white',borderRadius:8,boxShadow:'0 4px 12px rgba(0,0,0,.15)',padding:8,zIndex:100}}>
                       <a href="/how-it-works" target="_blank">📖 {t.nav.howItWorks}</a>
                       <a href="/for-beginners" target="_blank">🌱 {t.nav.forBeginners}</a>
                       <a href="/free-english-practice" target="_blank">🗣️ Free Practice</a>
@@ -728,8 +730,8 @@ function App(){
           {view==='admin'&&user&&user.is_admin?<Suspense fallback={<div style={{display:'flex',justifyContent:'center',alignItems:'center',minHeight:'60vh',color:'#94a3b8'}}>Loading admin...</div>}><AdminDashboard user={user} onBack={()=>setView('dashboard')} t={getTranslations('en')}/></Suspense>:null}
         </main>
         {user&&view!=='video'&&view!=='precall'&&(
-          <footer style={{background:'#f8fafc',borderTop:'1px solid #e5e7eb',padding:'1.5rem',textAlign:'center',fontSize:'.8rem',color:'#6b7280'}}>
-            <div style={{maxWidth:600,margin:'0 auto',display:'flex',justifyContent:'center',gap:'1.5rem',flexWrap:'wrap',marginBottom:'.75rem'}}>
+          <footer style={{background:'#f8fafc',borderTop:'1px solid #e5e7eb',padding:'1.5rem 1rem',textAlign:'center',fontSize:'.8rem',color:'#6b7280',overflow:'hidden'}}>
+            <div style={{maxWidth:600,margin:'0 auto',display:'flex',justifyContent:'center',gap:'1rem',flexWrap:'wrap',marginBottom:'.75rem'}}>
               <a href="/how-it-works" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>{t.nav.howItWorks}</a>
               <a href="/for-beginners" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>{t.nav.forBeginners}</a>
               <a href="/blog" style={{color:'#4f46e5',textDecoration:'none',fontWeight:500}}>{t.nav.blog}</a>

@@ -411,6 +411,7 @@ video{overscroll-behavior:none;}
   .app-header .header-pts{background:#1e2740;border-color:#2d3a5c;color:#93c5fd;}
   .app-header .user-info span{color:#e2e8f0;}
   .app-header .header-username{color:#e2e8f0;}
+  .app-header .btn-admin{background:rgba(255,255,255,.15)!important;color:white!important;border-color:rgba(255,255,255,.2)!important;}
   .auth-box{background:#1a1d2e;box-shadow:0 10px 30px rgba(0,0,0,.5);}
   .auth-subtitle{color:#94a3b8;}
   .auth-divider span{position:relative;background:#1a1d2e;padding:0 12px;z-index:1;}

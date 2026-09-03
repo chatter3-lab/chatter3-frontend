@@ -16,7 +16,7 @@ a{color:inherit;text-decoration:none;}
 .lp-nav-links a:hover,.lp-nav-links a.active{opacity:.7;}
 .lp-footer{background:#1e293b;padding:2rem 1.5rem;text-align:center;}
 .lp-footer-inner{max-width:900px;margin:0 auto;}
-.lp-footer-links{display:flex;justify-content:center;gap:1.5rem;margin-bottom:.75rem;}
+.lp-footer-links{display:flex;justify-content:center;flex-wrap:wrap;gap:.75rem 1.5rem;margin-bottom:.75rem;}
 .lp-footer-links a{color:#94a3b8;text-decoration:none;font-size:.88rem;transition:color .15s;}
 .lp-footer-links a:hover{color:white;}
 .lp-footer p{color:#64748b;font-size:.8rem;margin:0;}
