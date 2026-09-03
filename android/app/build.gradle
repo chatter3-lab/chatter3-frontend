@@ -16,14 +16,14 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    signingConfigs {
-        release {
-            storeFile file('chatter3-release.jks')
-            storePassword 'chatter3release'
-            keyAlias 'chatter3'
-            keyPassword 'chatter3release'
-        }
+signingConfigs {
+    release {
+        storeFile file('chatter3.p12')
+        storePassword 'Chatter3Release2026!'
+        keyAlias 'chatter3'
+        keyPassword 'Chatter3Release2026!'
     }
+}
     buildTypes {
         release {
             minifyEnabled true
