@@ -167,8 +167,7 @@
     "starter2": "Ask {partner} what music or shows are trending where they live!",
     "starter3": "Ask {partner} what they enjoy doing on weekends!",
     "starter4": "Ask {partner} what made them want to practice English conversation!",
-    "starter5": "Ask {partner} to describe something unique about their hometown!",
-    "friendOnly": "Friends only"
+    "starter5": "Ask {partner} to describe something unique about their hometown!"
   },
   "precall": {
     "matched": "You've been matched",

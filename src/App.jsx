@@ -1373,7 +1373,6 @@ function MatchingView({user,settings,onCancel,onMatch,t}){
   const[online,setOnline]=useState({searching:0,in_call:0,by_level:{}});
   const[elapsed,setElapsed]=useState(0);
   const[timedOut,setTimedOut]=useState(false);
-  const[friendOnly,setFriendOnly]=useState(false);
   const stopRingRef=useRef(null);
   const t0=useRef(Date.now());
   const starters=getStarters(t);
@@ -1399,7 +1398,7 @@ function MatchingView({user,settings,onCancel,onMatch,t}){
     const search=async()=>{
       try{
         if(!matched){
-          const r=await authFetch(`${API_URL}/api/matching/join`,{method:'POST',body:JSON.stringify({english_level:user.english_level,country:user.country,native_language:(user.native_language||'').trim().toLowerCase(),friend_only:friendOnly})});
+          const r=await authFetch(`${API_URL}/api/matching/join`,{method:'POST',body:JSON.stringify({english_level:user.english_level,country:user.country,native_language:(user.native_language||'').trim().toLowerCase(),})});
           const d=await r.json();
           if(d.error==='insufficient_fp'){
             // Check if partner already matched us before bailing
@@ -1462,10 +1461,6 @@ function MatchingView({user,settings,onCancel,onMatch,t}){
         <p style={{fontSize:'.75rem',fontWeight:600,color:'#4f8ef7',margin:'0 0 .35rem'}}>{t.matching.whileYouWait}</p>
         <p style={{fontSize:'.72rem',color:'#94a3b8',margin:0}}>{matchTip}</p>
       </div>
-      <label style={{display:'flex',alignItems:'center',gap:8,fontSize:'.82rem',color:'#6b7280',cursor:'pointer',marginBottom:'.75rem'}}>
-  <input type="checkbox" checked={friendOnly} onChange={e=>setFriendOnly(e.target.checked)} style={{accentColor:'#4f46e5'}}/>
-  {t?.matching?.friendOnly||'Friends only'}
-</label>
       <button onClick={cancel} className="cancel-btn">{t.matching.cancelSearch}</button>
     </div>
   );
