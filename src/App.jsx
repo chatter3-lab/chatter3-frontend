@@ -683,13 +683,13 @@ function App(){
         {view!=='auth'&&view!=='video'&&view!=='precall'&&(
           <header className="app-header">
             <div className="app-header-content">
-              <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,minWidth:0}}>
                 <img src="/chatter3_logo.png" alt="Chatter3" className="header-logo-img"/>
-                {user&&<span style={{fontWeight:600,fontSize:'.88rem',color:'white'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:4,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.62rem',fontWeight:700}}>{t.profile.foundingMember}</span>:null}</span>}
+                {user&&<span style={{fontWeight:600,fontSize:'.85rem',color:'white',whiteSpace:'nowrap'}}>{user.nickname||user.username}{user.founding_member?<span style={{marginLeft:4,padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,whiteSpace:'nowrap'}}>{t.profile.foundingMember}</span>:null}</span>}
               </div>
-              <div style={{display:'flex',alignItems:'center',gap:6}}>
-                {user&&user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)'}}>⚙</button>}
-                <button className="header-btn btn-logout" onClick={handleLogout} style={{background:'rgba(255,255,255,.15)',color:'#fca5a5',border:'1px solid rgba(255,255,255,.15)'}}>{t.nav.logout||'Logout'}</button>
+              <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
+                {user&&user.is_admin&&<button className="header-btn btn-admin" onClick={()=>setView('admin')} style={{background:'rgba(255,255,255,.15)',color:'white',border:'1px solid rgba(255,255,255,.2)',fontSize:'.85rem'}}>Admin</button>}
+                <button className="header-btn btn-logout" onClick={handleLogout} style={{background:'rgba(255,255,255,.15)',color:'#fca5a5',border:'1px solid rgba(255,255,255,.15)',fontSize:'.82rem'}}>{t.nav.logout||'Logout'}</button>
               </div>
               {user&&(
                 <div className="user-info" style={{width:'100%',justifyContent:'center',gap:6}}>
