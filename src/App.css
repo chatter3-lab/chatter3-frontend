@@ -17,6 +17,7 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .app-header{background:white;padding:.75rem 0;box-shadow:0 2px 10px rgba(0,0,0,.1);}
 .app-header-content{display:flex;flex-wrap:wrap;align-items:center;width:100%;max-width:1200px;margin:0 auto;padding:0 1rem;}
 .header-top-row{display:flex;justify-content:space-between;align-items:center;width:100%;}
+.header-username{color:#1e293b;}
 .header-logo-img{height:36px;width:auto;object-fit:contain;}
 .user-info{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;}
 .user-info span{font-weight:500;font-size:.9rem;}
@@ -409,6 +410,7 @@ video{overscroll-behavior:none;}
   .app-header{background:#1a1d2e;box-shadow:0 2px 10px rgba(0,0,0,.4);}
   .app-header .header-pts{background:#1e2740;border-color:#2d3a5c;color:#93c5fd;}
   .app-header .user-info span{color:#e2e8f0;}
+  .app-header .header-username{color:#e2e8f0;}
   .auth-box{background:#1a1d2e;box-shadow:0 10px 30px rgba(0,0,0,.5);}
   .auth-subtitle{color:#94a3b8;}
   .auth-divider span{position:relative;background:#1a1d2e;padding:0 12px;z-index:1;}

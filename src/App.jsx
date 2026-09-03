@@ -590,7 +590,7 @@ function App(){
     const saved=localStorage.getItem('chatter3_user');
     const token=localStorage.getItem('chatter3_token');
     if(saved&&!token){localStorage.removeItem('chatter3_user');return;}
-    if(saved){const u=JSON.parse(saved);setUser(u);setView('dashboard');checkSession(u.id);}
+    if(saved){const u=JSON.parse(saved);setUser(u);setView('dashboard');refreshUser(u.id);}
   },[]);
 
   // Refresh user presence every 30 seconds while dashboard is open
@@ -684,9 +684,9 @@ function App(){
           <header className="app-header">
             <div className="app-header-content">
               <div className="header-top-row">
-                <div style={{display:'flex',alignItems:'center',gap:8,minWidth:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,minWidth:0,overflow:'hidden'}}>
                   <img src="/chatter3_logo.png" alt="Chatter3" className="header-logo-img"/>
-                  {user?<span style={{fontWeight:600,fontSize:'.85rem',color:'white',whiteSpace:'nowrap'}}>{user.nickname||user.username}</span>:null}
+                  {user?<span className="header-username" style={{fontWeight:600,fontSize:'.85rem',whiteSpace:'nowrap',minWidth:0,overflow:'hidden',textOverflow:'ellipsis'}}>{user.nickname||user.username}</span>:null}
                   {user&&user.founding_member?<span style={{padding:'1px 6px',background:'linear-gradient(135deg,#f59e0b,#f97316)',color:'white',borderRadius:8,fontSize:'.6rem',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>{t.profile.foundingMember}</span>:null}
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
