@@ -362,12 +362,40 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
   .user-info{flex-direction:column;}
   .auth-box{margin:.75rem;width:auto;}
   .profile-section{padding:1.25rem;width:auto;margin:.75rem;}
-  .video-el.local{width:48px!important;height:70px!important;bottom:8px!important;right:8px!important;}
+  .video-el.local{width:80px!important;height:120px!important;bottom:8px!important;right:8px!important;}
   .slide-headline{font-size:1.35rem;}
   .precall-name{font-size:1.45rem;}
   .admin-container{padding:1rem .75rem;}
   .kpi-grid{grid-template-columns:1fr 1fr;}
   .balance-grid{grid-template-columns:1fr 1fr;}
+}
+
+/* Fullscreen video */
+.video-fullscreen{position:fixed!important;inset:0;z-index:9999;background:#000;}
+.video-fullscreen video{width:100%!important;height:100%!important;object-fit:cover!important;}
+.video-fullscreen .local-video-pip{width:120px!important;height:180px!important;bottom:80px!important;right:16px!important;}
+
+/* Safe area insets for video controls */
+.video-controls{padding-bottom:env(safe-area-inset-bottom, 0px);}
+
+/* Landscape orientation for video calls */
+@media(orientation:landscape) and (max-height:500px){
+  .video-container{height:100vh!important;}
+  .local-video-pip{width:100px!important;height:150px!important;}
+  .video-controls{padding:4px 12px!important;}
+  .video-status-badge{top:4px!important;left:4px!important;font-size:.65rem!important;padding:2px 6px!important;}
+}
+
+/* Touch-friendly help dropdown */
+.help-menu-wrapper{position:relative;}
+.help-dropdown{position:absolute;top:100%;right:0;background:white;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:8px;min-width:160;z-index:100;}
+
+/* Prevent overscroll during video calls */
+video{overscroll-behavior:none;}
+
+/* Better PiP on mobile */
+@media(max-width:768px){
+  .local-video-pip{width:80px!important;height:120px!important;}
 }
 
 /* Dark mode */

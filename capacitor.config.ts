@@ -6,8 +6,6 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https',
-    url: 'https://app.chatter3.com',
-    cleartext: false
   },
   android: {
     allowMixedContent: false

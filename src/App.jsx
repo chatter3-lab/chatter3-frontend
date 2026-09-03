@@ -101,11 +101,11 @@ function CountrySelect({value,onChange,required,placeholder='Select your country
 
 // ── Sounds ──────────────────────────────────────────────────
 const SOUNDS = {
-  match: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3',
-  start: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3',
-  end:   'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3',
-  points:'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3',
-  ring:  'https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3',
+  match: '/sounds/match.mp3',
+  start: '/sounds/start.mp3',
+  end:   '/sounds/end.mp3',
+  points:'/sounds/points.mp3',
+  ring:  '/sounds/ring.mp3',
 };
 const playSound = (k) => { try { const a = new Audio(SOUNDS[k]); a.volume=0.5; a.play().catch(()=>{}); } catch{} };
 const startRinging = () => {
@@ -118,8 +118,6 @@ const startRinging = () => {
   return ()=>{ stopped=true; if(audio){try{audio.pause();audio.src='';}catch{}} };
 };
 
-// ── Country helpers ────────────────────────────────────────── 
-
 // ── Conversation starters ────────────────────────────────────
 const getStarters=(t)=>[
   (p)=>(t?.matching?.starter1||'Ask {partner} what the most popular food is in their country!').replace('{partner}',p),
@@ -128,11 +126,6 @@ const getStarters=(t)=>[
   (p)=>(t?.matching?.starter4||'Ask {partner} what made them want to practice English conversation!').replace('{partner}',p),
   (p)=>(t?.matching?.starter5||'Ask {partner} to describe something unique about their hometown!').replace('{partner}',p),
 ];
-
-// ═══════════════════════════════════════════════════════════════
-// STYLES
-// ═══════════════════════════════════════════════════════════════
-
 
 // ── Icon ───────────────────────────────────────────────────────
 const Ico=({d,style})=><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{display:'inline',verticalAlign:'middle',...style}}><path d={d}/></svg>;
@@ -578,6 +571,7 @@ function App(){
   const[maintenanceMsg,setMaintenanceMsg]=useState('');
   const[appSettings,setAppSettings]=useState({matching_by_level:'false'});
   const[resetToken,setResetToken]=useState(null);
+  const[showHelp,setShowHelp]=useState(false);
   const{t,lang}=useTranslation();
   const toast=useToast();
 
@@ -607,6 +601,13 @@ function App(){
     }, 30000);
     return () => clearInterval(t);
   }, [user]);
+
+  useEffect(()=>{
+    if(!showHelp)return;
+    const h=()=>setShowHelp(false);
+    document.addEventListener('click',h);
+    return()=>document.removeEventListener('click',h);
+  },[showHelp]);
 
   const checkSession=async(uid)=>{
     try{const r=await authFetch(`${API_URL}/api/matching/session/${uid}`);const d=await r.json();
@@ -688,9 +689,9 @@ function App(){
                   <div className="header-pts">🎫 {user.fp_balance??0} FP &nbsp;·&nbsp; ⭐ {(user.rp_balance||0).toFixed(1)} RP</div>
                    <button className="header-btn btn-friends" onClick={()=>setShowFriends(true)} aria-label={t.nav.friends||'Friends'}>👥 {t.nav.friends||'Friends'}</button>
                    <NotificationCenter user={user} API_URL={API_URL} authFetch={authFetch}/>
-                   <div className="help-menu-wrapper">
-                     <button className="header-btn btn-help" style={{position:'relative'}} aria-label={t.nav.help||'Help'} aria-haspopup="true">❓ {t.nav.help||'Help'}</button>
-                      <div className="help-dropdown">
+                   <div className="help-menu-wrapper" style={{position:'relative'}}>
+                     <button onClick={(e)=>{e.stopPropagation();setShowHelp(!showHelp)}} className="header-btn btn-help" aria-label={t.nav.help||'Help'} aria-haspopup="true">❓ {t.nav.help||'Help'}</button>
+                      {showHelp&&<div className="help-dropdown" style={{position:'absolute',top:'100%',right:0,background:'white',borderRadius:8,boxShadow:'0 4px 12px rgba(0,0,0,.15)',padding:8,minWidth:160,zIndex:100}}>
                         <a href="/how-it-works" target="_blank">📖 {t.nav.howItWorks}</a>
                         <a href="/for-beginners" target="_blank">🌱 {t.nav.forBeginners}</a>
                         <a href="/free-english-practice" target="_blank">🗣️ Free Practice</a>
@@ -699,7 +700,7 @@ function App(){
                         <a href="/faq" target="_blank">❓ {t.nav.faq||'FAQ'}</a>
                         <a href="/chatter3-vs-italki" target="_blank">⚔️ vs italki</a>
                         <a href="/chatter3-vs-cambly" target="_blank">⚔️ vs Cambly</a>
-                      </div>
+                      </div>}
                    </div>
                   <LanguageSwitcher currentLang={localStorage.getItem('chatter3_lang')||'en'}/>
                   {user.is_admin?<button className="header-btn btn-admin" onClick={()=>setView('admin')} aria-label={t.admin.badge}>⚙ {t.admin.badge}</button>:null}
@@ -869,10 +870,15 @@ function AuthView({onLogin,setView,t,lang}){
   const googleSuccess=async(cr)=>{
     setLoading(true);setErr('');
     try{
-      const r=await fetch(`${API_URL}/api/auth/google`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential:cr.credential,...(refParam?{ref:refParam}:{})})});
-      const d=await r.json();
-      if(d.success){if(d.token)localStorage.setItem('chatter3_token',d.token);onLogin(d.user);}else setErr(d.detail||d.error||t.auth.googleError);
-    }catch{setErr(t.auth.networkError);}finally{setLoading(false);}
+      try{
+        const r=await fetch(`${API_URL}/api/auth/google`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential:cr.credential,...(refParam?{ref:refParam}:{})})});
+        const d=await r.json();
+        if(d.success){if(d.token)localStorage.setItem('chatter3_token',d.token);onLogin(d.user);}else setErr(d.detail||d.error||t.auth.googleError);
+      }catch(innerErr){
+        console.error('Google OAuth error:',innerErr);
+        toast.error(t.auth?.googleUnavailable||'Google login unavailable — please use email');
+      }
+    }finally{setLoading(false);}
   };
 
   return(
@@ -922,6 +928,7 @@ function AuthView({onLogin,setView,t,lang}){
         <div className="google-button-container">
           <GoogleLogin onSuccess={googleSuccess} onError={()=>setErr(t.auth.googleError)}/>
         </div>
+        <p style={{fontSize:'.72rem',color:'#9ca3af',marginTop:6,textAlign:'center'}}>{t.auth?.googleUnavailable||'Google login unavailable? Use email above.'}</p>
         <button className="auth-link" onClick={()=>{setReg(v=>!v);setErr('');setTerms(false);}}>
           {reg?t.auth.hasAccount:t.auth.noAccount}
         </button>
@@ -1607,6 +1614,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
   const[partnerEndedScreen,setPartnerEndedScreen]=useState(false);
   const[partnerReconnecting,setPartnerReconnecting]=useState(false);
   const[err,setErr]=useState('');
+  const[isFullscreen,setIsFullscreen]=useState(false);
   const toast=useToast();
   const lv=useRef(null),rv=useRef(null),pc=useRef(null),ws=useRef(null);
   const remStream=useRef(null),lcQ=useRef([]),rcQ=useRef([]),negRef=useRef(false),streamRef=useRef(null);
@@ -1617,6 +1625,14 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
   const intentionalHangup=useRef(false);
   const partnerHungUp=useRef(false);
   const usedRelay=useRef(false);
+
+  const toggleFullscreen=async()=>{
+    try{
+      if(!document.fullscreenElement){await document.documentElement.requestFullscreen();setIsFullscreen(true);}
+      else{await document.exitFullscreen();setIsFullscreen(false);}
+    }catch{}
+  };
+  useEffect(()=>{const h=()=>setIsFullscreen(!!document.fullscreenElement);document.addEventListener('fullscreenchange',h);return()=>document.removeEventListener('fullscreenchange',h);},[]);
 
   const cleanup=()=>{
     if(streamRef.current){streamRef.current.getTracks().forEach(t=>t.stop());streamRef.current=null;}
@@ -1708,7 +1724,13 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
           else if(data.type==='candidate'){const c=new RTCIceCandidate(data.candidate);p.remoteDescription?.type?await p.addIceCandidate(c):rcQ.current.push(c);logConn('ice_candidate_received',{candidate:data.candidate});}
         };
         const neg=async()=>{negRef.current=true;const o=await p.createOffer();await p.setLocalDescription(o);sock.send(JSON.stringify({type:'offer',sdp:o}));logConn('offer_created');};
-      }catch{setErr('Could not access camera/microphone');}
+      }catch(err){
+        console.error('Camera error:',err);
+        setErr(err.name==='NotAllowedError'?'Camera permission denied. Please allow camera access in your browser settings and try again.'
+          :err.name==='NotFoundError'?'No camera found. Please connect a camera and try again.'
+          :err.name==='NotReadableError'?'Camera is in use by another app. Close other apps using the camera and try again.'
+          :'Could not access camera/microphone. Please check your device settings.');
+      }
     };
     const logConn=(event_type,event_data)=>{
       authFetch(`${API_URL}/api/connection/event`,{method:'POST',body:JSON.stringify({session_id:session.id,event_type,event_data,user_agent:navigator.userAgent})}).catch(()=>{});
@@ -1760,6 +1782,9 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
        <div className="warning-box">
         <strong>{t.video.iphoneWarning}</strong> {t.video.safariWarning}
       </div>
+      <button onClick={()=>window.location.reload()} style={{marginTop:12,padding:'8px 20px',borderRadius:8,border:'none',background:'#4f46e5',color:'white',cursor:'pointer',fontSize:'.9rem'}}>
+        {t.video?.retry||'Try Again'}
+      </button>
       <button onClick={onEnd} className="cancel-btn">{t.video.goBack}</button>
     </div>
   );
@@ -1866,14 +1891,19 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
         )}
       </div>
       {!showRating&&(
-        <div className="call-controls">
+        <div className="call-controls" style={{paddingBottom:'env(safe-area-inset-bottom, 0px)'}}>
           <div>
             <p style={{fontSize:'.82rem',color:'#999',margin:0}}>{t.video.talkingTo}</p>
             <p style={{fontWeight:700,fontSize:'1rem',margin:0}}>{session.partner?.username}</p>
             {session.partner?.country&&<p style={{fontSize:'.78rem',color:'#6b7280',margin:'1px 0 0'}}>{getFlag(session.partner.country)} {countryName(session.partner.country)}</p>}
             <button className="report-btn" onClick={()=>setShowReport(true)}>{t.video.report}</button>
           </div>
-          <button onClick={hangup} className="control-btn-end"><PhoneOff style={{width:17,height:17}}/> {t.video.endCall}</button>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <button onClick={toggleFullscreen} style={{background:'rgba(0,0,0,.5)',border:'none',color:'white',borderRadius:8,padding:'6px 10px',cursor:'pointer',fontSize:'.8rem'}} aria-label={isFullscreen?'Exit fullscreen':'Fullscreen'}>
+              {isFullscreen?'✕':'⛶'} {isFullscreen?'Exit':'Fullscreen'}
+            </button>
+            <button onClick={hangup} className="control-btn-end"><PhoneOff style={{width:17,height:17}}/> {t.video.endCall}</button>
+          </div>
         </div>
       )}
     </div>
