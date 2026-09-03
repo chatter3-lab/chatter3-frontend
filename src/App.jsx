@@ -619,7 +619,7 @@ function App(){
 
   const refreshUser=async(uid)=>{
     try{const r=await authFetch(`${API_URL}/api/user/${uid}`);const d=await r.json();
-      if(d.success){const u={...user,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));setUser(u);}}catch{}
+      if(d.success){setUser(prev=>{const u={...prev,...d.user};localStorage.setItem('chatter3_user',JSON.stringify(u));return u;});}}catch{}
   };
 
   const setAndSaveUser=(u)=>{setUser(u);localStorage.setItem('chatter3_user',JSON.stringify(u));};
@@ -1420,6 +1420,7 @@ function MatchingView({user,settings,onCancel,onMatch,t}){
     if(timedOut)return;
     let polling;
     const search=async()=>{
+      if(matched)return;
       try{
         if(!matched){
           const r=await authFetch(`${API_URL}/api/matching/join`,{method:'POST',body:JSON.stringify({english_level:user.english_level,country:user.country,native_language:(user.native_language||'').trim().toLowerCase(),})});
@@ -1753,7 +1754,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
       authFetch(`${API_URL}/api/connection/event`,{method:'POST',body:JSON.stringify({session_id:session.id,event_type,event_data,user_agent:navigator.userAgent})}).catch(()=>{});
     };
     const flushRC=async()=>{if(!pc.current)return;while(rcQ.current.length>0)try{await pc.current.addIceCandidate(rcQ.current.shift());}catch{}};
-    const beforeUnload=()=>{ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye'}));};
+    const beforeUnload=()=>{ws.current?.readyState===1&&ws.current.send(JSON.stringify({type:'bye'}));navigator.sendBeacon(`${API_URL}/api/matching/end`,JSON.stringify({session_id:session.id}));};
     window.addEventListener('beforeunload',beforeUnload);
     // Use server session.created_at for timer sync — both users see identical countdown
     // SQLite returns "2024-01-15 12:34:56" (space), must convert to ISO format
@@ -1764,7 +1765,7 @@ function VideoRoomView({user,session,callStartedAt,onEnd,t}){
     const tick=()=>{const el=Math.floor((Date.now()-t0)/1000);const rem=Math.max(0,total-el);setTimeLeft(rem);return rem;};
     tick();init();
     const timer=setInterval(()=>{if(tick()<=0)hangup();},1000);
-    return()=>{clearInterval(timer);clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(partnerReconnectTimer.current);clearTimeout(connTimeout.current);window.removeEventListener('beforeunload',beforeUnload);};
+    return()=>{cleanup();clearInterval(timer);clearTimeout(discTimer.current);clearTimeout(autoTimer.current);clearTimeout(partnerReconnectTimer.current);clearTimeout(connTimeout.current);window.removeEventListener('beforeunload',beforeUnload);};
   },[]);
 
   const hangup=async()=>{
