@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ToastProvider, useToast } from '../components/Toast';
+import { COUNTRIES } from '../constants/countries';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 const API_URL = 'https://api.chatter3.com';
@@ -12,8 +13,6 @@ const authFetch=(url,opts={})=>{
   else console.error('authFetch: NO TOKEN for',url);
   return fetch(url,{...opts,headers});
 };
-
-const COUNTRIES=[{code:'AF',name:'Afghanistan'},{code:'AL',name:'Albania'},{code:'DZ',name:'Algeria'},{code:'AD',name:'Andorra'},{code:'AO',name:'Angola'},{code:'AG',name:'Antigua and Barbuda'},{code:'AR',name:'Argentina'},{code:'AM',name:'Armenia'},{code:'AU',name:'Australia'},{code:'AT',name:'Austria'},{code:'AZ',name:'Azerbaijan'},{code:'BS',name:'Bahamas'},{code:'BH',name:'Bahrain'},{code:'BD',name:'Bangladesh'},{code:'BB',name:'Barbados'},{code:'BY',name:'Belarus'},{code:'BE',name:'Belgium'},{code:'BZ',name:'Belize'},{code:'BJ',name:'Benin'},{code:'BT',name:'Bhutan'},{code:'BO',name:'Bolivia'},{code:'BA',name:'Bosnia and Herzegovina'},{code:'BW',name:'Botswana'},{code:'BR',name:'Brazil'},{code:'BN',name:'Brunei'},{code:'BG',name:'Bulgaria'},{code:'BF',name:'Burkina Faso'},{code:'BI',name:'Burundi'},{code:'CV',name:'Cabo Verde'},{code:'KH',name:'Cambodia'},{code:'CM',name:'Cameroon'},{code:'CA',name:'Canada'},{code:'CF',name:'Central African Republic'},{code:'TD',name:'Chad'},{code:'CL',name:'Chile'},{code:'CN',name:'China'},{code:'CO',name:'Colombia'},{code:'KM',name:'Comoros'},{code:'CG',name:'Congo'},{code:'CD',name:'Congo (DRC)'},{code:'CR',name:'Costa Rica'},{code:'HR',name:'Croatia'},{code:'CU',name:'Cuba'},{code:'CY',name:'Cyprus'},{code:'CZ',name:'Czech Republic'},{code:'DK',name:'Denmark'},{code:'DJ',name:'Djibouti'},{code:'DM',name:'Dominica'},{code:'DO',name:'Dominican Republic'},{code:'EC',name:'Ecuador'},{code:'EG',name:'Egypt'},{code:'SV',name:'El Salvador'},{code:'GQ',name:'Equatorial Guinea'},{code:'ER',name:'Eritrea'},{code:'EE',name:'Estonia'},{code:'SZ',name:'Eswatini'},{code:'ET',name:'Ethiopia'},{code:'FJ',name:'Fiji'},{code:'FI',name:'Finland'},{code:'FR',name:'France'},{code:'GA',name:'Gabon'},{code:'GM',name:'Gambia'},{code:'GE',name:'Georgia'},{code:'DE',name:'Germany'},{code:'GH',name:'Ghana'},{code:'GR',name:'Greece'},{code:'GD',name:'Grenada'},{code:'GT',name:'Guatemala'},{code:'GN',name:'Guinea'},{code:'GW',name:'Guinea-Bissau'},{code:'GY',name:'Guyana'},{code:'HT',name:'Haiti'},{code:'HN',name:'Honduras'},{code:'HU',name:'Hungary'},{code:'IS',name:'Iceland'},{code:'IN',name:'India'},{code:'ID',name:'Indonesia'},{code:'IR',name:'Iran'},{code:'IQ',name:'Iraq'},{code:'IE',name:'Ireland'},{code:'IL',name:'Israel'},{code:'IT',name:'Italy'},{code:'JM',name:'Jamaica'},{code:'JP',name:'Japan'},{code:'JO',name:'Jordan'},{code:'KZ',name:'Kazakhstan'},{code:'KE',name:'Kenya'},{code:'KI',name:'Kiribati'},{code:'KP',name:'North Korea'},{code:'KR',name:'South Korea'},{code:'KW',name:'Kuwait'},{code:'KG',name:'Kyrgyzstan'},{code:'LA',name:'Laos'},{code:'LV',name:'Latvia'},{code:'LB',name:'Lebanon'},{code:'LS',name:'Lesotho'},{code:'LR',name:'Liberia'},{code:'LY',name:'Libya'},{code:'LI',name:'Liechtenstein'},{code:'LT',name:'Lithuania'},{code:'LU',name:'Luxembourg'},{code:'MG',name:'Madagascar'},{code:'MW',name:'Malawi'},{code:'MY',name:'Malaysia'},{code:'MV',name:'Maldives'},{code:'ML',name:'Mali'},{code:'MT',name:'Malta'},{code:'MH',name:'Marshall Islands'},{code:'MR',name:'Mauritania'},{code:'MU',name:'Mauritius'},{code:'MX',name:'Mexico'},{code:'FM',name:'Micronesia'},{code:'MD',name:'Moldova'},{code:'MC',name:'Monaco'},{code:'MN',name:'Mongolia'},{code:'ME',name:'Montenegro'},{code:'MA',name:'Morocco'},{code:'MZ',name:'Mozambique'},{code:'MM',name:'Myanmar'},{code:'NA',name:'Namibia'},{code:'NR',name:'Nauru'},{code:'NP',name:'Nepal'},{code:'NL',name:'Netherlands'},{code:'NZ',name:'New Zealand'},{code:'NI',name:'Nicaragua'},{code:'NE',name:'Niger'},{code:'NG',name:'Nigeria'},{code:'MK',name:'North Macedonia'},{code:'NO',name:'Norway'},{code:'OM',name:'Oman'},{code:'PK',name:'Pakistan'},{code:'PW',name:'Palau'},{code:'PA',name:'Panama'},{code:'PG',name:'Papua New Guinea'},{code:'PY',name:'Paraguay'},{code:'PE',name:'Peru'},{code:'PH',name:'Philippines'},{code:'PL',name:'Poland'},{code:'PT',name:'Portugal'},{code:'QA',name:'Qatar'},{code:'RO',name:'Romania'},{code:'RU',name:'Russia'},{code:'RW',name:'Rwanda'},{code:'KN',name:'Saint Kitts and Nevis'},{code:'LC',name:'Saint Lucia'},{code:'VC',name:'Saint Vincent and the Grenadines'},{code:'WS',name:'Samoa'},{code:'SM',name:'San Marino'},{code:'ST',name:'Sao Tome and Principe'},{code:'SA',name:'Saudi Arabia'},{code:'SN',name:'Senegal'},{code:'RS',name:'Serbia'},{code:'SC',name:'Seychelles'},{code:'SL',name:'Sierra Leone'},{code:'SG',name:'Singapore'},{code:'SK',name:'Slovakia'},{code:'SI',name:'Slovenia'},{code:'SB',name:'Solomon Islands'},{code:'SO',name:'Somalia'},{code:'ZA',name:'South Africa'},{code:'SS',name:'South Sudan'},{code:'ES',name:'Spain'},{code:'LK',name:'Sri Lanka'},{code:'SD',name:'Sudan'},{code:'SR',name:'Suriname'},{code:'SE',name:'Sweden'},{code:'CH',name:'Switzerland'},{code:'SY',name:'Syria'},{code:'TW',name:'Taiwan'},{code:'TJ',name:'Tajikistan'},{code:'TZ',name:'Tanzania'},{code:'TH',name:'Thailand'},{code:'TL',name:'Timor-Leste'},{code:'TG',name:'Togo'},{code:'TO',name:'Tonga'},{code:'TT',name:'Trinidad and Tobago'},{code:'TN',name:'Tunisia'},{code:'TR',name:'Turkey'},{code:'TM',name:'Turkmenistan'},{code:'TV',name:'Tuvalu'},{code:'UG',name:'Uganda'},{code:'UA',name:'Ukraine'},{code:'AE',name:'United Arab Emirates'},{code:'GB',name:'United Kingdom'},{code:'US',name:'United States'},{code:'UY',name:'Uruguay'},{code:'UZ',name:'Uzbekistan'},{code:'VU',name:'Vanuatu'},{code:'VA',name:'Vatican City'},{code:'VE',name:'Venezuela'},{code:'VN',name:'Vietnam'},{code:'YE',name:'Yemen'},{code:'ZM',name:'Zambia'},{code:'ZW',name:'Zimbabwe'}];
 
 const getFlag=code=>{
   if(!code)return'🌍';
@@ -645,8 +644,8 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
         <button className="header-btn btn-logout" onClick={onBack}>{t.admin.back}</button>
       </div>
       <div className="admin-tabs">
-        {['analytics','users','blog','referrals','reports','settings','health'].map(tabName=>(
-          <button key={tabName} className={`admin-tab ${tab===tabName?'active':''}`} style={{textTransform:'capitalize'}} onClick={()=>setTab(tabName)}>{t.admin.tabs[tabName]}</button>
+        {['analytics','users','blog','referrals','reports','settings','experiments','feedback','audit','health'].map(tabName=>(
+          <button key={tabName} className={`admin-tab ${tab===tabName?'active':''}`} style={{textTransform:'capitalize'}} onClick={()=>setTab(tabName)}>{t.admin.tabs[tabName]||tabName}</button>
         ))}
       </div>
       {tab==='analytics' && renderAnalytics(stats, maxSessions)}
@@ -695,6 +694,15 @@ const maxSessions=stats?.sessions_by_day?.length?Math.max(...stats.sessions_by_d
       )}
       {tab==='referrals'&&(
         <ReferralsTab post={post} t={t}/>
+      )}
+      {tab==='experiments'&&(
+        <ExperimentsTab post={post} user={user} t={t}/>
+      )}
+      {tab==='feedback'&&(
+        <FeedbackTab post={post} t={t}/>
+      )}
+      {tab==='audit'&&(
+        <AuditLogTab post={post} t={t}/>
       )}
       {tab==='health'&&(
         <HealthTab stats={stats} user={user} post={post} t={t}/>
@@ -1004,12 +1012,137 @@ function UsersTab({user,post,t}){
   );
 }
 
+function FeedbackTab({post,t}){
+  const[feedback,setFeedback]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[filter,setFilter]=useState('pending');
+  const[page,setPage]=useState(1);
+  const[total,setTotal]=useState(0);
+  const[replyText,setReplyText]=useState('');
+  const[replying,setReplying]=useState(null);
+
+  const loadFeedback=()=>{
+    setLoading(true);
+    post('/api/admin/feedback',{status:filter,page}).then(d=>{
+      if(d.success){setFeedback(d.feedback||[]);setTotal(d.total||0);}
+    }).catch(()=>{}).finally(()=>setLoading(false));
+  };
+  useEffect(()=>{loadFeedback();},[filter,page]);
+
+  const handleReply=async(id)=>{
+    if(!replyText.trim())return;
+    try{
+      await post('/api/admin/feedback/reply',{feedback_id:id,reply:replyText});
+      setReplyText('');setReplying(null);loadFeedback();
+    }catch(e){}
+  };
+
+  const statusColors={pending:'#f59e0b',replied:'#22c55e',archived:'#94a3b8'};
+  return(
+    <div>
+      <div style={{display:'flex',gap:'.5rem',marginBottom:'1rem',flexWrap:'wrap'}}>
+        {['pending','replied','all'].map(s=>(
+          <button key={s} className={`admin-tab ${filter===s?'active':''}`} style={{textTransform:'capitalize',padding:'6px 14px'}} onClick={()=>{setFilter(s);setPage(1);}}>{s}</button>
+        ))}
+      </div>
+      {loading?<p style={{color:'#9ca3af'}}>Loading feedback...</p>:feedback.length===0?<p style={{color:'#9ca3af',textAlign:'center'}}>No feedback found</p>:(
+        <div className="admin-section">
+          <h3>{total} feedback entries</h3>
+          <div style={{overflowX:'auto'}}>
+            <table className="admin-table">
+              <thead><tr><th>User</th><th>Category</th><th>Rating</th><th>Message</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                {feedback.map(f=>(
+                  <tr key={f.id}>
+                    <td><strong>{f.nickname||f.username}</strong></td>
+                    <td><span style={{fontSize:'.75rem',background:'#f3f4f6',padding:'2px 8px',borderRadius:4}}>{f.category}</span></td>
+                    <td>{'⭐'.repeat(f.rating||0)}</td>
+                    <td style={{maxWidth:250,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.message}</td>
+                    <td style={{fontSize:'.78rem',color:'#94a3b8'}}>{f.created_at?.slice(0,10)}</td>
+                    <td><span style={{color:statusColors[f.status]||'#94a3b8',fontWeight:600,fontSize:'.8rem'}}>{f.status}</span></td>
+                    <td>
+                      {f.admin_reply&&<div style={{fontSize:'.75rem',color:'#22c55e',marginBottom:4}}>Replied: {f.admin_reply.slice(0,50)}...</div>}
+                      {replying===f.id?(
+                        <div style={{display:'flex',gap:4}}>
+                          <input value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder="Reply..." style={{fontSize:'.78rem',padding:'4px 8px',border:'1px solid #d1d5db',borderRadius:4,flex:1}}/>
+                          <button className="act-btn action" onClick={()=>handleReply(f.id)}>Send</button>
+                          <button className="act-btn dismiss" onClick={()=>{setReplying(null);setReplyText('');}}>Cancel</button>
+                        </div>
+                      ):(
+                        <button className="act-btn" onClick={()=>setReplying(f.id)}>Reply</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{display:'flex',justifyContent:'center',gap:'.5rem',marginTop:12}}>
+            <button className="act-btn" disabled={page<=1} onClick={()=>setPage(p=>p-1)}>Previous</button>
+            <span style={{color:'#94a3b8',fontSize:'.8rem',padding:'6px 12px'}}>Page {page}</span>
+            <button className="act-btn" disabled={feedback.length<50} onClick={()=>setPage(p=>p+1)}>Next</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AuditLogTab({post,t}){
+  const[logs,setLogs]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[page,setPage]=useState(1);
+  const[total,setTotal]=useState(0);
+
+  const loadLogs=()=>{
+    setLoading(true);
+    post('/api/admin/audit-log',{page}).then(d=>{
+      if(d.success){setLogs(d.logs||[]);setTotal(d.total||0);}
+    }).catch(()=>{}).finally(()=>setLoading(false));
+  };
+  useEffect(()=>{loadLogs();},[page]);
+
+  const actionIcons={feedback_reply:'💬',ban:'🚫',unban:'✅',settings_update:'⚙️',user_delete:'🗑️',report_action:'📝',founding_member:'⭐'};
+  return(
+    <div>
+      {loading?<p style={{color:'#9ca3af'}}>Loading audit log...</p>:logs.length===0?<p style={{color:'#9ca3af',textAlign:'center'}}>No audit entries yet</p>:(
+        <div className="admin-section">
+          <h3>{total} admin actions logged</h3>
+          <div style={{overflowX:'auto'}}>
+            <table className="admin-table">
+              <thead><tr><th>Admin</th><th>Action</th><th>Target</th><th>Details</th><th>Date</th></tr></thead>
+              <tbody>
+                {logs.map(l=>(
+                  <tr key={l.id}>
+                    <td><strong>{l.username||'Unknown'}</strong></td>
+                    <td><span style={{marginRight:6}}>{actionIcons[l.action]||'📋'}</span>{l.action?.replace(/_/g,' ')}</td>
+                    <td style={{fontSize:'.78rem'}}>{l.target_type} {l.target_id?.slice(0,8)}</td>
+                    <td style={{maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'.78rem',color:'#94a3b8'}}>{l.details&&l.details!=='{}'?l.details.slice(0,60):'-'}</td>
+                    <td style={{fontSize:'.78rem',color:'#94a3b8'}}>{l.created_at?.slice(0,16)?.replace('T',' ')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{display:'flex',justifyContent:'center',gap:'.5rem',marginTop:12}}>
+            <button className="act-btn" disabled={page<=1} onClick={()=>setPage(p=>p-1)}>Previous</button>
+            <span style={{color:'#94a3b8',fontSize:'.8rem',padding:'6px 12px'}}>Page {page}</span>
+            <button className="act-btn" disabled={logs.length<50} onClick={()=>setPage(p=>p+1)}>Next</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function HealthTab({user,post,stats,t}){
   const[health,setHealth]=useState(null);
   const[usage,setUsage]=useState(null);
+  const[aiStats,setAiStats]=useState(null);
   useEffect(()=>{
     post('/api/admin/stats',{}).then(setHealth).catch(e=>console.error('[admin-health]',e));
     post('/api/admin/usage',{}).then(setUsage).catch(e=>console.error('[admin-usage]',e));
+    post('/api/admin/ai-stats',{}).then(setAiStats).catch(e=>console.error('[admin-ai]',e));
   },[]);
 
   const LIMITS={workers_req:100000,d1_reads:5000000,d1_writes:100000,do_req:1000000,d1_storage:5000,workers_cpu:10};
@@ -1084,6 +1217,99 @@ function HealthTab({user,post,stats,t}){
           </tbody>
         </table>
       </div>
+
+      {/* AI Usage Stats */}
+      <div className="admin-section" style={{marginTop:'1rem'}}>
+        <h3>🤖 AI Usage (Cloudflare Workers AI)</h3>
+        {aiStats?(
+          <div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:'.5rem',marginBottom:'1rem'}}>
+              <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+                <div style={{fontSize:'1.4rem',fontWeight:800,color:'#a78bfa'}}>{aiStats.today?.requests||0}</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>AI Requests Today</div>
+              </div>
+              <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+                <div style={{fontSize:'1.4rem',fontWeight:800,color:'#22c55e'}}>{aiStats.today?.successful||0}</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Successful</div>
+              </div>
+              <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+                <div style={{fontSize:'1.4rem',fontWeight:800,color:'#ef4444'}}>{aiStats.today?.failed||0}</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Failed</div>
+              </div>
+              <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+                <div style={{fontSize:'1.4rem',fontWeight:800,color:'#60a5fa'}}>{Math.round(aiStats.today?.avg_latency||0)}ms</div>
+                <div style={{fontSize:'.72rem',color:'#94a3b8',marginTop:2}}>Avg Latency</div>
+              </div>
+            </div>
+            {aiStats.features?.length>0&&(
+              <div style={{marginBottom:'1rem'}}>
+                <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>Feature Breakdown (Today)</h4>
+                <table className="admin-table">
+                  <thead><tr><th>Feature</th><th>Requests</th><th>Avg Latency</th></tr></thead>
+                  <tbody>
+                    {aiStats.features.map((f,i)=>(
+                      <tr key={i}>
+                        <td><span style={{fontSize:'.75rem',background:'#f3f4f6',padding:'2px 8px',borderRadius:4}}>{f.feature}</span></td>
+                        <td style={{fontWeight:600}}>{f.requests}</td>
+                        <td style={{color:'#94a3b8'}}>{Math.round(f.avg_latency||0)}ms</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {aiStats.quality&&aiStats.quality.total_scored>0&&(
+              <div style={{background:'#1e293b',borderRadius:8,padding:'12px',marginBottom:'1rem'}}>
+                <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>📊 Conversation Quality (30-day)</h4>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))',gap:'.5rem'}}>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'1.2rem',fontWeight:800,color:'#fbbf24'}}>{Math.round(aiStats.quality.avg_score||0)}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Avg Score</div>
+                  </div>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'1.2rem',fontWeight:800,color:'#22c55e'}}>{Math.round(aiStats.quality.avg_grammar||0)}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Grammar</div>
+                  </div>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'1.2rem',fontWeight:800,color:'#60a5fa'}}>{Math.round(aiStats.quality.avg_vocab||0)}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Vocabulary</div>
+                  </div>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'1.2rem',fontWeight:800,color:'#a78bfa'}}>{Math.round(aiStats.quality.avg_fluency||0)}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Fluency</div>
+                  </div>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'1.2rem',fontWeight:800,color:'#94a3b8'}}>{aiStats.quality.total_scored}</div>
+                    <div style={{fontSize:'.7rem',color:'#94a3b8'}}>Sessions Scored</div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {aiStats.weekly?.length>0&&(
+              <div>
+                <h4 style={{fontSize:'.85rem',color:'#e2e8f0',margin:'0 0 .5rem'}}>7-Day AI Usage Trend</h4>
+                <div style={{display:'flex',gap:4,alignItems:'flex-end',height:80}}>
+                  {aiStats.weekly.map((d,i)=>{
+                    const maxReq=Math.max(...aiStats.weekly.map(w=>w.requests||1));
+                    const height=Math.max(8,((d.requests||0)/maxReq)*70);
+                    return(
+                      <div key={i} style={{flex:1,textAlign:'center'}}>
+                        <div style={{fontSize:'.6rem',color:'#94a3b8',marginBottom:2}}>{d.requests||0}</div>
+                        <div style={{height,width:'100%',background:'linear-gradient(180deg,#a78bfa,#6366f1)',borderRadius:3,transition:'height .3s'}}/>
+                        <div style={{fontSize:'.55rem',color:'#6b7280',marginTop:2}}>{d.day?.slice(5)}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <div style={{marginTop:'.75rem',fontSize:'.72rem',color:'#94a3b8'}}>
+              <strong>Total:</strong> {aiStats.total?.total_requests||0} requests · {aiStats.total?.total_success||0} successful · {Math.round(aiStats.total?.avg_latency||0)}ms avg latency
+            </div>
+          </div>
+        ):<p style={{color:'#9ca3af'}}>Loading AI stats...</p>}
+      </div>
+
       <div className="admin-section" style={{marginTop:'1rem'}}>
         <h3>{t.admin.health.turnTitle}</h3>
         <table className="admin-table">
@@ -1235,6 +1461,158 @@ function HealthTab({user,post,stats,t}){
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function ExperimentsTab({post,user,t}){
+  const[exps,setExps]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[showCreate,setShowCreate]=useState(false);
+  const[editing,setEditing]=useState(null);
+  const[name,setName]=useState('');
+  const[description,setDescription]=useState('');
+  const[trafficPct,setTrafficPct]=useState(50);
+  const[variantsStr,setVariantsStr]=useState('control,variant_a');
+  const[status,setStatus]=useState('draft');
+  const[viewingResults,setViewingResults]=useState(null);
+  const[resultsData,setResultsData]=useState(null);
+  const[loadingResults,setLoadingResults]=useState(false);
+
+  const loadExps=()=>{post('/api/experiments/list',{}).then(d=>{if(d.success)setExps(d.experiments||[]);}).catch(()=>{}).finally(()=>setLoading(false));};
+  useEffect(()=>{loadExps();},[]);
+
+  const createExp=async()=>{
+    const variants=variantsStr.split(',').map(v=>v.trim()).filter(Boolean);
+    if(!name||variants.length<2)return;
+    const r=await post('/api/experiments/create',{name,description,traffic_pct:trafficPct,variants,status});
+    if(r?.success){setShowCreate(false);setName('');setDescription('');setVariantsStr('control,variant_a');setTrafficPct(50);loadExps();}
+  };
+
+  const updateExp=async()=>{
+    if(!editing)return;
+    const variants=variantsStr.split(',').map(v=>v.trim()).filter(Boolean);
+    const r=await post('/api/experiments/update',{id:editing.id,name,description,traffic_pct:trafficPct,variants,status});
+    if(r?.success){setEditing(null);setName('');setDescription('');setVariantsStr('control,variant_a');setTrafficPct(50);loadExps();}
+  };
+
+  const deleteExp=async(id)=>{
+    if(!confirm('Delete this experiment and all its data?'))return;
+    await post('/api/experiments/delete',{id});
+    loadExps();
+  };
+
+  const startEdit=(exp)=>{
+    setEditing(exp);
+    setName(exp.name);
+    setDescription(exp.description||'');
+    setVariantsStr(JSON.parse(exp.variants||'[]').join(', '));
+    setTrafficPct(exp.traffic_pct||50);
+    setStatus(exp.status);
+    setShowCreate(true);
+  };
+
+  const viewResults=async(exp)=>{
+    setViewingResults(exp);
+    setLoadingResults(true);
+    try{
+      const d=await post('/api/experiments/results',{experiment_id:exp.id});
+      if(d.success)setResultsData(d);
+    }catch(e){}
+    setLoadingResults(false);
+  };
+
+  if(loading)return<p style={{color:'#9ca3af',padding:'1rem'}}>Loading experiments...</p>;
+
+  return(
+    <div className="admin-section">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+        <h3 style={{margin:0}}>A/B Experiments</h3>
+        <button className="admin-btn primary" onClick={()=>{setShowCreate(true);setEditing(null);setName('');setDescription('');setVariantsStr('control,variant_a');setTrafficPct(50);setStatus('draft');}}>+ New Experiment</button>
+      </div>
+
+      {showCreate&&(
+        <div style={{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:8,padding:'1rem',marginBottom:'1rem'}}>
+          <h4 style={{margin:'0 0 .75rem'}}>{editing?'Edit':'Create'} Experiment</h4>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'.75rem'}}>
+            <div><label style={{fontSize:'.8rem',fontWeight:600,display:'block',marginBottom:4}}>Name</label><input value={name} onChange={e=>setName(e.target.value)} style={{width:'100%',padding:'6px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.85rem'}}/></div>
+            <div><label style={{fontSize:'.8rem',fontWeight:600,display:'block',marginBottom:4}}>Status</label><select value={status} onChange={e=>setStatus(e.target.value)} style={{width:'100%',padding:'6px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.85rem'}}><option value="draft">Draft</option><option value="running">Running</option><option value="paused">Paused</option><option value="completed">Completed</option></select></div>
+            <div style={{gridColumn:'span 2'}}><label style={{fontSize:'.8rem',fontWeight:600,display:'block',marginBottom:4}}>Description</label><input value={description} onChange={e=>setDescription(e.target.value)} style={{width:'100%',padding:'6px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.85rem'}}/></div>
+            <div><label style={{fontSize:'.8rem',fontWeight:600,display:'block',marginBottom:4}}>Variants (comma-separated)</label><input value={variantsStr} onChange={e=>setVariantsStr(e.target.value)} style={{width:'100%',padding:'6px 10px',border:'1px solid #d1d5db',borderRadius:6,fontSize:'.85rem'}}/></div>
+            <div><label style={{fontSize:'.8rem',fontWeight:600,display:'block',marginBottom:4}}>Traffic % ({trafficPct}%)</label><input type="range" min="0" max="100" value={trafficPct} onChange={e=>setTrafficPct(parseInt(e.target.value))} style={{width:'100%',marginTop:8}}/></div>
+          </div>
+          <div style={{display:'flex',gap:8,marginTop:'.75rem'}}>
+            <button className="admin-btn primary" onClick={editing?updateExp:createExp}>{editing?'Update':'Create'}</button>
+            <button className="admin-btn" onClick={()=>{setShowCreate(false);setEditing(null);}}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Results Modal */}
+      {viewingResults&&(
+        <div style={{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:8,padding:'1rem',marginBottom:'1rem'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+            <h4 style={{margin:0}}>Results: {viewingResults.name}</h4>
+            <button className="admin-btn" onClick={()=>{setViewingResults(null);setResultsData(null);}}>Close</button>
+          </div>
+          {loadingResults?<p style={{color:'#9ca3af'}}>Loading results...</p>:resultsData?(
+            <div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:'.5rem',marginBottom:'1rem'}}>
+                <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+                  <div style={{fontSize:'1.3rem',fontWeight:800,color:'#60a5fa'}}>{resultsData.totalAssignments||0}</div>
+                  <div style={{fontSize:'.72rem',color:'#94a3b8'}}>Total Assignments</div>
+                </div>
+                <div style={{background:'#1e293b',borderRadius:8,padding:'12px',textAlign:'center'}}>
+                  <div style={{fontSize:'1.3rem',fontWeight:800,color:'#a78bfa'}}>{resultsData.totalEvents||0}</div>
+                  <div style={{fontSize:'.72rem',color:'#94a3b8'}}>Total Events</div>
+                </div>
+              </div>
+              {resultsData.variants&&Object.keys(resultsData.variants).length>0&&(
+                <div>
+                  <h5 style={{fontSize:'.85rem',margin:'0 0 .5rem'}}>Variant Breakdown</h5>
+                  <table className="admin-table">
+                    <thead><tr><th>Variant</th><th>Assignments</th><th>Events</th><th>Conversion</th></tr></thead>
+                    <tbody>
+                      {Object.entries(resultsData.variants).map(([variant,data])=>(
+                        <tr key={variant}>
+                          <td><strong>{variant}</strong></td>
+                          <td>{data.assignments||0}</td>
+                          <td>{data.events||0}</td>
+                          <td style={{fontWeight:600,color:data.assignments>0?((data.events/data.assignments)*100>5?'#22c55e':'#f59e0b'):'#94a3b8'}}>{data.assignments>0?((data.events/data.assignments)*100).toFixed(1):0}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ):<p style={{color:'#9ca3af'}}>No results data</p>}
+        </div>
+      )}
+
+      {exps.length===0?<p style={{color:'#9ca3af'}}>No experiments yet. Create one to start A/B testing.</p>:(
+        <div style={{overflowX:'auto'}}>
+          <table className="admin-table">
+            <thead><tr><th>Name</th><th>Variants</th><th>Traffic</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody>
+              {exps.map(exp=>(
+                <tr key={exp.id}>
+                  <td><strong>{exp.name}</strong>{exp.description&&<div style={{fontSize:'.75rem',color:'#9ca3af'}}>{exp.description}</div>}</td>
+                  <td>{JSON.parse(exp.variants||'[]').join(', ')}</td>
+                  <td>{exp.traffic_pct}%</td>
+                  <td><span style={{padding:'2px 8px',borderRadius:4,fontSize:'.75rem',fontWeight:600,background:exp.status==='running'?'#dcfce7':exp.status==='paused'?'#fef3c7':'#f1f5f9',color:exp.status==='running'?'#166534':exp.status==='paused'?'#92400e':'#64748b'}}>{exp.status}</span></td>
+                  <td style={{fontSize:'.8rem'}}>{new Date(exp.created_at).toLocaleDateString()}</td>
+                  <td><div style={{display:'flex',gap:4}}>
+                    <button className="admin-btn" onClick={()=>viewResults(exp)} style={{fontSize:'.75rem',padding:'3px 8px',color:'#60a5fa'}}>Results</button>
+                    <button className="admin-btn" onClick={()=>startEdit(exp)} style={{fontSize:'.75rem',padding:'3px 8px'}}>Edit</button>
+                    <button className="admin-btn danger" onClick={()=>deleteExp(exp.id)} style={{fontSize:'.75rem',padding:'3px 8px'}}>Delete</button>
+                  </div></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

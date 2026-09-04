@@ -9,9 +9,9 @@
 
 *{box-sizing:border-box;}
 body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans-serif;background:#f5f5f5;overflow-x:hidden;}
-#root{width:100%;margin:0;padding:0;}
+#root{width:100%;margin:0;padding:0;overflow-x:hidden;}
 .app-container{display:flex;flex-direction:column;min-height:100vh;width:100%;}
-.app-content{flex:1;display:flex;flex-direction:column;width:100%;max-width:1200px;margin:0 auto;padding:0 1rem;}
+.app-content{flex:1;display:flex;flex-direction:column;width:100%;max-width:1200px;margin:0 auto;padding:0 1rem;overflow-x:hidden;}
 
 /* Header */
 .app-header{background:white;padding:.75rem 0;box-shadow:0 2px 10px rgba(0,0,0,.1);}
@@ -78,7 +78,7 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .terms-row a{color:#4285f4;text-decoration:underline;}
 
 /* Dashboard */
-.dashboard-container{padding:2rem 1rem;text-align:center;}
+.dashboard-container{padding:2rem 1rem;text-align:center;overflow-x:hidden;}
 .welcome-message h2{color:#333;margin-bottom:.5rem;font-size:1.8rem;}
 .welcome-message>p{color:#666;font-size:1.1rem;margin-bottom:1.5rem;}
 .start-matching-btn{padding:13px 28px;background:linear-gradient(135deg,#4f8ef7,#7c3aed);color:white;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s;}
@@ -129,7 +129,7 @@ body,html{margin:0;padding:0;width:100%;font-family:'DM Sans',-apple-system,sans
 .exchange-btn:hover{background:#e0e7ff;}
 
 /* Profile */
-.profile-section{max-width:580px;margin:0 auto;background:white;padding:2rem;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.05);text-align:left;}
+.profile-section{max-width:580px;margin:0 auto;background:white;padding:2rem;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.05);text-align:left;overflow-x:hidden;}
 .profile-avatar{width:90px;height:90px;border-radius:50%;background:#e0e7ff;color:#4f46e5;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:bold;overflow:hidden;margin:0 auto 1.25rem;}
 .upload-btn{background:#eee;border:1px solid #ddd;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.85rem;}
 .save-btn{background:#10b981;color:white;border:none;padding:11px;width:100%;border-radius:6px;font-size:.95rem;cursor:pointer;margin-top:.75rem;}
@@ -527,3 +527,30 @@ video{overscroll-behavior:none;}
   .history-avatar{background:#2d3a5c;color:#cbd5e1;}
   .history-points{background:#0f2918;border-color:#166534;color:#4ade80;}
 }
+
+/* Mobile touch optimizations */
+@media (hover:none) and (pointer:coarse){
+  button,a,[role="button"]{min-height:44px;min-width:44px;}
+  .header-btn{padding:8px 12px!important;}
+  .control-btn{padding:12px 20px!important;}
+  .lp-cta{padding:14px 28px!important;}
+}
+
+/* Safe area insets for notched devices */
+@supports(padding:max(0px)){
+  .app-header{padding-top:max(12px,env(safe-area-inset-top));}
+  .video-overlay{padding-bottom:max(16px,env(safe-area-inset-bottom));}
+  .app-container{padding-bottom:env(safe-area-inset-bottom);}
+}
+
+/* Prevent pull-to-refresh on Android */
+html{overscroll-behavior-y:contain;}
+
+/* Smooth scroll on iOS */
+*{-webkit-overflow-scrolling:touch;}
+
+/* Disable text selection on interactive elements */
+button,[role="button"],.header-btn,.lp-cta{-webkit-user-select:none;user-select:none;}
+
+/* Better tap highlight on mobile */
+a,button{tap-highlight-color:rgba(79,70,229,.2);}

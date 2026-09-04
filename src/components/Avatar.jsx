@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 
-export default function Avatar({ src, name, size = 40, style = {}, ...props }) {
+export default memo(function Avatar({ src, name, size = 40, style = {}, ...props }) {
   const [error, setError] = useState(false);
   const initials = (name || '?').charAt(0).toUpperCase();
   const colors = ['#4f46e5', '#7c3aed', '#2563eb', '#0891b2', '#059669', '#d97706', '#dc2626', '#db2777'];
@@ -13,4 +13,4 @@ export default function Avatar({ src, name, size = 40, style = {}, ...props }) {
       {initials}
     </div>
   );
-}
+});

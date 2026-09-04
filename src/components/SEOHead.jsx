@@ -3,7 +3,7 @@ import { languages } from '../i18n/detect';
 
 const BASE_URL = 'https://app.chatter3.com';
 
-export default function SEOHead({ title, description, canonical, lang, pageKey, ogImage }) {
+export default function SEOHead({ title, description, canonical, lang, pageKey, ogImage, jsonLd }) {
   useEffect(() => {
     if (title) document.title = title;
     
@@ -46,17 +46,31 @@ export default function SEOHead({ title, description, canonical, lang, pageKey, 
     if (canonical) updateLink('canonical', canonical);
     
     // Open Graph
+    updateProperty('og:type', 'website');
     updateProperty('og:title', title || '');
     updateProperty('og:description', description || '');
     updateProperty('og:url', canonical || '');
+    updateProperty('og:site_name', 'Chatter3');
     updateProperty('og:locale', lang === 'en' ? 'en_US' : lang === 'es' ? 'es_ES' : lang === 'ja' ? 'ja_JP' : lang === 'zh' ? 'zh_CN' : lang === 'bn' ? 'bn_BD' : lang === 'fr' ? 'fr_FR' : lang === 'ar' ? 'ar_SA' : lang === 'ru' ? 'ru_RU' : 'en_US');
     const imageUrl = ogImage || `${BASE_URL}/og-image.png`;
     updateProperty('og:image', imageUrl);
     updateProperty('og:image:width', '1200');
     updateProperty('og:image:height', '630');
+    updateProperty('og:image:alt', title || 'Chatter3');
     
-    // Twitter
+    // Twitter Card
+    updateMeta('twitter:card', 'summary_large_image');
+    updateMeta('twitter:site', '@chatter3');
+    updateMeta('twitter:title', title || '');
+    updateMeta('twitter:description', description || '');
     updateMeta('twitter:image', imageUrl);
+    updateMeta('twitter:image:alt', title || 'Chatter3');
+    
+    // Additional SEO meta tags
+    updateMeta('robots', 'index, follow, max-image-preview:large, max-snippet:-1');
+    updateMeta('theme-color', '#4f46e5');
+    updateMeta('apple-mobile-web-app-capable', 'yes');
+    updateMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
     
     // hreflang alternates
     const pagePath = canonical ? new URL(canonical).pathname : '/';
@@ -69,9 +83,20 @@ export default function SEOHead({ title, description, canonical, lang, pageKey, 
     // x-default
     updateLink('alternate', `${BASE_URL}${pagePath.replace(/^\/(es|ja|zh|bn|fr|ar|ru)/, '') || '/'}`, { hreflang: 'x-default' });
     
+    // JSON-LD structured data
+    if (jsonLd) {
+      let script = document.querySelector('script[type="application/ld+json"]');
+      if (!script) {
+        script = document.createElement('script');
+        script.setAttribute('type', 'application/ld+json');
+        document.head.appendChild(script);
+      }
+      script.textContent = JSON.stringify(jsonLd);
+    }
+    
     // HTML lang attribute
     document.documentElement.setAttribute('lang', lang || 'en');
-  }, [title, description, canonical, lang, pageKey, ogImage]);
+  }, [title, description, canonical, lang, pageKey, ogImage, jsonLd]);
   
   return null;
 }

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 
-export default function ConfirmDialog({ title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel', variant = 'danger', requireInput, onConfirm, onCancel }) {
+export default memo(function ConfirmDialog({ title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel', variant = 'danger', requireInput, onConfirm, onCancel }) {
   const [inputVal, setInputVal] = useState('');
   const inputRef = useRef(null);
   const confirmDisabled = requireInput && inputVal !== requireInput;
@@ -29,4 +29,4 @@ export default function ConfirmDialog({ title, message, confirmLabel = 'Confirm'
       </div>
     </div>
   );
-}
+});

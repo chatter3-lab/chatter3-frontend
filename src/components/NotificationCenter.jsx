@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 
-export default function NotificationCenter({ user, API_URL, authFetch }) {
+export default memo(function NotificationCenter({ user, API_URL, authFetch }) {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -60,4 +60,4 @@ export default function NotificationCenter({ user, API_URL, authFetch }) {
       )}
     </div>
   );
-}
+});

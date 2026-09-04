@@ -6,11 +6,16 @@ import { getTranslations, getLangFromPath, detectLanguage, getLocalizedPath, lan
 import useInstallPrompt from './hooks/useInstallPrompt';
 import { useTranslation } from './i18n/useTranslation';
 import { ToastProvider, useToast } from './components/Toast';
+import { ExperimentProvider } from './hooks/useExperiment.jsx';
+import { COUNTRIES } from './constants/countries';
 import ConfirmDialog from './components/ConfirmDialog';
 import Avatar from './components/Avatar';
 import { SkeletonDashboard } from './components/Skeleton';
 import OfflineBanner from './components/OfflineBanner';
 import NotificationCenter from './components/NotificationCenter';
+import CefrAssessment from './components/CefrAssessment';
+import CertificateCard from './components/CertificateCard';
+import ShareCard from './components/ShareCard';
 
 const HowItWorksPage = lazy(() => import('./pages/HowItWorksPage'));
 const ForBeginnersPage = lazy(() => import('./pages/ForBeginnersPage'));
@@ -75,9 +80,7 @@ function TurnstileWidget({onVerify,onExpire}){
   return <div ref={ref} style={{margin:'12px 0',textAlign:'center'}}/>;
 }
 
-// ── ISO 3166-1 Countries ─────────────────────────────────────
-const COUNTRIES=[{code:'AF',name:'Afghanistan'},{code:'AL',name:'Albania'},{code:'DZ',name:'Algeria'},{code:'AD',name:'Andorra'},{code:'AO',name:'Angola'},{code:'AG',name:'Antigua and Barbuda'},{code:'AR',name:'Argentina'},{code:'AM',name:'Armenia'},{code:'AU',name:'Australia'},{code:'AT',name:'Austria'},{code:'AZ',name:'Azerbaijan'},{code:'BS',name:'Bahamas'},{code:'BH',name:'Bahrain'},{code:'BD',name:'Bangladesh'},{code:'BB',name:'Barbados'},{code:'BY',name:'Belarus'},{code:'BE',name:'Belgium'},{code:'BZ',name:'Belize'},{code:'BJ',name:'Benin'},{code:'BT',name:'Bhutan'},{code:'BO',name:'Bolivia'},{code:'BA',name:'Bosnia and Herzegovina'},{code:'BW',name:'Botswana'},{code:'BR',name:'Brazil'},{code:'BN',name:'Brunei'},{code:'BG',name:'Bulgaria'},{code:'BF',name:'Burkina Faso'},{code:'BI',name:'Burundi'},{code:'CV',name:'Cabo Verde'},{code:'KH',name:'Cambodia'},{code:'CM',name:'Cameroon'},{code:'CA',name:'Canada'},{code:'CF',name:'Central African Republic'},{code:'TD',name:'Chad'},{code:'CL',name:'Chile'},{code:'CN',name:'China'},{code:'CO',name:'Colombia'},{code:'KM',name:'Comoros'},{code:'CG',name:'Congo'},{code:'CD',name:'Congo (DRC)'},{code:'CR',name:'Costa Rica'},{code:'HR',name:'Croatia'},{code:'CU',name:'Cuba'},{code:'CY',name:'Cyprus'},{code:'CZ',name:'Czech Republic'},{code:'DK',name:'Denmark'},{code:'DJ',name:'Djibouti'},{code:'DM',name:'Dominica'},{code:'DO',name:'Dominican Republic'},{code:'EC',name:'Ecuador'},{code:'EG',name:'Egypt'},{code:'SV',name:'El Salvador'},{code:'GQ',name:'Equatorial Guinea'},{code:'ER',name:'Eritrea'},{code:'EE',name:'Estonia'},{code:'SZ',name:'Eswatini'},{code:'ET',name:'Ethiopia'},{code:'FJ',name:'Fiji'},{code:'FI',name:'Finland'},{code:'FR',name:'France'},{code:'GA',name:'Gabon'},{code:'GM',name:'Gambia'},{code:'GE',name:'Georgia'},{code:'DE',name:'Germany'},{code:'GH',name:'Ghana'},{code:'GR',name:'Greece'},{code:'GD',name:'Grenada'},{code:'GT',name:'Guatemala'},{code:'GN',name:'Guinea'},{code:'GW',name:'Guinea-Bissau'},{code:'GY',name:'Guyana'},{code:'HT',name:'Haiti'},{code:'HN',name:'Honduras'},{code:'HK',name:'Hong Kong'},{code:'HU',name:'Hungary'},{code:'IS',name:'Iceland'},{code:'IN',name:'India'},{code:'ID',name:'Indonesia'},{code:'IR',name:'Iran'},{code:'IQ',name:'Iraq'},{code:'IE',name:'Ireland'},{code:'IL',name:'Israel'},{code:'IT',name:'Italy'},{code:'JM',name:'Jamaica'},{code:'JP',name:'Japan'},{code:'JO',name:'Jordan'},{code:'KZ',name:'Kazakhstan'},{code:'KE',name:'Kenya'},{code:'KI',name:'Kiribati'},{code:'KW',name:'Kuwait'},{code:'KG',name:'Kyrgyzstan'},{code:'LA',name:'Laos'},{code:'LV',name:'Latvia'},{code:'LB',name:'Lebanon'},{code:'LS',name:'Lesotho'},{code:'LR',name:'Liberia'},{code:'LY',name:'Libya'},{code:'LI',name:'Liechtenstein'},{code:'LT',name:'Lithuania'},{code:'LU',name:'Luxembourg'},{code:'MG',name:'Madagascar'},{code:'MW',name:'Malawi'},{code:'MY',name:'Malaysia'},{code:'MV',name:'Maldives'},{code:'ML',name:'Mali'},{code:'MT',name:'Malta'},{code:'MH',name:'Marshall Islands'},{code:'MR',name:'Mauritania'},{code:'MU',name:'Mauritius'},{code:'MX',name:'Mexico'},{code:'FM',name:'Micronesia'},{code:'MD',name:'Moldova'},{code:'MC',name:'Monaco'},{code:'MN',name:'Mongolia'},{code:'ME',name:'Montenegro'},{code:'MA',name:'Morocco'},{code:'MZ',name:'Mozambique'},{code:'MM',name:'Myanmar'},{code:'NA',name:'Namibia'},{code:'NR',name:'Nauru'},{code:'NP',name:'Nepal'},{code:'NL',name:'Netherlands'},{code:'NZ',name:'New Zealand'},{code:'NI',name:'Nicaragua'},{code:'NE',name:'Niger'},{code:'NG',name:'Nigeria'},{code:'NO',name:'Norway'},{code:'OM',name:'Oman'},{code:'PK',name:'Pakistan'},{code:'PW',name:'Palau'},{code:'PA',name:'Panama'},{code:'PG',name:'Papua New Guinea'},{code:'PY',name:'Paraguay'},{code:'PE',name:'Peru'},{code:'PH',name:'Philippines'},{code:'PL',name:'Poland'},{code:'PT',name:'Portugal'},{code:'PR',name:'Puerto Rico'},{code:'QA',name:'Qatar'},{code:'RO',name:'Romania'},{code:'RU',name:'Russia'},{code:'RW',name:'Rwanda'},{code:'KN',name:'Saint Kitts and Nevis'},{code:'LC',name:'Saint Lucia'},{code:'VC',name:'Saint Vincent and the Grenadines'},{code:'WS',name:'Samoa'},{code:'SM',name:'San Marino'},{code:'SA',name:'Saudi Arabia'},{code:'SN',name:'Senegal'},{code:'RS',name:'Serbia'},{code:'SC',name:'Seychelles'},{code:'SL',name:'Sierra Leone'},{code:'SG',name:'Singapore'},{code:'SK',name:'Slovakia'},{code:'SI',name:'Slovenia'},{code:'SB',name:'Solomon Islands'},{code:'SO',name:'Somalia'},{code:'ZA',name:'South Africa'},{code:'KR',name:'South Korea'},{code:'SS',name:'South Sudan'},{code:'ES',name:'Spain'},{code:'LK',name:'Sri Lanka'},{code:'SD',name:'Sudan'},{code:'SR',name:'Suriname'},{code:'SE',name:'Sweden'},{code:'CH',name:'Switzerland'},{code:'SY',name:'Syria'},{code:'TW',name:'Taiwan'},{code:'TJ',name:'Tajikistan'},{code:'TZ',name:'Tanzania'},{code:'TH',name:'Thailand'},{code:'TL',name:'Timor-Leste'},{code:'TG',name:'Togo'},{code:'TO',name:'Tonga'},{code:'TT',name:'Trinidad and Tobago'},{code:'TN',name:'Tunisia'},{code:'TR',name:'Turkey'},{code:'TM',name:'Turkmenistan'},{code:'UG',name:'Uganda'},{code:'UA',name:'Ukraine'},{code:'AE',name:'United Arab Emirates'},{code:'GB',name:'United Kingdom'},{code:'US',name:'United States'},{code:'UY',name:'Uruguay'},{code:'UZ',name:'Uzbekistan'},{code:'VU',name:'Vanuatu'},{code:'VE',name:'Venezuela'},{code:'VN',name:'Vietnam'},{code:'YE',name:'Yemen'},{code:'ZM',name:'Zambia'},{code:'ZW',name:'Zimbabwe'}];
-
+// ── ISO 3166-1 Countries (imported from shared constants) ─────
 const getFlag=code=>{
   if(!code)return'🌍';
   const c=COUNTRIES.find(x=>x.code===code);
@@ -564,6 +567,9 @@ function App(){
   const[session,setSession]=useState(null);
   const[callStartedAt,setCallStartedAt]=useState(null);
   const[showOnboarding,setShowOnboarding]=useState(false);
+  const[showAssessment,setShowAssessment]=useState(false);
+  const[showCertificate,setShowCertificate]=useState(false);
+  const[showShareCard,setShowShareCard]=useState(false);
   const[showProfileGate,setShowProfileGate]=useState(false);
   const[showExchange,setShowExchange]=useState(false);
   const[showFriends,setShowFriends]=useState(false);
@@ -658,6 +664,7 @@ function App(){
     <>
     <OfflineBanner />
     <ErrorBoundary>
+    <ExperimentProvider userId={user?.id}>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="app-container">
         {maintenance===null?(
@@ -677,6 +684,9 @@ function App(){
         {showProfileGate&&user&&<ProfileGate t={t} user={user} onComplete={u=>{setAndSaveUser(u);setShowProfileGate(false);setView('matching');}} onDismiss={()=>setShowProfileGate(false)}/>}
         {showExchange&&user&&<ExchangeModal t={t} user={user} onClose={()=>setShowExchange(false)} onDone={(fp,rp)=>{setAndSaveUser({...user,fp_balance:fp,rp_balance:rp});setShowExchange(false);if(fp>=1)setView('matching');}}/>}
         {showFriends&&user&&<FriendsModal t={t} user={user} onClose={()=>setShowFriends(false)}/>}
+        {showAssessment&&user&&<div style={{position:'fixed',inset:0,background:'white',zIndex:9998,overflow:'auto'}}><CefrAssessment user={user} onComplete={()=>setShowAssessment(false)} onBack={()=>setShowAssessment(false)}/></div>}
+        {showCertificate&&user&&<div style={{position:'fixed',inset:0,background:'white',zIndex:9998,overflow:'auto'}}><CertificateCard user={user} onBack={()=>setShowCertificate(false)}/></div>}
+        {showShareCard&&user&&<ShareCard user={user} onClose={()=>setShowShareCard(false)}/>}
 
         {view==='auth'&&<AuthView onLogin={handleLogin} setView={setView} t={t} lang={lang}/>}
         {view==='forgot'&&<ForgotPasswordView onBack={()=>setView('auth')} t={t} lang={lang}/>}
@@ -722,7 +732,7 @@ function App(){
         )}
 
         <main className="app-content">
-          {view==='dashboard'&&user&&<DashboardView user={user} settings={appSettings} onNavigate={setView} onFindPartner={handleFindPartner} onExchange={()=>setShowExchange(true)} onRefreshUser={()=>refreshUser(user.id)} t={t}/>}
+          {view==='dashboard'&&user&&<DashboardView user={user} settings={appSettings} onNavigate={setView} onFindPartner={handleFindPartner} onExchange={()=>setShowExchange(true)} onRefreshUser={()=>refreshUser(user.id)} onShowAssessment={()=>setShowAssessment(true)} onShowCertificate={()=>setShowCertificate(true)} onShowShareCard={()=>setShowShareCard(true)} t={t}/>}
            {view==='matching'&&user&&<MatchingView user={user} settings={appSettings} onCancel={()=>setView('dashboard')} onMatch={s=>{setSession(s);setView('precall');}} t={t}/>}
           {view==='precall'&&user&&session&&<PreCallView session={session} onStart={()=>{setCallStartedAt(Date.now());setView('video');}} onCancel={async()=>{try{await authFetch(`${API_URL}/api/matching/end`,{method:'POST',body:JSON.stringify({session_id:session.id,reason:'cancelled'})});}catch{}setSession(null);setView('matching');}} t={t}/>}
           {view==='video'&&user&&session&&<VideoRoomView user={user} session={session} callStartedAt={callStartedAt} onEnd={()=>{setSession(null);setCallStartedAt(null);refreshUser(user.id);setView('dashboard');}} t={t}/>}
@@ -743,6 +753,7 @@ function App(){
         )}
       </div>
     </GoogleOAuthProvider>
+    </ExperimentProvider>
     </ErrorBoundary>
     </>
   );
@@ -1176,7 +1187,7 @@ function AchievementsSection({t}){
   );
 }
 
-function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefreshUser,t}){
+function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefreshUser,onShowAssessment,onShowCertificate,onShowShareCard,t}){
   const[online,setOnline]=useState({searching:0,in_call:0,total:0,by_level:{}});
   const[balances,setBalances]=useState({fp:user.fp_balance??0,rp:user.rp_balance??0});
   const[learnerProgress,setLearnerProgress]=useState(null);
@@ -1230,7 +1241,7 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
           </div>
         )}
         {reputation&&(
-          <div style={{background:reputation.badge.tier==='Trusted'?'linear-gradient(135deg,#fef3c7,#fde68a)':reputation.badge.tier==='Experienced'?'linear-gradient(135deg,#dcfce7,#bbf7d0)':reputation.badge.tier==='Active'?'linear-gradient(135deg,#e0e7ff,#c7d2fe)':'linear-gradient(135deg,#f1f5f9,#e2e8f0)',border:`1px solid ${reputation.badge.tier==='Trusted'?'#f59e0b':reputation.badge.tier==='Experienced'?'#22c55e':reputation.badge.tier==='Active'?'#6366f1':'#94a3b8'}`,borderRadius:10,padding:'10px 14px',marginBottom:'.75rem',fontSize:'.85rem',color:reputation.badge.tier==='Trusted'?'#92400e':reputation.badge.tier==='Experienced'?'#065f46':reputation.badge.tier==='Active'?'#3730a3':'#475569',fontWeight:500}}>
+          <div style={{background:reputation.badge.tier==='Trusted'?'linear-gradient(135deg,#fef3c7,#fde68a)':reputation.badge.tier==='Experienced'?'linear-gradient(135deg,#dcfce7,#bbf7d0)':reputation.badge.tier==='Active'?'linear-gradient(135deg,#e0e7ff,#c7d2fe)':'linear-gradient(135deg,#f1f5f9,#e2e8f0)',border:`1px solid ${reputation.badge.tier==='Trusted'?'#f59e0b':reputation.badge.tier==='Experienced'?'#22c55e':reputation.badge.tier==='Active'?'#6366f1':'#94a3b8'}`,borderRadius:10,padding:'10px 14px',marginBottom:'.75rem',fontSize:'.85rem',color:reputation.badge.tier==='Trusted'?'#92400e':reputation.badge.tier==='Experienced'?'#065f46':reputation.badge.tier==='Active'?'#3730a3':'#475569',fontWeight:500,overflow:'hidden',boxSizing:'border-box',maxWidth:'100%'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                 <span style={{fontSize:'1.2rem'}}>{reputation.badge.icon}</span>
@@ -1273,6 +1284,11 @@ function DashboardView({user,settings,onNavigate,onFindPartner,onExchange,onRefr
           </div>
         </div>
         <button className="exchange-btn" onClick={onExchange}>{t.dashboard.exchangeButton}</button>
+        <div style={{display:'flex',gap:6,marginTop:8}}>
+          <button onClick={onShowAssessment} style={{flex:1,padding:'8px 10px',borderRadius:8,border:'1px solid #e5e7eb',background:'white',cursor:'pointer',fontSize:'.8rem',fontWeight:600,color:'#4f46e5',textAlign:'center'}}>📝 Take CEFR Test</button>
+          <button onClick={onShowCertificate} style={{flex:1,padding:'8px 10px',borderRadius:8,border:'1px solid #e5e7eb',background:'white',cursor:'pointer',fontSize:'.8rem',fontWeight:600,color:'#4f46e5',textAlign:'center'}}>🎓 Certificate</button>
+          <button onClick={onShowShareCard} style={{flex:1,padding:'8px 10px',borderRadius:8,border:'1px solid #e5e7eb',background:'white',cursor:'pointer',fontSize:'.8rem',fontWeight:600,color:'#4f46e5',textAlign:'center'}}>📤 Share</button>
+        </div>
 
         <h3 style={{marginTop:'1.25rem'}}>{t.dashboard.yourStats}</h3>
         <div className="stat-row"><span className="stat-label">{t.dashboard.level}</span><span className="stat-value" style={{textTransform:'capitalize'}}>{user.english_level}</span></div>
@@ -2030,7 +2046,7 @@ function ProfileView({user,onBack,onUpdate,onShowOnboarding,t}){
         <button onClick={onShowOnboarding} className="btn-accent-outline">{t.profile.viewIntro}</button>
         <button onClick={onBack} className="btn-subtle">{t.profile.back}</button>
       </div>
-      <div style={{background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:12,padding:'1.25rem',marginBottom:'1.25rem'}}>
+      <div style={{background:'#f0f4ff',border:'1px solid #c7d7fc',borderRadius:12,padding:'1.25rem',marginTop:'1.25rem',marginBottom:'1.25rem',overflow:'hidden',boxSizing:'border-box',maxWidth:'100%'}}>
         <h3 style={{fontFamily:'Sora,sans-serif',fontSize:'.95rem',margin:'0 0 .75rem',color:'#1e293b'}}>{t.profile.learnMore}</h3>
         <div style={{display:'flex',flexDirection:'column',gap:'.5rem'}}>
           <a href="/how-it-works" target="_blank" style={{display:'flex',alignItems:'center',gap:'.5rem',padding:'.6rem .75rem',background:'white',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:'.88rem',border:'1px solid #e5e7eb',transition:'border-color .15s'}} onMouseEnter={e=>e.currentTarget.style.borderColor='#4f46e5'} onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>

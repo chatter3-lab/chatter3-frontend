@@ -418,6 +418,9 @@
       "referrals": "referrals",
       "reports": "reports",
       "settings": "settings",
+      "experiments": "experiments",
+      "feedback": "feedback",
+      "audit": "audit log",
       "health": "health"
     },
     "analytics": {

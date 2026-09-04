@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 
-export default function OfflineBanner() {
+export default memo(function OfflineBanner() {
   const [online, setOnline] = useState(navigator.onLine);
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -15,4 +15,4 @@ export default function OfflineBanner() {
       ⚠️ You are offline — some features may not work
     </div>
   );
-}
+});
